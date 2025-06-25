@@ -7,81 +7,31 @@ export async function GET(request) {
   const building = searchParams.get("building")
   const floor = searchParams.get("floor")
 
-  // 전체 데이터
   if (!building && !floor) {
-    const res = await fetch("http://13.55.76.216:3000/buildings", {
+    const res = await fetch("http://13.55.76.216:3000/building", {
       method: "GET",
     })
     const data = await res.json()
     return NextResponse.json({ all: data })
   }
 
-  // 건물만 있을 때
-  if (building && !floor) {
-    const res = await fetch(`http://13.55.76.216:3000/buildings/${building}`, {
-      method: "GET",
-    })
-    const data = await res.json()
-    return NextResponse.json({
-      floors: data.floors,
-      allRooms: data.rooms,
-    })
-  }
-
-  // 건물+층 있을 때
-  if (building && floor) {
-    const res = await fetch(
-      `http://13.55.76.216:3000/buildings/${building}/floors/${floor}`,
-      { method: "GET" }
-    )
-    const data = await res.json()
-    return NextResponse.json({
-      classrooms: data.classrooms || [],
-    })
-  }
-
   return NextResponse.json({ error: "잘못된 요청" }, { status: 400 })
 }
 
-// 건물/강의실 설명/이름 수정 (PATCH)
+// 건물 이름/설명 수정 (PATCH)
 export async function PATCH(request) {
   const body = await request.json()
-  // body: { type: "building"|"classroom", building, floor?, name?, desc?, newName? }
 
-  // 건물 설명 수정
   if (body.type === "building") {
-    const res = await fetch(
-      `http://13.55.76.216:3000/buildings/${body.building}`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ desc: body.desc }),
-      }
-    )
-    const data = await res.json()
-    if (!res.ok) {
-      return NextResponse.json(
-        { success: false, error: data.error || "수정 실패" },
-        { status: res.status }
-      )
-    }
-    return NextResponse.json({ success: true })
-  }
-
-  // 강의실 설명/이름 수정
-  if (body.type === "classroom") {
     const patchBody = {}
-    if (body.desc !== undefined) patchBody.desc = body.desc
     if (body.newName !== undefined) patchBody.newName = body.newName
+    if (body.desc !== undefined) patchBody.desc = body.desc
 
-    const res = await fetch(
-      `http://13.55.76.216:3000/buildings/${body.building}/floors/${body.floor}/classrooms/${body.name}`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(patchBody),
-      }
-    )
+    const res = await fetch(`http://13.55.76.216:3000/building/`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patchBody),
+    })
     const data = await res.json()
     if (!res.ok) {
       return NextResponse.json(
@@ -98,39 +48,43 @@ export async function PATCH(request) {
   )
 }
 
-// 층 추가 (POST)
+// 건물 추가 (POST)
 export async function POST(request) {
-  const formData = await request.formData()
-  const building = formData.get("building_name")
-  const floor = formData.get("floor_number")
-  const file = formData.get("file")
+  try {
+    const body = await request.json()
+    const { building_name, x, y, desc } = body
 
-  const proxyForm = new FormData()
-  proxyForm.append("building_name", building)
-  proxyForm.append("floor_number", floor)
-  proxyForm.append("file", file)
-
-  const res = await fetch("http://13.55.76.216:3000/floor", {
-    method: "POST",
-    body: proxyForm,
-  })
-
-  const text = await res.text()
-  let data = {}
-  if (text) {
-    try {
-      data = JSON.parse(text)
-    } catch {
-      data = { error: "외부 서버 응답이 올바른 JSON이 아닙니다." }
+    if (!building_name || !x || !y || !desc) {
+      return NextResponse.json(
+        { success: false, error: "건물 이름, 위도, 경도는 필수입니다." },
+        { status: 400 }
+      )
     }
-  }
 
-  if (!res.ok) {
+    const res = await fetch("http://13.55.76.216:3000/building/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        building_name,
+        x,
+        y,
+        desc: desc || "",
+        // 3D 단면도 파일은 일단 제외
+      }),
+    })
+
+    const data = await res.json()
+    if (!res.ok) {
+      return NextResponse.json(
+        { success: false, error: data.error || "외부 서버 오류" },
+        { status: res.status }
+      )
+    }
+    return NextResponse.json({ success: true, building: data })
+  } catch (err) {
     return NextResponse.json(
-      { success: false, error: data.error || "외부 서버 오류" },
-      { status: res.status }
+      { success: false, error: "서버 오류" },
+      { status: 500 }
     )
   }
-
-  return NextResponse.json({ success: true, ...data })
 }

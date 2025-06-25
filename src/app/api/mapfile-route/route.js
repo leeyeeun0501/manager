@@ -1,3 +1,4 @@
+//mapfile-route
 import { NextResponse } from "next/server"
 
 // GET: 건물 목록, 층 목록, 도면 이미지 URL, 카테고리 목록 반환

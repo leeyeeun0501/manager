@@ -166,7 +166,7 @@ export default function BuildingPage() {
     formData.append("file", addFloorFile)
 
     try {
-      const res = await fetch("/api/building-route", {
+      const res = await fetch("/api/floor-route", {
         method: "POST",
         body: formData,
       })

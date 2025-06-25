@@ -1,6 +1,7 @@
+// building-route
 import { NextResponse } from "next/server"
 
-// 임시 데이터 예시
+// 임시 데이터
 let buildingData = {
   W1: "W1 건물 설명입니다.",
   W2: "W2 건물 설명입니다.",
@@ -24,7 +25,7 @@ let classroomData = {
   },
 }
 
-// GET: 건물, 층, 강의실, 전체 데이터 조회
+// GET: 전체 데이터 조회
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const building = searchParams.get("building")
@@ -50,9 +51,28 @@ export async function GET(request) {
     return NextResponse.json({ all: result })
   }
 
-  // 건물만 있으면 해당 건물의 층 목록 반환
+  // 건물만 있으면 해당 건물의 층 목록 + 모든 강의실 정보 반환
   if (building && !floor) {
-    return NextResponse.json({ floors: buildingFloors[building] || [] })
+    const floors = buildingFloors[building] || []
+
+    // 해당 건물의 모든 강의실 정보 (표에 쓸 데이터)
+    const allRooms = []
+    for (const f of floors) {
+      const classrooms = classroomData[building]?.[f] || []
+      for (const room of classrooms) {
+        allRooms.push({
+          building,
+          floor: f,
+          name: room.name,
+          desc: room.desc,
+        })
+      }
+    }
+
+    return NextResponse.json({
+      floors, // [1, 2, 3]
+      allRooms, // [{ building, floor, name, desc }, ...]
+    })
   }
 
   // 건물과 층이 있으면 해당 층의 강의실 목록 반환

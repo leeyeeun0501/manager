@@ -32,7 +32,7 @@ export async function DELETE(request) {
       )
     }
     // 외부 서버에 사용자 삭제 요청 보내기
-    const res = await fetch(`http://13.55.76.216:3000/users/${id}`, {
+    const res = await fetch(`http://13.55.76.216:3001/user/${id}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
     })

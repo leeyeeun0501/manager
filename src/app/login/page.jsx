@@ -1,3 +1,4 @@
+// login/page.jsx
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -21,9 +22,12 @@ export default function LoginPage() {
         body: JSON.stringify({ id, pw }),
       })
       const data = await res.json()
-      if (data.success) {
-        // 로그인 성공 시 메인 페이지로 이동
-        router.push("/")
+      console.log("데이터", data)
+      if (id == data.id) {
+        localStorage.setItem("id", data.id)
+        localStorage.setItem("name", data.name)
+        localStorage.setItem("islogin", data.islogin)
+        router.push("/management")
       } else {
         setError(data.error || "로그인 실패")
       }

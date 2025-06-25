@@ -1,3 +1,4 @@
+// building/page.jsx
 "use client"
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
@@ -33,7 +34,6 @@ export default function BuildingPage() {
   // 건물 설명 수정 폼 상태
   // 강의실명/설명 수정 폼 상태
   const [editBuilding, setEditBuilding] = useState("")
-
   const [editBuildingIdx, setEditBuildingIdx] = useState(null)
   const [editClassroomIdx, setEditClassroomIdx] = useState(null)
   const [editField, setEditField] = useState("") // "desc", "name", "desc"

@@ -1,3 +1,4 @@
+// building-route
 import { NextResponse } from "next/server"
 
 // 전체 데이터 조회 (GET)
@@ -46,8 +47,9 @@ export async function GET(request) {
 export async function PATCH(request) {
   const body = await request.json()
   // body: { type: "building"|"classroom", building, floor?, name?, desc?, newName? }
+
+  // 건물 설명 수정
   if (body.type === "building") {
-    // 건물 설명 수정
     const res = await fetch(
       `http://13.55.76.216:3000/buildings/${body.building}`,
       {
@@ -65,8 +67,9 @@ export async function PATCH(request) {
     }
     return NextResponse.json({ success: true })
   }
+
+  // 강의실 설명/이름 수정
   if (body.type === "classroom") {
-    // 강의실 설명/이름 수정
     const patchBody = {}
     if (body.desc !== undefined) patchBody.desc = body.desc
     if (body.newName !== undefined) patchBody.newName = body.newName
@@ -88,12 +91,14 @@ export async function PATCH(request) {
     }
     return NextResponse.json({ success: true })
   }
+
   return NextResponse.json(
     { success: false, error: "잘못된 요청" },
     { status: 400 }
   )
 }
 
+// 층 추가 (POST)
 export async function POST(request) {
   const formData = await request.formData()
   const building = formData.get("building_name")

@@ -1,10 +1,11 @@
+// login-route
 export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
 
 // 실제 인증 서버 연동 함수
 async function login(id, pw) {
-  const res = await fetch("http://220.90.180.99:3001/user/login", {
+  const res = await fetch("http://13.55.76.216:3001/user/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, pw }),

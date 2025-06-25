@@ -14,15 +14,16 @@ export default function LoginPage() {
     e.preventDefault()
     setError("")
     setLoading(true)
-    /* try {
-      const res = await fetch("/api/login", {
+    try {
+      const res = await fetch("/api/login-route", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, pw }),
       })
       const data = await res.json()
       if (data.success) {
-        window.location.href = "/"
+        // 로그인 성공 시 메인 페이지로 이동
+        router.push("/")
       } else {
         setError(data.error || "로그인 실패")
       }
@@ -31,8 +32,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
-    */
-    router.push("/management")
   }
 
   // 회원가입 페이지 이동
@@ -53,6 +52,7 @@ export default function LoginPage() {
             onChange={(e) => setId(e.target.value)}
             required
             className="login-input"
+            disabled={loading}
           />
           <input
             type="password"
@@ -61,9 +61,10 @@ export default function LoginPage() {
             onChange={(e) => setPw(e.target.value)}
             required
             className="login-input"
+            disabled={loading}
           />
-          <button type="submit" className="login-btn">
-            로그인
+          <button type="submit" className="login-btn" disabled={loading}>
+            {loading ? "로그인 중..." : "로그인"}
           </button>
           {error && <div className="login-error">{error}</div>}
         </form>

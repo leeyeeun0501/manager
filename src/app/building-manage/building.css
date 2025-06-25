@@ -1,3 +1,4 @@
+/* building.css */
 .building-root {
   min-height: 100vh;
   background: #f7f7f7;
@@ -176,6 +177,7 @@
   background: #4b2993;
   color: #fff;
 }
+
 .inline-add-building-form .modal-cancel-btn:hover {
   background: #eee;
 }

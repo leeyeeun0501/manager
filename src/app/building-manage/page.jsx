@@ -1,4 +1,4 @@
-// building/page.jsx
+// building
 "use client"
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
@@ -129,11 +129,11 @@ export default function BuildingPage() {
         const data = await res.json()
         setTableRows(
           (data.all || []).map((row) => ({
-            building: row.building,
-            desc: row.desc || "",
-            floor: row.floor,
-            classroom: row.name,
-            classroomDesc: row.desc,
+            Building_Name: row.Building_Name,
+            Building_Desc: row.Desc || "",
+            Floor_Num: row.Floor_Num,
+            Room_Name: row.Room_Name,
+            Room_Desc: row.Room_Desc,
           }))
         )
       } catch (err) {
@@ -525,7 +525,8 @@ export default function BuildingPage() {
                 pagedRows.map((row, idx) => (
                   <tr key={idx}>
                     {/* 건물명 */}
-                    <td style={{ minWidth: 100 }}>{row.building}</td>
+                    <td style={{ minWidth: 100 }}>{row.Building_Name}</td>
+
                     {/* 건물 설명 */}
                     <td style={{ minWidth: 200 }}>
                       {editBuildingIdx === idx && editField === "desc" ? (
@@ -566,8 +567,10 @@ export default function BuildingPage() {
                         </>
                       )}
                     </td>
+
                     {/* 층 */}
                     <td style={{ minWidth: 60 }}>{row.floor}</td>
+
                     {/* 강의실명 */}
                     <td style={{ minWidth: 150 }}>
                       {editClassroomIdx === idx && editField === "name" ? (
@@ -610,6 +613,7 @@ export default function BuildingPage() {
                         </>
                       )}
                     </td>
+
                     {/* 강의실 설명 */}
                     <td style={{ minWidth: 200 }}>
                       {editClassroomIdx === idx && editField === "desc" ? (

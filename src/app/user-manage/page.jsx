@@ -1,3 +1,4 @@
+// user-manage
 "use client"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
@@ -17,10 +18,9 @@ export default function UserManagePage() {
     try {
       const res = await fetch("/api/user-route")
       const data = await res.json()
-      console.log("서버 응답:", data) // 실제 응답 구조 확인!
+      console.log("서버 응답:", data)
       if (!res.ok)
         throw new Error(data.error || "사용자 목록을 불러올 수 없습니다.")
-      // 배열 구조 대응 (users: [...]) 또는 그냥 배열
       const usersArr = Array.isArray(data.users)
         ? data.users
         : Array.isArray(data)
@@ -69,7 +69,7 @@ export default function UserManagePage() {
           <table className="user-table">
             <thead>
               <tr>
-                <th>ID</th>
+                <th>아이디</th>
                 <th>비밀번호</th>
                 <th>이름</th>
                 <th>학번</th>

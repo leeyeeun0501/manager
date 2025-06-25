@@ -18,7 +18,7 @@ async function registerUser({ id, pw, name, phone, email }) {
 export async function POST(req) {
   try {
     const body = await req.json()
-    if (!body.id || !body.pw || !body.name || !body.phone || !body.email) {
+    if (!body.id || !body.pw || !body.name || !body.phone) {
       return NextResponse.json(
         { message: "모든 항목을 입력하세요." },
         { status: 400 }

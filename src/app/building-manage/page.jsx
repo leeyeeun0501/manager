@@ -26,8 +26,8 @@ export default function BuildingPage() {
   // 건물 추가 인라인 폼 상태
   const [showAddBuilding, setShowAddBuilding] = useState(false)
   const [addBuildingName, setAddBuildingName] = useState("")
-  const [addBuildingLng, setAddBuildingLng] = useState("")
-  const [addBuildingLat, setAddBuildingLat] = useState("")
+  const [addBuildingX, setAddBuildingX] = useState("")
+  const [addBuildingY, setAddBuildingY] = useState("")
   const [addBuildingDesc, setAddBuildingDesc] = useState("")
   const [addBuildingError, setAddBuildingError] = useState("")
 
@@ -196,51 +196,27 @@ export default function BuildingPage() {
   // 건물 추가 인라인 폼 제출
   const handleAddBuilding = async (e) => {
     e.preventDefault()
-    setAddBuildingError("")
-    if (
-      !addBuildingName ||
-      !addBuildingLng ||
-      !addBuildingLat ||
-      !addBuildingDesc
-    ) {
-      setAddBuildingError("모든 항목을 입력하세요.")
+    const x = Number(addBuildingX)
+    const y = Number(addBuildingY)
+
+    if (!addBuildingName || isNaN(x) || isNaN(y)) {
+      setAddBuildingError("모든 값을 올바르게 입력하세요.")
       return
     }
-    try {
-      const res = await fetch("/api/building-route", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          building: addBuildingName,
-          lng: addBuildingLng,
-          lat: addBuildingLat,
-          desc: addBuildingDesc,
-        }),
-      })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setAddBuildingError(data.error || "건물 추가 실패")
-        return
-      }
-      alert("건물 추가가 완료되었습니다!")
-      setShowAddBuilding(false)
-      setAddBuildingName("")
-      setAddBuildingLng("")
-      setAddBuildingLat("")
-      setAddBuildingDesc("")
-      // 데이터 새로고침
-      const buildingsRes = await fetch("/api/building-route")
-      const buildingsData = await buildingsRes.json()
-      const buildingSet = new Set()
-      if (buildingsData.all) {
-        buildingsData.all.forEach((item) => buildingSet.add(item.building))
-      }
-      setBuildings(Array.from(buildingSet).sort())
-    } catch (err) {
-      setAddBuildingError("건물 추가 중 오류가 발생했습니다.")
-    }
-  }
 
+    const res = await fetch("/api/building-route", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        building_name: addBuildingName,
+        x,
+        y,
+        desc: addBuildingDesc,
+      }),
+    })
+
+    // ...이하 생략
+  }
   // 건물 설명 수정 버튼 클릭
   const handleEditBuildingClick = (building) => {
     setEditBuilding(building)
@@ -348,12 +324,13 @@ export default function BuildingPage() {
             onChange={(e) => setSelectedBuilding(e.target.value)}
           >
             <option value="">건물</option>
-            {buildings.map((b) => (
-              <option key={b} value={b}>
+            {buildings.map((b, idx) => (
+              <option key={b || idx} value={b}>
                 {b}
               </option>
             ))}
           </select>
+
           <select
             className="floor-select"
             value={selectedFloor}
@@ -361,8 +338,8 @@ export default function BuildingPage() {
             disabled={!floors.length}
           >
             <option value="">층</option>
-            {floors.map((f) => (
-              <option key={f} value={f}>
+            {floors.map((f, idx) => (
+              <option key={f || idx} value={f}>
                 {f}
               </option>
             ))}
@@ -442,16 +419,16 @@ export default function BuildingPage() {
             />
             <input
               type="number"
-              value={addBuildingLng}
-              onChange={(e) => setAddBuildingLng(e.target.value)}
+              value={addBuildingX}
+              onChange={(e) => setAddBuildingX(e.target.value)}
               step="any"
               placeholder="경도"
               required
             />
             <input
               type="number"
-              value={addBuildingLat}
-              onChange={(e) => setAddBuildingLat(e.target.value)}
+              value={addBuildingY}
+              onChange={(e) => setAddBuildingY(e.target.value)}
               step="any"
               placeholder="위도"
               required

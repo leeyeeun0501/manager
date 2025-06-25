@@ -1,0 +1,74 @@
+.menu-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.profile-img {
+  border-radius: 50%;
+  background: #ddd;
+  margin-bottom: 8px;
+  object-fit: cover;
+}
+
+.profile-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 2px;
+}
+
+.bm-burger-button {
+  position: fixed;
+  width: 32px;
+  height: 32px;
+  left: 24px;
+  top: 24px;
+  z-index: 1001;
+}
+
+.bm-burger-bars {
+  background: #222;
+  border-radius: 2px;
+}
+
+.bm-menu-wrap {
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 300px;
+}
+
+.bm-menu {
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 20px 0 0 0;
+  font-size: 16px;
+}
+
+.bm-item-list {
+  color: #222;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bm-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* 메뉴 링크 스타일 */
+.menu-link {
+  color: #222;
+  text-decoration: none;
+  font-size: 1.08rem;
+  font-weight: 500;
+  padding: 10px 0;
+  border-radius: 6px;
+  transition: background 0.13s;
+}
+.menu-link:hover {
+  background: #f2eafd;
+  color: #4b2993;
+}

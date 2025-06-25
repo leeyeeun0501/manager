@@ -1,0 +1,61 @@
+export const dynamic = "force-dynamic"
+
+import { NextResponse } from "next/server"
+
+// 실제 인증 서버 연동 함수
+async function login(id, pw) {
+  const res = await fetch("http://220.90.180.99:3001/user/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, pw }),
+  })
+  if (!res.ok) return null
+  const user = await res.json()
+  return user // user 객체에는 user_id, name, type_id, apikey 등 포함
+}
+
+// POST: 로그인
+export async function POST(request) {
+  try {
+    const { id, pw } = await request.json()
+
+    if (!id || !pw) {
+      return NextResponse.json(
+        { success: false, error: "아이디와 비밀번호를 모두 입력하세요." },
+        { status: 400 }
+      )
+    }
+
+    const user = await login(id, pw)
+
+    if (!user || !user.type_id) {
+      return NextResponse.json(
+        { success: false, error: "로그인 정보가 올바르지 않습니다." },
+        { status: 401 }
+      )
+    }
+
+    // 로그인 성공: 필요한 정보만 반환
+    return NextResponse.json({
+      success: true,
+      user: {
+        user_id: user.user_id,
+        name: user.name,
+      },
+    })
+  } catch (err) {
+    console.error("로그인 처리 중 오류:", err)
+    return NextResponse.json(
+      { success: false, error: "서버 오류가 발생했습니다." },
+      { status: 500 }
+    )
+  }
+}
+
+// GET 등 다른 메서드는 허용하지 않음
+export async function GET() {
+  return NextResponse.json(
+    { error: "허용되지 않은 요청입니다." },
+    { status: 405 }
+  )
+}

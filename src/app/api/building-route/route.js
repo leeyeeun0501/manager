@@ -8,12 +8,11 @@ export async function GET(request) {
 
   // 전체 데이터
   if (!building && !floor) {
-    // 실제 서버에서 전체 데이터 받아오기
     const res = await fetch("http://13.55.76.216:3000/buildings", {
       method: "GET",
     })
     const data = await res.json()
-    return NextResponse.json({ all: data }) // [{building, floor, name, desc, ...}, ...]
+    return NextResponse.json({ all: data })
   }
 
   // 건물만 있을 때
@@ -24,7 +23,7 @@ export async function GET(request) {
     const data = await res.json()
     return NextResponse.json({
       floors: data.floors,
-      allRooms: data.rooms, // [{ building, floor, name, desc }, ...]
+      allRooms: data.rooms,
     })
   }
 
@@ -68,7 +67,6 @@ export async function PATCH(request) {
   }
   if (body.type === "classroom") {
     // 강의실 설명/이름 수정
-    // desc, newName 둘 다 또는 하나만 수정 가능
     const patchBody = {}
     if (body.desc !== undefined) patchBody.desc = body.desc
     if (body.newName !== undefined) patchBody.newName = body.newName

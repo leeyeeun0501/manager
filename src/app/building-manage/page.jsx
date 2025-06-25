@@ -30,6 +30,17 @@ export default function BuildingPage() {
   const [addBuildingDesc, setAddBuildingDesc] = useState("")
   const [addBuildingError, setAddBuildingError] = useState("")
 
+  // 건물 설명 수정 폼 상태
+  const [editBuilding, setEditBuilding] = useState("")
+  const [editBuildingDesc, setEditBuildingDesc] = useState("")
+  const [editBuildingError, setEditBuildingError] = useState("")
+
+  // 강의실명/설명 수정 폼 상태
+  const [editRowIdx, setEditRowIdx] = useState(null)
+  const [editClassroomName, setEditClassroomName] = useState("")
+  const [editClassroomDesc, setEditClassroomDesc] = useState("")
+  const [editClassroomError, setEditClassroomError] = useState("")
+
   // 건물 목록 불러오기
   useEffect(() => {
     async function fetchBuildings() {
@@ -93,7 +104,7 @@ export default function BuildingPage() {
         const data = await res.json()
         const rows = (data.classrooms || []).map((room) => ({
           building: selectedBuilding,
-          desc: `${selectedBuilding} 설명`,
+          desc: "", // 건물 설명은 별도 조회
           floor: selectedFloor,
           classroom: room.name,
           classroomDesc: room.desc,
@@ -117,7 +128,7 @@ export default function BuildingPage() {
         setTableRows(
           (data.all || []).map((row) => ({
             building: row.building,
-            desc: `${row.building} 설명`,
+            desc: row.desc || "",
             floor: row.floor,
             classroom: row.name,
             classroomDesc: row.desc,
@@ -147,15 +158,14 @@ export default function BuildingPage() {
       return
     }
     const formData = new FormData()
-    formData.append("building_name", addFloorBuilding) // 서버에서 req.body.building
-    formData.append("floor_number", addFloorNum) // 서버에서 req.body.floor
-    formData.append("file", addFloorFile) // 서버에서 req.file
+    formData.append("building_name", addFloorBuilding)
+    formData.append("floor_number", addFloorNum)
+    formData.append("file", addFloorFile)
 
     try {
       const res = await fetch("/api/building-route", {
         method: "POST",
         body: formData,
-        // Content-Type은 지정하지 마세요! (브라우저가 자동 생성)
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
@@ -198,7 +208,12 @@ export default function BuildingPage() {
       const res = await fetch("/api/building-route", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ building, floor }),
+        body: JSON.stringify({
+          building: addBuildingName,
+          lng: addBuildingLng,
+          lat: addBuildingLat,
+          desc: addBuildingDesc,
+        }),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
@@ -221,6 +236,102 @@ export default function BuildingPage() {
       setBuildings(Array.from(buildingSet).sort())
     } catch (err) {
       setAddBuildingError("건물 추가 중 오류가 발생했습니다.")
+    }
+  }
+
+  // 건물 설명 수정 버튼 클릭
+  const handleEditBuildingClick = (building) => {
+    setEditBuilding(building)
+    // 건물 설명 조회
+    fetch(`/api/building-route?building=${encodeURIComponent(building)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setEditBuildingDesc(data?.desc || "")
+      })
+      .catch(() => setEditBuildingDesc(""))
+  }
+
+  // 건물 설명 수정 제출
+  const handleEditBuildingSubmit = async (e) => {
+    e.preventDefault()
+    setEditBuildingError("")
+    try {
+      const res = await fetch("/api/building-route", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "building",
+          building: editBuilding,
+          desc: editBuildingDesc,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setEditBuildingError(data.error || "수정 실패")
+        return
+      }
+      alert("건물 설명이 수정되었습니다!")
+      setEditBuilding("")
+      // 데이터 새로고침
+      if (selectedBuilding === editBuilding) {
+        setSelectedBuilding("") // 리로드 유도
+        setTimeout(() => setSelectedBuilding(editBuilding), 0)
+      }
+    } catch (err) {
+      setEditBuildingError("수정 중 오류가 발생했습니다.")
+    }
+  }
+
+  // 강의실명/설명 수정 버튼 클릭
+  const handleEditClassroomClick = (rowIdx) => {
+    setEditRowIdx(rowIdx)
+    setEditClassroomName(tableRows[rowIdx].classroom)
+    setEditClassroomDesc(tableRows[rowIdx].classroomDesc)
+  }
+
+  // 강의실명/설명 수정 제출
+  const handleEditClassroomSubmit = async (e, row) => {
+    e.preventDefault()
+    setEditClassroomError("")
+    try {
+      const res = await fetch("/api/building-route", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "classroom",
+          building: row.building,
+          floor: row.floor,
+          name: row.classroom,
+          desc: editClassroomDesc,
+          newName: editClassroomName,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setEditClassroomError(data.error || "수정 실패")
+        return
+      }
+      alert("강의실 정보가 수정되었습니다!")
+      setEditRowIdx(null)
+      // 데이터 새로고침
+      if (selectedBuilding && selectedFloor) {
+        const res = await fetch(
+          `/api/building-route?building=${encodeURIComponent(
+            selectedBuilding
+          )}&floor=${encodeURIComponent(selectedFloor)}`
+        )
+        const data = await res.json()
+        const rows = (data.classrooms || []).map((room) => ({
+          building: selectedBuilding,
+          desc: "", // 건물 설명은 별도 조회
+          floor: selectedFloor,
+          classroom: room.name,
+          classroomDesc: room.desc,
+        }))
+        setTableRows(rows)
+      }
+    } catch (err) {
+      setEditClassroomError("수정 중 오류가 발생했습니다.")
     }
   }
 
@@ -366,6 +477,36 @@ export default function BuildingPage() {
           </form>
         )}
 
+        {/* 건물 설명 수정 폼 */}
+        {editBuilding && (
+          <form
+            className="inline-edit-building-form"
+            onSubmit={handleEditBuildingSubmit}
+          >
+            <span>{editBuilding}</span>
+            <input
+              type="text"
+              value={editBuildingDesc}
+              onChange={(e) => setEditBuildingDesc(e.target.value)}
+              placeholder="설명"
+              required
+            />
+            <button type="submit" className="modal-save-btn">
+              저장
+            </button>
+            <button
+              type="button"
+              className="modal-cancel-btn"
+              onClick={() => setEditBuilding("")}
+            >
+              취소
+            </button>
+            {editBuildingError && (
+              <div className="modal-error">{editBuildingError}</div>
+            )}
+          </form>
+        )}
+
         <div className="building-table-wrap">
           <table className="building-table">
             <thead>
@@ -375,22 +516,89 @@ export default function BuildingPage() {
                 <th>층</th>
                 <th>강의실명</th>
                 <th>강의실 설명</th>
+                <th>수정</th>
               </tr>
             </thead>
             <tbody>
               {pagedRows.length > 0
                 ? pagedRows.map((row, idx) => (
                     <tr key={idx}>
-                      <td>{row.building}</td>
+                      <td>
+                        {row.building}
+                        <button
+                          className="edit-btn"
+                          style={{ marginLeft: 4 }}
+                          onClick={() => handleEditBuildingClick(row.building)}
+                          type="button"
+                        >
+                          건물 설명 수정
+                        </button>
+                      </td>
                       <td>{row.desc}</td>
                       <td>{row.floor}</td>
-                      <td>{row.classroom}</td>
-                      <td>{row.classroomDesc}</td>
+                      <td>
+                        {editRowIdx === idx ? (
+                          <input
+                            type="text"
+                            value={editClassroomName}
+                            onChange={(e) =>
+                              setEditClassroomName(e.target.value)
+                            }
+                          />
+                        ) : (
+                          row.classroom
+                        )}
+                      </td>
+                      <td>
+                        {editRowIdx === idx ? (
+                          <input
+                            type="text"
+                            value={editClassroomDesc}
+                            onChange={(e) =>
+                              setEditClassroomDesc(e.target.value)
+                            }
+                          />
+                        ) : (
+                          row.classroomDesc
+                        )}
+                      </td>
+                      <td>
+                        {editRowIdx === idx ? (
+                          <form
+                            onSubmit={(e) => handleEditClassroomSubmit(e, row)}
+                            style={{ display: "inline" }}
+                          >
+                            <button type="submit" className="modal-save-btn">
+                              저장
+                            </button>
+                            <button
+                              type="button"
+                              className="modal-cancel-btn"
+                              onClick={() => setEditRowIdx(null)}
+                            >
+                              취소
+                            </button>
+                            {editClassroomError && (
+                              <div className="modal-error">
+                                {editClassroomError}
+                              </div>
+                            )}
+                          </form>
+                        ) : (
+                          <button
+                            className="edit-btn"
+                            onClick={() => handleEditClassroomClick(idx)}
+                            type="button"
+                          >
+                            강의실명/설명 수정
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))
                 : Array.from({ length: pageSize }).map((_, idx) => (
                     <tr key={idx}>
-                      <td colSpan={5}>&nbsp;</td>
+                      <td colSpan={6}>&nbsp;</td>
                     </tr>
                   ))}
             </tbody>

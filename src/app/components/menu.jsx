@@ -3,14 +3,21 @@ import { slide as Menu } from "react-burger-menu"
 import Image from "next/image"
 import { FaBars } from "react-icons/fa"
 import Link from "next/link"
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import "./menu.css" // 스타일 파일 import
+import "./menu.css"
 
 export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
   const router = useRouter()
+  const [userName, setUserName] = useState("")
 
-  // 로그아웃 핸들러: 서버에 로그아웃 요청 후 localStorage 정리
+  // 컴포넌트 마운트 시 localStorage에서 name을 읽어옴
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setUserName(localStorage.getItem("name") || "")
+    }
+  }, [menuOpen]) // 메뉴 열릴 때마다 최신값 반영
+
   const handleLogout = async () => {
     const id = localStorage.getItem("id")
     try {
@@ -61,7 +68,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
             className="profile-img"
             priority
           />
-          <div className="profile-name">홍길동</div>
+          <div className="profile-name">{userName || "로그인 사용자"}</div>
         </div>
         <Link
           href="/management"
@@ -91,7 +98,6 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
         >
           사용자 관리
         </Link>
-        {/* 로그아웃 버튼 */}
         <button
           className="menu-link"
           onClick={handleLogout}

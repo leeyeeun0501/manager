@@ -32,7 +32,7 @@ export async function POST(request) {
     return NextResponse.json({
       id: user.id,
       name: user.name,
-      islogin: user.islogin,
+      islogin: true,
       // 필요하다면 추가 정보도 포함 가능
     })
   } catch (err) {

@@ -1,3 +1,15 @@
+.management-root {
+  display: flex;
+}
+
+/* 햄버거 메뉴바와 겹치지 않게 왼쪽에 여백 */
+.management-content {
+  flex: 1;
+  margin-left: 60px; /* 메뉴바 너비만큼 여백 (조정 가능) */
+  padding: 32px 12px 0 12px;
+}
+
+/* 표 스타일 */
 .user-table {
   width: 100%;
   border-collapse: collapse;
@@ -5,35 +17,64 @@
   border-radius: 14px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   overflow: hidden;
+  table-layout: fixed; /* 칸 폭 균등 분배 */
 }
+
 .user-table th,
 .user-table td {
   border: 1px solid #eee;
-  padding: 12px 8px;
+  padding: 8px 4px; /* 좌우 여백 확 줄임 */
   text-align: center;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  word-break: break-all;
+  max-width: 120px; /* 칸 폭 제한 */
 }
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  table-layout: fixed;
+}
+
+.user-table th,
+.user-table td {
+  border: 1px solid #eee;
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 0.95rem;
+  word-break: break-all;
+  max-width: 120px;
+}
+
 .user-table th {
   background: #f5f5f5;
   font-weight: 800;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
 }
+
 .user-table tr:nth-child(even) {
   background: #fafafa;
 }
+
 .email-trash-cell {
   position: relative;
   text-align: left;
-  padding-right: 38px; /* 아이콘 공간 */
+  padding-right: 38px;
 }
+
 .email-trash-cell span {
   vertical-align: middle;
 }
+
 .trash-btn {
   background: none;
   border: none;
   color: #e74c3c;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   cursor: pointer;
   padding: 0 0 0 10px;
   vertical-align: middle;

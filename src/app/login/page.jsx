@@ -22,8 +22,8 @@ export default function LoginPage() {
         body: JSON.stringify({ id, pw }),
       })
       const data = await res.json()
-      console.log("데이터", data)
-      if (id == data.id) {
+      // 서버에서 islogin이 true일 때만 성공으로 처리
+      if (data.islogin) {
         localStorage.setItem("id", data.id)
         localStorage.setItem("name", data.name)
         localStorage.setItem("islogin", data.islogin)

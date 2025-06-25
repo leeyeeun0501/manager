@@ -17,9 +17,16 @@ export default function UserManagePage() {
     try {
       const res = await fetch("/api/user-route")
       const data = await res.json()
+      console.log("서버 응답:", data) // 실제 응답 구조 확인!
       if (!res.ok)
         throw new Error(data.error || "사용자 목록을 불러올 수 없습니다.")
-      setUsers(data.users || [])
+      // 배열 구조 대응 (users: [...]) 또는 그냥 배열
+      const usersArr = Array.isArray(data.users)
+        ? data.users
+        : Array.isArray(data)
+        ? data
+        : []
+      setUsers(usersArr)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -43,7 +50,6 @@ export default function UserManagePage() {
       const data = await res.json()
       if (!res.ok || !data.success) throw new Error(data.error || "삭제 실패")
       alert("사용자가 삭제되었습니다.")
-      // 삭제 후 목록 새로고침
       fetchUsers()
     } catch (err) {
       alert(err.message)
@@ -68,20 +74,28 @@ export default function UserManagePage() {
                 <th>이름</th>
                 <th>학번</th>
                 <th>전화번호</th>
-                <th>이메일</th>
+                <th>이메일/삭제</th>
               </tr>
             </thead>
             <tbody>
               {users.length > 0 ? (
-                users.map((user) => (
-                  <tr key={user.id}>
-                    <td>{user.id}</td>
-                    <td>{user.pw}</td>
-                    <td>{user.name}</td>
-                    <td>{user.stu_num}</td>
-                    <td>{user.phone}</td>
+                users.map((user, idx) => (
+                  <tr
+                    key={
+                      user.id
+                        ? user.id
+                        : user.email
+                        ? user.email
+                        : `user-row-${idx}`
+                    }
+                  >
+                    <td>{user.id || ""}</td>
+                    <td>{user.pw || ""}</td>
+                    <td>{user.name || ""}</td>
+                    <td>{user.stu_num || ""}</td>
+                    <td>{user.phone || ""}</td>
                     <td className="email-trash-cell">
-                      <span>{user.email}</span>
+                      <span>{user.email || ""}</span>
                       <button
                         className="trash-btn"
                         onClick={() => handleDelete(user.id)}

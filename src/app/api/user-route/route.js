@@ -31,13 +31,15 @@ export async function DELETE(request) {
         { status: 400 }
       )
     }
-    // 외부 서버에 사용자 삭제 요청 보내기
-    const res = await fetch(`http://13.55.76.216:3001/user/${id}`, {
+    // 외부 서버에 사용자 삭제 요청 보내기 (body에 id 포함)
+    const res = await fetch(`http://13.55.76.216:3001/user/delete`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }), // body에 id 포함!
     })
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
+      console.error("외부 서버 응답:", data)
       return NextResponse.json(
         { success: false, error: data.error || "외부 서버 오류" },
         { status: res.status }

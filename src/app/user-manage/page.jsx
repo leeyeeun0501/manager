@@ -80,25 +80,17 @@ export default function UserManagePage() {
             <tbody>
               {users.length > 0 ? (
                 users.map((user, idx) => (
-                  <tr
-                    key={
-                      user.id
-                        ? user.id
-                        : user.email
-                        ? user.email
-                        : `user-row-${idx}`
-                    }
-                  >
-                    <td>{user.id || ""}</td>
-                    <td>{user.pw || ""}</td>
-                    <td>{user.name || ""}</td>
-                    <td>{user.stu_num || ""}</td>
-                    <td>{user.phone || ""}</td>
+                  <tr key={user.Id || user.Email || idx}>
+                    <td>{user.Id || ""}</td>
+                    <td>{user.Pw || ""}</td>
+                    <td>{user.Name || ""}</td>
+                    <td>{user.Stu_Num || ""}</td>
+                    <td>{user.Phone || ""}</td>
                     <td className="email-trash-cell">
-                      <span>{user.email || ""}</span>
+                      <span>{user.Email || ""}</span>
                       <button
                         className="trash-btn"
-                        onClick={() => handleDelete(user.id)}
+                        onClick={() => handleDelete(user.Id)}
                         title="삭제"
                       >
                         <FaTrashAlt />

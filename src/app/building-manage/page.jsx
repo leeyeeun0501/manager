@@ -41,6 +41,9 @@ export default function BuildingPage() {
   const [editClassroomName, setEditClassroomName] = useState("")
   const [editClassroomDesc, setEditClassroomDesc] = useState("")
 
+  // 건물 임시값 배열
+  const buildingOptions = Array.from({ length: 19 }, (_, i) => `W${i + 1}`)
+
   // 건물 목록 불러오기
   useEffect(() => {
     async function fetchBuildings() {
@@ -388,11 +391,15 @@ export default function BuildingPage() {
               required
             >
               <option value="">건물 선택</option>
-              {buildings.map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
-              ))}
+              {buildingOptions.map(
+                (
+                  b //{buildings.map((b) => (
+                ) => (
+                  <option key={b} value={b}>
+                    {b}
+                  </option>
+                )
+              )}
             </select>
             <input
               type="number"

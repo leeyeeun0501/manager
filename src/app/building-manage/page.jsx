@@ -31,7 +31,6 @@ export default function BuildingPage() {
   const [addBuildingDesc, setAddBuildingDesc] = useState("")
   const [addBuildingError, setAddBuildingError] = useState("")
 
-  // 건물 설명 수정 폼 상태
   // 강의실명/설명 수정 폼 상태
   const [editBuilding, setEditBuilding] = useState("")
   const [editBuildingIdx, setEditBuildingIdx] = useState(null)

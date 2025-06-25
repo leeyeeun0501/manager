@@ -1,9 +1,9 @@
+// user-route
 import { NextResponse } from "next/server"
 
 // 전체 사용자 조회 (GET)
 export async function GET(request) {
   try {
-    // 외부 서버에서 사용자 전체 목록 받아오기
     const res = await fetch("http://13.55.76.216:3001/user", { method: "GET" })
     if (!res.ok) {
       return NextResponse.json(
@@ -31,7 +31,6 @@ export async function DELETE(request) {
         { status: 400 }
       )
     }
-    // 외부 서버에 사용자 삭제 요청 보내기 (body에 id 포함)
     const res = await fetch(`http://13.55.76.216:3001/user/delete`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },

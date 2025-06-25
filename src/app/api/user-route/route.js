@@ -4,7 +4,7 @@ import { NextResponse } from "next/server"
 export async function GET(request) {
   try {
     // 외부 서버에서 사용자 전체 목록 받아오기
-    const res = await fetch("http://13.55.76.216:3000/users", { method: "GET" })
+    const res = await fetch("http://13.55.76.216:3001/user", { method: "GET" })
     if (!res.ok) {
       return NextResponse.json(
         { success: false, error: "외부 서버 오류" },

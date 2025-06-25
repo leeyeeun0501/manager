@@ -1,88 +1,95 @@
-// building-route
 import { NextResponse } from "next/server"
 
-// 임시 데이터
-let buildingData = {
-  W1: "W1 건물 설명입니다.",
-  W2: "W2 건물 설명입니다.",
-}
-let buildingFloors = {
-  W1: [1, 2, 3],
-  W2: [1, 2],
-}
-let classroomData = {
-  W1: {
-    1: [
-      { name: "101호", desc: "1층 첫번째 강의실" },
-      { name: "102호", desc: "1층 두번째 강의실" },
-    ],
-    2: [{ name: "201호", desc: "2층 첫번째 강의실" }],
-    3: [{ name: "301호", desc: "3층 강의실" }],
-  },
-  W2: {
-    1: [{ name: "A-101", desc: "W2 1층" }],
-    2: [{ name: "A-201", desc: "W2 2층" }],
-  },
-}
-
-// GET: 전체 데이터 조회
+// 전체 데이터 조회 (GET)
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const building = searchParams.get("building")
   const floor = searchParams.get("floor")
 
-  // 아무 검색도 없으면 전체 데이터 반환
+  // 전체 데이터
   if (!building && !floor) {
-    const result = []
-    for (const bName in buildingFloors) {
-      const floors = buildingFloors[bName]
-      for (const f of floors) {
-        const classrooms = classroomData[bName]?.[f] || []
-        for (const room of classrooms) {
-          result.push({
-            building: bName,
-            floor: f,
-            name: room.name,
-            desc: room.desc,
-          })
-        }
-      }
-    }
-    return NextResponse.json({ all: result })
+    // 실제 서버에서 전체 데이터 받아오기
+    const res = await fetch("http://13.55.76.216:3000/buildings", {
+      method: "GET",
+    })
+    const data = await res.json()
+    return NextResponse.json({ all: data }) // [{building, floor, name, desc, ...}, ...]
   }
 
-  // 건물만 있으면 해당 건물의 층 목록 + 모든 강의실 정보 반환
+  // 건물만 있을 때
   if (building && !floor) {
-    const floors = buildingFloors[building] || []
-
-    // 해당 건물의 모든 강의실 정보 (표에 쓸 데이터)
-    const allRooms = []
-    for (const f of floors) {
-      const classrooms = classroomData[building]?.[f] || []
-      for (const room of classrooms) {
-        allRooms.push({
-          building,
-          floor: f,
-          name: room.name,
-          desc: room.desc,
-        })
-      }
-    }
-
+    const res = await fetch(`http://13.55.76.216:3000/buildings/${building}`, {
+      method: "GET",
+    })
+    const data = await res.json()
+    // data 구조에 맞게 floors, allRooms 추출
     return NextResponse.json({
-      floors, // [1, 2, 3]
-      allRooms, // [{ building, floor, name, desc }, ...]
+      floors: data.floors,
+      allRooms: data.rooms, // [{ building, floor, name, desc }, ...]
     })
   }
 
-  // 건물과 층이 있으면 해당 층의 강의실 목록 반환
+  // 건물+층 있을 때
   if (building && floor) {
+    const res = await fetch(
+      `http://13.55.76.216:3000/buildings/${building}/floors/${floor}`,
+      { method: "GET" }
+    )
+    const data = await res.json()
     return NextResponse.json({
-      classrooms: classroomData[building]?.[floor] || [],
+      classrooms: data.classrooms || [],
     })
   }
 
   return NextResponse.json({ error: "잘못된 요청" }, { status: 400 })
+}
+
+// 건물/강의실 설명 수정 (PATCH)
+export async function PATCH(request) {
+  const body = await request.json()
+  // body: { type: "building"|"classroom", building, floor?, name?, desc }
+  if (body.type === "building") {
+    // 건물 설명 수정
+    const res = await fetch(
+      `http://13.55.76.216:3000/buildings/${body.building}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ desc: body.desc }),
+      }
+    )
+    const data = await res.json()
+    if (!res.ok) {
+      return NextResponse.json(
+        { success: false, error: data.error || "수정 실패" },
+        { status: res.status }
+      )
+    }
+    return NextResponse.json({ success: true })
+  }
+  if (body.type === "classroom") {
+    // 강의실 설명 수정
+    const res = await fetch(
+      `http://13.55.76.216:3000/buildings/${body.building}/floors/${body.floor}/classrooms/${body.name}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ desc: body.desc }),
+      }
+    )
+    const data = await res.json()
+    if (!res.ok) {
+      return NextResponse.json(
+        { success: false, error: data.error || "수정 실패" },
+        { status: res.status }
+      )
+    }
+    return NextResponse.json({ success: true })
+  }
+  return NextResponse.json(
+    { success: false, error: "잘못된 요청" },
+    { status: 400 }
+  )
 }
 
 export async function POST(request) {

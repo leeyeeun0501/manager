@@ -31,15 +31,15 @@ export default function BuildingPage() {
   const [addBuildingError, setAddBuildingError] = useState("")
 
   // 건물 설명 수정 폼 상태
-  const [editBuilding, setEditBuilding] = useState("")
-  const [editBuildingDesc, setEditBuildingDesc] = useState("")
-  const [editBuildingError, setEditBuildingError] = useState("")
-
   // 강의실명/설명 수정 폼 상태
-  const [editRowIdx, setEditRowIdx] = useState(null)
+  const [editBuilding, setEditBuilding] = useState("")
+
+  const [editBuildingIdx, setEditBuildingIdx] = useState(null)
+  const [editClassroomIdx, setEditClassroomIdx] = useState(null)
+  const [editField, setEditField] = useState("") // "desc", "name", "desc"
+  const [editBuildingDesc, setEditBuildingDesc] = useState("")
   const [editClassroomName, setEditClassroomName] = useState("")
   const [editClassroomDesc, setEditClassroomDesc] = useState("")
-  const [editClassroomError, setEditClassroomError] = useState("")
 
   // 건물 목록 불러오기
   useEffect(() => {
@@ -511,33 +511,70 @@ export default function BuildingPage() {
           <table className="building-table">
             <thead>
               <tr>
-                <th>건물</th>
-                <th>건물 설명</th>
-                <th>층</th>
-                <th>강의실명</th>
-                <th>강의실 설명</th>
-                <th>수정</th>
+                <th style={{ minWidth: 100 }}>건물</th>
+                <th style={{ minWidth: 200 }}>건물 설명</th>
+                <th style={{ minWidth: 60 }}>층</th>
+                <th style={{ minWidth: 150 }}>강의실명</th>
+                <th style={{ minWidth: 200 }}>강의실 설명</th>
               </tr>
             </thead>
             <tbody>
-              {pagedRows.length > 0
-                ? pagedRows.map((row, idx) => (
-                    <tr key={idx}>
-                      <td>
-                        {row.building}
-                        <button
-                          className="edit-btn"
-                          style={{ marginLeft: 4 }}
-                          onClick={() => handleEditBuildingClick(row.building)}
-                          type="button"
+              {pagedRows.length > 0 ? (
+                pagedRows.map((row, idx) => (
+                  <tr key={idx}>
+                    {/* 건물명 */}
+                    <td style={{ minWidth: 100 }}>{row.building}</td>
+                    {/* 건물 설명 */}
+                    <td style={{ minWidth: 200 }}>
+                      {editBuildingIdx === idx && editField === "desc" ? (
+                        <form
+                          onSubmit={(e) => handleEditBuildingDescSubmit(e, row)}
+                          style={{ display: "inline" }}
                         >
-                          건물 설명 수정
-                        </button>
-                      </td>
-                      <td>{row.desc}</td>
-                      <td>{row.floor}</td>
-                      <td>
-                        {editRowIdx === idx ? (
+                          <input
+                            type="text"
+                            value={editBuildingDesc}
+                            onChange={(e) =>
+                              setEditBuildingDesc(e.target.value)
+                            }
+                          />
+                          <button type="submit">저장</button>
+                          <button
+                            type="button"
+                            onClick={() => setEditBuildingIdx(null)}
+                          >
+                            취소
+                          </button>
+                        </form>
+                      ) : (
+                        <>
+                          {row.desc}
+                          <button
+                            className="edit-btn"
+                            onClick={() => {
+                              setEditBuildingIdx(idx)
+                              setEditField("desc")
+                              setEditBuildingDesc(row.desc)
+                            }}
+                            style={{ marginLeft: 4 }}
+                            title="건물 설명 수정"
+                          >
+                            ✏️
+                          </button>
+                        </>
+                      )}
+                    </td>
+                    {/* 층 */}
+                    <td style={{ minWidth: 60 }}>{row.floor}</td>
+                    {/* 강의실명 */}
+                    <td style={{ minWidth: 150 }}>
+                      {editClassroomIdx === idx && editField === "name" ? (
+                        <form
+                          onSubmit={(e) =>
+                            handleEditClassroomNameSubmit(e, row)
+                          }
+                          style={{ display: "inline" }}
+                        >
                           <input
                             type="text"
                             value={editClassroomName}
@@ -545,12 +582,41 @@ export default function BuildingPage() {
                               setEditClassroomName(e.target.value)
                             }
                           />
-                        ) : (
-                          row.classroom
-                        )}
-                      </td>
-                      <td>
-                        {editRowIdx === idx ? (
+                          <button type="submit">저장</button>
+                          <button
+                            type="button"
+                            onClick={() => setEditClassroomIdx(null)}
+                          >
+                            취소
+                          </button>
+                        </form>
+                      ) : (
+                        <>
+                          {row.classroom}
+                          <button
+                            className="edit-btn"
+                            onClick={() => {
+                              setEditClassroomIdx(idx)
+                              setEditField("name")
+                              setEditClassroomName(row.classroom)
+                            }}
+                            style={{ marginLeft: 4 }}
+                            title="강의실명 수정"
+                          >
+                            ✏️
+                          </button>
+                        </>
+                      )}
+                    </td>
+                    {/* 강의실 설명 */}
+                    <td style={{ minWidth: 200 }}>
+                      {editClassroomIdx === idx && editField === "desc" ? (
+                        <form
+                          onSubmit={(e) =>
+                            handleEditClassroomDescSubmit(e, row)
+                          }
+                          style={{ display: "inline" }}
+                        >
                           <input
                             type="text"
                             value={editClassroomDesc}
@@ -558,49 +624,44 @@ export default function BuildingPage() {
                               setEditClassroomDesc(e.target.value)
                             }
                           />
-                        ) : (
-                          row.classroomDesc
-                        )}
-                      </td>
-                      <td>
-                        {editRowIdx === idx ? (
-                          <form
-                            onSubmit={(e) => handleEditClassroomSubmit(e, row)}
-                            style={{ display: "inline" }}
+                          <button type="submit">저장</button>
+                          <button
+                            type="button"
+                            onClick={() => setEditClassroomIdx(null)}
                           >
-                            <button type="submit" className="modal-save-btn">
-                              저장
-                            </button>
-                            <button
-                              type="button"
-                              className="modal-cancel-btn"
-                              onClick={() => setEditRowIdx(null)}
-                            >
-                              취소
-                            </button>
-                            {editClassroomError && (
-                              <div className="modal-error">
-                                {editClassroomError}
-                              </div>
-                            )}
-                          </form>
-                        ) : (
+                            취소
+                          </button>
+                        </form>
+                      ) : (
+                        <>
+                          {row.classroomDesc}
                           <button
                             className="edit-btn"
-                            onClick={() => handleEditClassroomClick(idx)}
-                            type="button"
+                            onClick={() => {
+                              setEditClassroomIdx(idx)
+                              setEditField("desc")
+                              setEditClassroomDesc(row.classroomDesc)
+                            }}
+                            style={{ marginLeft: 4 }}
+                            title="강의실 설명 수정"
                           >
-                            강의실명/설명 수정
+                            ✏️
                           </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                : Array.from({ length: pageSize }).map((_, idx) => (
-                    <tr key={idx}>
-                      <td colSpan={6}>&nbsp;</td>
-                    </tr>
-                  ))}
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={5}
+                    style={{ textAlign: "center", color: "#aaa" }}
+                  >
+                    데이터가 없습니다.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

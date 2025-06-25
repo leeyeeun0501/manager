@@ -22,7 +22,6 @@ export async function GET(request) {
       method: "GET",
     })
     const data = await res.json()
-    // data 구조에 맞게 floors, allRooms 추출
     return NextResponse.json({
       floors: data.floors,
       allRooms: data.rooms, // [{ building, floor, name, desc }, ...]
@@ -44,10 +43,10 @@ export async function GET(request) {
   return NextResponse.json({ error: "잘못된 요청" }, { status: 400 })
 }
 
-// 건물/강의실 설명 수정 (PATCH)
+// 건물/강의실 설명/이름 수정 (PATCH)
 export async function PATCH(request) {
   const body = await request.json()
-  // body: { type: "building"|"classroom", building, floor?, name?, desc }
+  // body: { type: "building"|"classroom", building, floor?, name?, desc?, newName? }
   if (body.type === "building") {
     // 건물 설명 수정
     const res = await fetch(
@@ -68,13 +67,18 @@ export async function PATCH(request) {
     return NextResponse.json({ success: true })
   }
   if (body.type === "classroom") {
-    // 강의실 설명 수정
+    // 강의실 설명/이름 수정
+    // desc, newName 둘 다 또는 하나만 수정 가능
+    const patchBody = {}
+    if (body.desc !== undefined) patchBody.desc = body.desc
+    if (body.newName !== undefined) patchBody.newName = body.newName
+
     const res = await fetch(
       `http://13.55.76.216:3000/buildings/${body.building}/floors/${body.floor}/classrooms/${body.name}`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ desc: body.desc }),
+        body: JSON.stringify(patchBody),
       }
     )
     const data = await res.json()

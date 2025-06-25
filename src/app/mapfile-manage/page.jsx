@@ -1,63 +1,56 @@
 "use client"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useRef, useState } from "react"
 import Menu from "../components/menu"
 import "./mapfile.css"
 
 export default function MapfileManagePage() {
   const [menuOpen, setMenuOpen] = useState(false)
-
-  const [buildings, setBuildings] = useState([])
-  const [selectedBuilding, setSelectedBuilding] = useState("")
-  const [floors, setFloors] = useState([])
-  const [selectedFloor, setSelectedFloor] = useState("")
-  const [mapUrl, setMapUrl] = useState("") // 도면 이미지 URL
-  const [popup, setPopup] = useState(null) // {x, y}
+  const [selectedBuilding, setSelectedBuilding] = useState("W1")
+  const [selectedFloor, setSelectedFloor] = useState("1")
+  const [imgUrl, setImgUrl] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [popup, setPopup] = useState(null)
   const [categoryList, setCategoryList] = useState([])
   const [selectedCategory, setSelectedCategory] = useState("")
   const [submitMsg, setSubmitMsg] = useState("")
   const imgRef = useRef(null)
 
-  // 건물 목록 불러오기
-  useEffect(() => {
-    fetch("/api/mapfile-manage")
-      .then((res) => res.json())
-      .then((data) => setBuildings(data.buildings || []))
-  }, [])
+  // 건물, 층 콤보박스 옵션
+  const buildingOptions = Array.from({ length: 19 }, (_, i) => `W${i + 1}`)
+  const floorOptions = ["1", "2"]
 
-  // 건물 선택 시 층 목록 불러오기
-  useEffect(() => {
-    if (!selectedBuilding) {
-      setFloors([])
-      setSelectedFloor("")
-      setMapUrl("")
-      setCategoryList([])
-      return
-    }
-    fetch(
-      `/api/mapfile-manage?building=${encodeURIComponent(selectedBuilding)}`
-    )
-      .then((res) => res.json())
-      .then((data) => setFloors(data.floors || []))
-  }, [selectedBuilding])
+  // 도면 불러오기
+  const handleLoadMap = async () => {
+    setImgUrl("")
+    setCategoryList([])
+    setPopup(null)
+    setSubmitMsg("")
+    setLoading(true)
+    try {
+      // 건물/층 쿼리스트링에 넣어서 요청!
+      const res = await fetch(
+        `/api/mapfile-image-route?floor=${encodeURIComponent(
+          selectedFloor
+        )}&building=${encodeURIComponent(selectedBuilding)}`
+      )
+      if (!res.ok) {
+        setImgUrl("")
+        setLoading(false)
+        setSubmitMsg("도면 이미지를 불러올 수 없습니다.")
+        return
+      }
+      const blob = await res.blob()
+      const objectUrl = URL.createObjectURL(blob)
+      setImgUrl(objectUrl)
 
-  // 층 선택 시 도면 이미지와 카테고리 목록 불러오기
-  useEffect(() => {
-    if (!selectedBuilding || !selectedFloor) {
-      setMapUrl("")
-      setCategoryList([])
-      return
+      // 필요하면 카테고리 목록도 fetch해서 setCategoryList([...]) 하세요.
+      setCategoryList([]) // 예시: 빈 배열
+    } catch (e) {
+      setImgUrl("")
+      setSubmitMsg("도면을 불러오는 중 오류가 발생했습니다.")
     }
-    fetch(
-      `/api/mapfile-manage?building=${encodeURIComponent(
-        selectedBuilding
-      )}&floor=${encodeURIComponent(selectedFloor)}`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        setMapUrl(data.mapUrl || "")
-        setCategoryList(data.categories || [])
-      })
-  }, [selectedBuilding, selectedFloor])
+    setLoading(false)
+  }
 
   // 이미지 클릭 시 좌표 얻기
   const handleImageClick = (e) => {
@@ -100,17 +93,15 @@ export default function MapfileManagePage() {
 
   return (
     <div className="mapfile-manage-root">
-      {/* 햄버거 메뉴 */}
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-
       <h2 className="mapfile-manage-title">2D 도면 카테고리 위치 관리</h2>
       <div className="mapfile-manage-controls">
         <select
           value={selectedBuilding}
           onChange={(e) => setSelectedBuilding(e.target.value)}
+          style={{ width: 120, marginRight: 8 }}
         >
-          <option value="">건물 선택</option>
-          {buildings.map((b) => (
+          {buildingOptions.map((b) => (
             <option key={b} value={b}>
               {b}
             </option>
@@ -119,21 +110,23 @@ export default function MapfileManagePage() {
         <select
           value={selectedFloor}
           onChange={(e) => setSelectedFloor(e.target.value)}
-          disabled={!floors.length}
+          style={{ width: 80, marginRight: 8 }}
         >
-          <option value="">층 선택</option>
-          {floors.map((f) => (
+          {floorOptions.map((f) => (
             <option key={f} value={f}>
               {f}
             </option>
           ))}
         </select>
+        <button onClick={handleLoadMap}>도면 불러오기</button>
       </div>
       <div className="mapfile-map-area">
-        {mapUrl ? (
+        {loading ? (
+          <div className="mapfile-map-placeholder">로딩 중...</div>
+        ) : imgUrl ? (
           <img
             ref={imgRef}
-            src={mapUrl}
+            src={imgUrl}
             alt="도면"
             className="mapfile-map-image"
             onClick={handleImageClick}
@@ -164,8 +157,8 @@ export default function MapfileManagePage() {
                 autoFocus
               >
                 <option value="">카테고리 선택</option>
-                {categoryList.map((cat) => (
-                  <option key={cat} value={cat}>
+                {categoryList.map((cat, idx) => (
+                  <option key={cat || idx} value={cat}>
                     {cat}
                   </option>
                 ))}

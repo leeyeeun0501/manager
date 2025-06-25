@@ -391,15 +391,11 @@ export default function BuildingPage() {
               required
             >
               <option value="">건물 선택</option>
-              {buildingOptions.map(
-                (
-                  b //{buildings.map((b) => (
-                ) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
-                )
-              )}
+              {buildingOptions.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
             </select>
             <input
               type="number"

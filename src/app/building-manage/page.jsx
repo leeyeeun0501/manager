@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
 import "./building.css"
 
@@ -7,11 +7,29 @@ export default function BuildingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [buildingInfos, setBuildingInfos] = useState([])
   const [selectedBuilding, setSelectedBuilding] = useState("")
-  const [floors, setFloors] = useState([]) // [{ building, floor, fileBase64 }]
+  const [floors, setFloors] = useState([])
   const [selectedFloor, setSelectedFloor] = useState("")
   const [buildingPage, setBuildingPage] = useState(1)
   const [floorPage, setFloorPage] = useState(1)
   const pageSize = 10
+
+  // 건물/층 추가 폼 상태
+  const [showAddBuilding, setShowAddBuilding] = useState(false)
+  const [addBuildingName, setAddBuildingName] = useState("")
+  const [addBuildingX, setAddBuildingX] = useState("")
+  const [addBuildingY, setAddBuildingY] = useState("")
+  const [addBuildingDesc, setAddBuildingDesc] = useState("")
+  const [addBuildingError, setAddBuildingError] = useState("")
+
+  const [showAddFloor, setShowAddFloor] = useState(false)
+  const [addFloorBuilding, setAddFloorBuilding] = useState("")
+  const [addFloorNum, setAddFloorNum] = useState("")
+  const [addFloorFile, setAddFloorFile] = useState(null)
+  const [addFloorError, setAddFloorError] = useState("")
+  const addFloorFileRef = useRef(null)
+
+  // 이미지 팝업
+  const [popupImg, setPopupImg] = useState(null)
 
   // 건물 목록 fetch
   useEffect(() => {
@@ -39,6 +57,7 @@ export default function BuildingPage() {
     if (!selectedBuilding) {
       setFloors([])
       setSelectedFloor("")
+      setFloorPage(1)
       return
     }
     async function fetchFloors() {
@@ -48,9 +67,6 @@ export default function BuildingPage() {
         )
         if (!res.ok) throw new Error("Failed to fetch floors")
         const data = await res.json()
-
-        console.log("서버 응답:", data)
-
         setFloors(Array.isArray(data.floors) ? data.floors : [])
         setSelectedFloor("")
         setFloorPage(1)
@@ -63,7 +79,23 @@ export default function BuildingPage() {
     fetchFloors()
   }, [selectedBuilding])
 
-  // 층 표 페이지네이션
+  // 건물/층 옵션
+  const buildingOptions = buildingInfos.map((b) => b.name)
+  const floorOptions = Array.from(
+    new Set(floors.map((f) => String(f.floor)))
+  ).sort((a, b) => Number(a) - Number(b))
+
+  // 건물 표 페이지네이션
+  const buildingTotalPages = Math.max(
+    1,
+    Math.ceil((buildingInfos.length || 0) / pageSize)
+  )
+  const buildingPaged = buildingInfos.slice(
+    (buildingPage - 1) * pageSize,
+    buildingPage * pageSize
+  )
+
+  // 층 표 필터 및 페이지네이션
   const floorFiltered = selectedFloor
     ? floors.filter((f) => String(f.floor) === String(selectedFloor))
     : floors
@@ -76,45 +108,112 @@ export default function BuildingPage() {
     floorPage * pageSize
   )
 
-  // 건물 표 페이지네이션
-  const buildingTotalPages = Math.max(
-    1,
-    Math.ceil((buildingInfos.length || 0) / pageSize)
-  )
-  const buildingPaged = buildingInfos.slice(
-    (buildingPage - 1) * pageSize,
-    buildingPage * pageSize
-  )
+  // 건물 추가 핸들러
+  const handleAddBuilding = async (e) => {
+    e.preventDefault()
+    const x = Number(addBuildingX)
+    const y = Number(addBuildingY)
+    if (!addBuildingName || isNaN(x) || isNaN(y)) {
+      setAddBuildingError("모든 값을 올바르게 입력하세요.")
+      return
+    }
+    const res = await fetch("/api/building-route", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        building_name: addBuildingName,
+        x,
+        y,
+        desc: addBuildingDesc,
+      }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setAddBuildingError(data.error || "건물 추가 실패")
+      return
+    }
+    alert("건물 추가가 완료되었습니다!")
+    setShowAddBuilding(false)
+    setAddBuildingName("")
+    setAddBuildingX("")
+    setAddBuildingY("")
+    setAddBuildingDesc("")
+    // 새로고침
+    const buildingsRes = await fetch("/api/building-route")
+    const buildingsData = await buildingsRes.json()
+    const infos = (buildingsData.all || [])
+      .filter((b) => b && b.Building_Name)
+      .map((b) => ({
+        name: b.Building_Name,
+        desc: b.Description || "",
+      }))
+    setBuildingInfos(infos)
+  }
 
-  // floors 배열에서 중복 없는 층 번호만 추출
-  const floorOptions = Array.from(
-    new Set(floors.map((f) => String(f.floor)))
-  ).sort((a, b) => Number(a) - Number(b))
+  // 층 추가 핸들러
+  const handleAddFloor = async (e) => {
+    e.preventDefault()
+    setAddFloorError("")
+    if (!addFloorBuilding || !addFloorNum || !addFloorFile) {
+      setAddFloorError("모든 항목을 입력하세요.")
+      return
+    }
+    const formData = new FormData()
+    formData.append("building_name", addFloorBuilding)
+    formData.append("floor_number", addFloorNum)
+    formData.append("file", addFloorFile)
 
-  const [popupImg, setPopupImg] = useState(null) // base64 문자열 저장
+    try {
+      const res = await fetch("/api/floor-route", {
+        method: "POST",
+        body: formData,
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setAddFloorError(data.error || "층 추가 실패")
+        return
+      }
+      alert("층 추가가 완료되었습니다!")
+      setShowAddFloor(false)
+      setAddFloorBuilding("")
+      setAddFloorNum("")
+      setAddFloorFile(null)
+      if (addFloorFileRef.current) addFloorFileRef.current.value = ""
+      // 데이터 새로고침
+      if (selectedBuilding === addFloorBuilding) {
+        const floorsRes = await fetch(
+          `/api/floor-route?building=${encodeURIComponent(addFloorBuilding)}`
+        )
+        const floorsData = await floorsRes.json()
+        setFloors(floorsData.floors || [])
+      }
+    } catch (err) {
+      setAddFloorError("층 추가 중 오류가 발생했습니다.")
+    }
+  }
 
   return (
     <div className="building-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className="building-content">
+        {/* 필터 */}
         <div className="building-filter-row">
-          {/* 건물 콤보박스 */}
           <select
             className="building-select"
             value={selectedBuilding}
             onChange={(e) => {
               setSelectedBuilding(e.target.value)
+              setBuildingPage(1)
               setFloorPage(1)
             }}
           >
             <option value="">건물</option>
-            {buildingInfos.map((b, idx) => (
-              <option key={b.name || idx} value={b.name}>
-                {b.name}
+            {buildingOptions.map((b, idx) => (
+              <option key={b || idx} value={b}>
+                {b}
               </option>
             ))}
           </select>
-          {/* 층 콤보박스: 건물 선택 시 항상 활성화. 옵션 없으면 "없음"만 */}
           <select
             className="floor-select"
             value={selectedFloor}
@@ -122,7 +221,7 @@ export default function BuildingPage() {
               setSelectedFloor(e.target.value)
               setFloorPage(1)
             }}
-            disabled={!selectedBuilding} // 건물 선택 전에는 비활성화
+            disabled={!selectedBuilding}
           >
             <option value="">전체</option>
             {floorOptions.length > 0 ? (
@@ -138,10 +237,90 @@ export default function BuildingPage() {
             )}
           </select>
         </div>
-
-        <div className="table-row" style={{ display: "flex", gap: 40 }}>
-          {/* 왼쪽: 건물 표 */}
+        <div
+          className="table-row"
+          style={{ display: "flex", gap: 40, alignItems: "flex-start" }}
+        >
+          {/* 건물 표/추가 */}
           <div className="table-col" style={{ flex: 1, maxWidth: 500 }}>
+            <button
+              className="modal-save-btn"
+              style={{ marginBottom: 8, width: "100%" }}
+              onClick={() => setShowAddBuilding((v) => !v)}
+            >
+              {showAddBuilding ? "건물 추가 취소" : "건물 추가"}
+            </button>
+            {showAddBuilding && (
+              <form
+                className="inline-add-building-form"
+                onSubmit={handleAddBuilding}
+                style={{
+                  marginBottom: 12,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                  background: "#f8f8f8",
+                  padding: 12,
+                  borderRadius: 8,
+                  maxWidth: 480,
+                }}
+              >
+                <input
+                  type="text"
+                  value={addBuildingName}
+                  onChange={(e) => setAddBuildingName(e.target.value)}
+                  placeholder="건물명"
+                  required
+                  style={{ width: "100%" }}
+                />
+                <input
+                  type="number"
+                  value={addBuildingX}
+                  onChange={(e) => setAddBuildingX(e.target.value)}
+                  step="any"
+                  placeholder="경도"
+                  required
+                  style={{ width: "100%" }}
+                />
+                <input
+                  type="number"
+                  value={addBuildingY}
+                  onChange={(e) => setAddBuildingY(e.target.value)}
+                  step="any"
+                  placeholder="위도"
+                  required
+                  style={{ width: "100%" }}
+                />
+                <input
+                  type="text"
+                  value={addBuildingDesc}
+                  onChange={(e) => setAddBuildingDesc(e.target.value)}
+                  placeholder="설명"
+                  required
+                  style={{ width: "100%" }}
+                />
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="submit"
+                    className="modal-save-btn"
+                    style={{ flex: 1 }}
+                  >
+                    저장
+                  </button>
+                  <button
+                    type="button"
+                    className="modal-cancel-btn"
+                    onClick={() => setShowAddBuilding(false)}
+                    style={{ flex: 1 }}
+                  >
+                    취소
+                  </button>
+                </div>
+                {addBuildingError && (
+                  <div className="modal-error">{addBuildingError}</div>
+                )}
+              </form>
+            )}
             <table className="building-table">
               <thead>
                 <tr>
@@ -192,8 +371,82 @@ export default function BuildingPage() {
               </button>
             </div>
           </div>
-          {/* 오른쪽: 층 표 */}
+          {/* 층 표/추가 */}
           <div className="table-col" style={{ flex: 1, maxWidth: 700 }}>
+            <button
+              className="modal-save-btn"
+              style={{ marginBottom: 8, width: "100%" }}
+              onClick={() => setShowAddFloor((v) => !v)}
+            >
+              {showAddFloor ? "층 추가 취소" : "층 추가"}
+            </button>
+            {showAddFloor && (
+              <form
+                className="inline-add-floor-form"
+                onSubmit={handleAddFloor}
+                style={{
+                  marginBottom: 12,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                  background: "#f8f8f8",
+                  padding: 12,
+                  borderRadius: 8,
+                  maxWidth: 680,
+                }}
+              >
+                <select
+                  value={addFloorBuilding}
+                  onChange={(e) => setAddFloorBuilding(e.target.value)}
+                  required
+                  style={{ width: "100%" }}
+                >
+                  <option value="">건물 선택</option>
+                  {buildingOptions.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  value={addFloorNum}
+                  onChange={(e) => setAddFloorNum(e.target.value)}
+                  min={1}
+                  placeholder="층수"
+                  required
+                  style={{ width: "100%" }}
+                />
+                <input
+                  type="file"
+                  accept="image/png"
+                  ref={addFloorFileRef}
+                  onChange={(e) => setAddFloorFile(e.target.files[0])}
+                  required
+                  style={{ width: "100%" }}
+                />
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="submit"
+                    className="modal-save-btn"
+                    style={{ flex: 1 }}
+                  >
+                    저장
+                  </button>
+                  <button
+                    type="button"
+                    className="modal-cancel-btn"
+                    onClick={() => setShowAddFloor(false)}
+                    style={{ flex: 1 }}
+                  >
+                    취소
+                  </button>
+                </div>
+                {addFloorError && (
+                  <div className="modal-error">{addFloorError}</div>
+                )}
+              </form>
+            )}
             <table className="building-table">
               <thead>
                 <tr>
@@ -271,6 +524,7 @@ export default function BuildingPage() {
           </div>
         </div>
       </div>
+      {/* 팝업 모달 */}
       {popupImg && (
         <div
           style={{

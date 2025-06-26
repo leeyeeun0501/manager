@@ -373,6 +373,7 @@ export default function BuildingPage() {
                 <tr>
                   <th style={{ minWidth: 100 }}>건물명</th>
                   <th style={{ minWidth: 200 }}>건물 설명</th>
+                  <th style={{ minWidth: 150 }}>맵 파일</th>
                 </tr>
               </thead>
               <tbody>
@@ -381,6 +382,20 @@ export default function BuildingPage() {
                     <tr key={b.name || idx}>
                       <td>{b.name}</td>
                       <td>{b.desc}</td>
+                      <td>
+                        {b.file ? (
+                          <button
+                            // 팝업 등은 추후 구현, 일단 버튼만
+                            onClick={() =>
+                              alert("이미지 불러오기(팝업 등 구현 필요)")
+                            }
+                          >
+                            이미지 불러오기
+                          </button>
+                        ) : (
+                          <span style={{ color: "#aaa" }}>없음</span>
+                        )}
+                      </td>
                     </tr>
                   ))
                 ) : (

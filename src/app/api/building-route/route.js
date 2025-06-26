@@ -30,7 +30,7 @@ export async function PUT(request) {
   }
 
   const formData = await request.formData()
-  const desc = formData.get("decs") || formData.get("desc")
+  const desc = formData.get("desc") || formData.get("desc")
 
   if (!desc) {
     return NextResponse.json(
@@ -40,7 +40,7 @@ export async function PUT(request) {
   }
 
   const externalForm = new FormData()
-  externalForm.append("decs", desc)
+  externalForm.append("desc", desc)
 
   const res = await fetch(
     `http://13.55.76.216:3000/building/${encodeURIComponent(building)}`,

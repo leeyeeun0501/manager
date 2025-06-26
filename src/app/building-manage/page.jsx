@@ -255,7 +255,7 @@ export default function BuildingPage() {
     }
     try {
       const formData = new FormData()
-      formData.append("decs", editDescValue)
+      formData.append("desc", editDescValue)
       const res = await fetch(
         `/api/building-route?building=${encodeURIComponent(editDescBuilding)}`,
         {
@@ -284,6 +284,7 @@ export default function BuildingPage() {
       setEditDescError("설명 수정 중 오류가 발생했습니다.")
     }
   }
+
   return (
     <div className="building-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />

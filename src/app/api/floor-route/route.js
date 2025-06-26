@@ -1,13 +1,47 @@
 // floor-route
 import { NextResponse } from "next/server"
 
+export async function GET(request) {
+  const { searchParams } = new URL(request.url)
+  const building = searchParams.get("building")
+
+  if (!building) {
+    return NextResponse.json({ error: "건물명을 입력하세요." }, { status: 400 })
+  }
+
+  // 외부 서버에서 건물별 층 목록+도면(Base64) 조회
+  const res = await fetch(
+    `http://13.55.76.216:3000/floor/${encodeURIComponent(building)}`,
+    { method: "GET" }
+  )
+
+  if (!res.ok) {
+    return NextResponse.json(
+      { error: "층 정보를 불러올 수 없습니다." },
+      { status: res.status }
+    )
+  }
+
+  // [{ floor, building, file(Base64) }, ...] 형태로 반환됨
+  const data = await res.json()
+  // 안전하게 배열 변환
+  const floors = Array.isArray(data) ? data : []
+
+  // 필요시 클라이언트에 맞게 필드명 매핑
+  const result = floors.map((row) => ({
+    building: row.building,
+    floor: row.floor,
+    fileBase64: row.file || null, // Base64 PNG
+  }))
+
+  return NextResponse.json({ floors: result })
+}
+
 export async function POST(request) {
   const formData = await request.formData()
-  // formData를 그대로 외부 서버에 프록시
   const res = await fetch("http://13.55.76.216:3000/floor", {
     method: "POST",
     body: formData,
-    // Content-Type 헤더 직접 지정 금지!
   })
 
   const text = await res.text()

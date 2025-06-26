@@ -20,7 +20,6 @@ export default function BuildingPage() {
   const [addBuildingY, setAddBuildingY] = useState("")
   const [addBuildingDesc, setAddBuildingDesc] = useState("")
   const [addBuildingError, setAddBuildingError] = useState("")
-
   const [showAddFloor, setShowAddFloor] = useState(false)
   const [addFloorBuilding, setAddFloorBuilding] = useState("")
   const [addFloorNum, setAddFloorNum] = useState("")
@@ -30,6 +29,7 @@ export default function BuildingPage() {
 
   // 이미지 팝업
   const [popupImg, setPopupImg] = useState(null)
+  const [visibleImages, setVisibleImages] = useState({})
 
   // 건물 목록 fetch
   useEffect(() => {
@@ -348,7 +348,6 @@ export default function BuildingPage() {
                 )}
               </tbody>
             </table>
-            {/* 건물 표 페이지네이션 */}
             <div className="building-pagination-row">
               <button
                 className="building-pagination-btn"
@@ -463,24 +462,9 @@ export default function BuildingPage() {
                       <td>{row.floor}</td>
                       <td>
                         {row.file ? (
-                          <>
-                            <img
-                              src={`data:image/png;base64,${row.file}`}
-                              alt="맵 미리보기"
-                              style={{
-                                width: 60,
-                                height: "auto",
-                                border: "1px solid #ccc",
-                                display: "block",
-                                marginBottom: 4,
-                                cursor: "pointer",
-                              }}
-                              onClick={() => setPopupImg(row.file)}
-                            />
-                            <button onClick={() => setPopupImg(row.file)}>
-                              이미지 불러오기
-                            </button>
-                          </>
+                          <button onClick={() => setPopupImg(row.file)}>
+                            이미지 불러오기
+                          </button>
                         ) : (
                           <span style={{ color: "#aaa" }}>없음</span>
                         )}
@@ -499,7 +483,6 @@ export default function BuildingPage() {
                 )}
               </tbody>
             </table>
-            {/* 층 표 페이지네이션 */}
             <div className="building-pagination-row">
               <button
                 className="building-pagination-btn"
@@ -524,7 +507,6 @@ export default function BuildingPage() {
           </div>
         </div>
       </div>
-      {/* 팝업 모달 */}
       {popupImg && (
         <div
           style={{

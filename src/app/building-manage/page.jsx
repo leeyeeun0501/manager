@@ -214,9 +214,8 @@ export default function BuildingPage() {
         desc: addBuildingDesc,
       }),
     })
-
-    // ...이하 생략
   }
+
   // 건물 설명 수정 버튼 클릭
   const handleEditBuildingClick = (building) => {
     setEditBuilding(building)

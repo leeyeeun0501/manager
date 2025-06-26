@@ -1,3 +1,4 @@
+// logout-route
 import { NextResponse } from "next/server"
 
 export async function POST(req) {
@@ -10,8 +11,6 @@ export async function POST(req) {
       )
     }
 
-    // 실제로는 DB나 외부 서버에 islogin을 false로 바꿔야 함
-    // 예시: 외부 서버에 요청
     const res = await fetch("http://13.55.76.216:3001/user/logout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

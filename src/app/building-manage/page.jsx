@@ -35,7 +35,6 @@ export default function BuildingPage() {
   }, [])
 
   // 건물 선택 시 층 목록 fetch
-  // 건물 선택 시 층 목록 fetch
   useEffect(() => {
     if (!selectedBuilding) {
       setFloors([])
@@ -49,7 +48,7 @@ export default function BuildingPage() {
         )
         if (!res.ok) throw new Error("Failed to fetch floors")
         const data = await res.json()
-        // [{ building, floor, fileBase64 }]
+        console.log("층 콤보박스/표 데이터:", data.floors) // ← 여기!
         setFloors(data.floors || [])
         setSelectedFloor("")
       } catch (err) {
@@ -83,10 +82,10 @@ export default function BuildingPage() {
     buildingPage * pageSize
   )
 
-  // 층 콤보박스 옵션: floors에서 중복 없는 floor 번호만
-  const floorOptions = Array.from(new Set(floors.map((f) => f.floor))).sort(
-    (a, b) => Number(a) - Number(b)
-  )
+  // floors 배열에서 중복 없는 층 번호만 추출
+  const floorOptions = Array.from(
+    new Set(floors.map((f) => String(f.floor)))
+  ).sort((a, b) => Number(a) - Number(b))
 
   return (
     <div className="building-root">

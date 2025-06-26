@@ -2,7 +2,6 @@ export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
 
-// 실제 인증 서버 연동 함수
 async function login(id, pw) {
   const res = await fetch("http://13.55.76.216:3001/user/login", {
     method: "POST",
@@ -11,7 +10,7 @@ async function login(id, pw) {
   })
   if (!res.ok) return null
   const user = await res.json()
-  return user // user 객체에는 user_id, name,  등 포함
+  return user
 }
 
 // POST: 로그인
@@ -33,7 +32,6 @@ export async function POST(request) {
       id: user.id,
       name: user.name,
       islogin: true,
-      // 필요하다면 추가 정보도 포함 가능
     })
   } catch (err) {
     console.error("로그인 처리 중 오류:", err)

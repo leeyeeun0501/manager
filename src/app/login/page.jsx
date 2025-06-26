@@ -1,4 +1,4 @@
-// login/page.jsx
+// login
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -22,7 +22,6 @@ export default function LoginPage() {
         body: JSON.stringify({ id, pw }),
       })
       const data = await res.json()
-      // 서버에서 islogin이 true일 때만 성공으로 처리
       if (data.islogin) {
         localStorage.setItem("id", data.id)
         localStorage.setItem("name", data.name)

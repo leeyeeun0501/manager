@@ -1,7 +1,6 @@
 // signup-route
 import { NextResponse } from "next/server"
 
-// 실제 서버와 연동
 async function registerUser({ id, pw, name, phone, email }) {
   const res = await fetch("http://13.55.76.216:3001/user/register", {
     method: "POST",

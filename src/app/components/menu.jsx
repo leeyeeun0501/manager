@@ -11,12 +11,11 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
   const router = useRouter()
   const [userName, setUserName] = useState("")
 
-  // 컴포넌트 마운트 시 localStorage에서 name을 읽어옴
   useEffect(() => {
     if (typeof window !== "undefined") {
       setUserName(localStorage.getItem("name") || "")
     }
-  }, [menuOpen]) // 메뉴 열릴 때마다 최신값 반영
+  }, [menuOpen])
 
   const handleLogout = async () => {
     const id = localStorage.getItem("id")

@@ -18,33 +18,56 @@ export async function GET(request) {
 }
 
 // 건물 이름/설명 수정 (PATCH)
-export async function PATCH(request) {
-  const body = await request.json()
+export async function PUT(request) {
+  const { searchParams } = new URL(request.url)
+  const building = searchParams.get("building")
 
-  if (body.type === "building") {
-    const patchBody = {}
-    if (body.newName !== undefined) patchBody.newName = body.newName
-    if (body.desc !== undefined) patchBody.desc = body.desc
-
-    const res = await fetch(`http://13.55.76.216:3000/building/`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patchBody),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      return NextResponse.json(
-        { success: false, error: data.error || "수정 실패" },
-        { status: res.status }
-      )
-    }
-    return NextResponse.json({ success: true })
+  if (!building) {
+    return NextResponse.json(
+      { error: "building은 필수입니다." },
+      { status: 400 }
+    )
   }
 
-  return NextResponse.json(
-    { success: false, error: "잘못된 요청" },
-    { status: 400 }
+  const formData = await request.formData()
+  const desc = formData.get("decs") || formData.get("desc")
+
+  if (!desc) {
+    return NextResponse.json(
+      { error: "수정할 설명을 입력하세요." },
+      { status: 400 }
+    )
+  }
+
+  const externalForm = new FormData()
+  externalForm.append("decs", desc)
+
+  const res = await fetch(
+    `http://13.55.76.216:3000/building/${encodeURIComponent(building)}`,
+    {
+      method: "PUT",
+      body: externalForm,
+    }
   )
+
+  const text = await res.text()
+  let data = {}
+  if (text) {
+    try {
+      data = JSON.parse(text)
+    } catch {
+      data = { message: text }
+    }
+  }
+
+  if (!res.ok) {
+    return NextResponse.json(
+      { error: data.error || data.message || "건물정보 수정 중 오류" },
+      { status: res.status }
+    )
+  }
+
+  return NextResponse.json(data)
 }
 
 // 건물 추가 (POST)

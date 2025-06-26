@@ -35,6 +35,12 @@ export default function BuildingPage() {
   const [editError, setEditError] = useState("")
   const editFileRef = useRef(null)
 
+  const [hoveredBuilding, setHoveredBuilding] = useState("")
+  const [showEditDescModal, setShowEditDescModal] = useState(false)
+  const [editDescBuilding, setEditDescBuilding] = useState("")
+  const [editDescValue, setEditDescValue] = useState("")
+  const [editDescError, setEditDescError] = useState("")
+
   // 건물 목록 fetch
   useEffect(() => {
     async function fetchBuildings() {
@@ -239,6 +245,45 @@ export default function BuildingPage() {
       setEditError("맵 파일 수정 중 오류가 발생했습니다.")
     }
   }
+
+  // 건물 설명 수정 핸들러
+  const handleEditDesc = async () => {
+    setEditDescError("")
+    if (!editDescBuilding) {
+      setEditDescError("수정할 건물을 선택하세요.")
+      return
+    }
+    try {
+      const formData = new FormData()
+      formData.append("decs", editDescValue)
+      const res = await fetch(
+        `/api/building-route?building=${encodeURIComponent(editDescBuilding)}`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      )
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setEditDescError(data.error || "설명 수정 실패")
+        return
+      }
+      // 수정 성공 시 목록 갱신
+      const buildingsRes = await fetch("/api/building-route")
+      const buildingsData = await buildingsRes.json()
+      setBuildingInfos(
+        (buildingsData.all || []).map((b) => ({
+          name: b.Building_Name,
+          desc: b.Description || "",
+        }))
+      )
+      setShowEditDescModal(false)
+      setEditDescBuilding("")
+      setEditDescValue("")
+    } catch (err) {
+      setEditDescError("설명 수정 중 오류가 발생했습니다.")
+    }
+  }
   return (
     <div className="building-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
@@ -381,11 +426,43 @@ export default function BuildingPage() {
                   buildingPaged.map((b, idx) => (
                     <tr key={b.name || idx}>
                       <td>{b.name}</td>
-                      <td>{b.desc}</td>
+                      <td
+                        style={{ position: "relative" }}
+                        onMouseEnter={() => setHoveredBuilding(b.name)}
+                        onMouseLeave={() => setHoveredBuilding("")}
+                      >
+                        {b.desc}
+                        {hoveredBuilding === b.name && (
+                          <button
+                            style={{
+                              position: "absolute",
+                              right: 4,
+                              top: "50%",
+                              transform: "translateY(-50%)",
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: 0,
+                              marginLeft: 8,
+                              fontSize: 16,
+                              opacity: 0.7,
+                            }}
+                            aria-label="설명 수정"
+                            onClick={() => {
+                              setEditDescBuilding(b.name)
+                              setEditDescValue(b.desc)
+                              setShowEditDescModal(true)
+                              setEditDescError("")
+                            }}
+                            tabIndex={0}
+                          >
+                            ✏️
+                          </button>
+                        )}
+                      </td>
                       <td>
                         {b.file ? (
                           <button
-                            // 팝업 등은 추후 구현, 일단 버튼만
                             onClick={() =>
                               alert("이미지 불러오기(팝업 등 구현 필요)")
                             }
@@ -401,7 +478,7 @@ export default function BuildingPage() {
                 ) : (
                   <tr>
                     <td
-                      colSpan={2}
+                      colSpan={3}
                       style={{ textAlign: "center", color: "#aaa" }}
                     >
                       건물 데이터가 없습니다.
@@ -526,7 +603,6 @@ export default function BuildingPage() {
                         {row.file ? (
                           <button
                             onClick={() => {
-                              // 최신 floors에서 해당 층의 file을 찾아서 popupImg로 세팅
                               const latest = floors.find(
                                 (f) =>
                                   f.building === row.building &&
@@ -585,6 +661,60 @@ export default function BuildingPage() {
           </div>
         </div>
       </div>
+      {/* 건물 설명 수정 팝업 */}
+      {showEditDescModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+          onClick={() => setShowEditDescModal(false)}
+        >
+          <div
+            style={{
+              background: "#fff",
+              padding: 24,
+              borderRadius: 8,
+              minWidth: 320,
+              boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ marginBottom: 12 }}>건물 설명 수정</h3>
+            <div style={{ marginBottom: 12 }}>
+              <input
+                type="text"
+                value={editDescValue}
+                onChange={(e) => setEditDescValue(e.target.value)}
+                style={{ width: "100%", padding: 8, fontSize: 16 }}
+                placeholder="설명을 입력하세요"
+              />
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="modal-save-btn" onClick={handleEditDesc}>
+                수정
+              </button>
+              <button
+                className="modal-cancel-btn"
+                onClick={() => setShowEditDescModal(false)}
+              >
+                취소
+              </button>
+            </div>
+            {editDescError && (
+              <div style={{ color: "red", marginTop: 8 }}>{editDescError}</div>
+            )}
+          </div>
+        </div>
+      )}
       {/* 팝업: 이미지+수정 */}
       {popupImg && (
         <div

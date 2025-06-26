@@ -24,7 +24,7 @@ export default function BuildingPage() {
           .filter((b) => b && b.Building_Name)
           .map((b) => ({
             name: b.Building_Name,
-            desc: b.Desc || b.Description || "",
+            desc: b.Description || "",
           }))
         setBuildingInfos(infos)
       } catch (err) {

@@ -5,7 +5,7 @@ import "./building.css"
 
 export default function BuildingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [buildingInfos, setBuildingInfos] = useState([]) // [{ name, desc }]
+  const [buildingInfos, setBuildingInfos] = useState([])
   const [selectedBuilding, setSelectedBuilding] = useState("")
   const [floors, setFloors] = useState([]) // [{ building, floor, fileBase64 }]
   const [selectedFloor, setSelectedFloor] = useState("")
@@ -13,7 +13,7 @@ export default function BuildingPage() {
   const [floorPage, setFloorPage] = useState(1)
   const pageSize = 10
 
-  // 건물 목록 및 설명 fetch
+  // 건물 목록 fetch
   useEffect(() => {
     async function fetchBuildings() {
       try {
@@ -34,7 +34,7 @@ export default function BuildingPage() {
     fetchBuildings()
   }, [])
 
-  // 건물 선택 시 층 목록 fetch
+  // 건물 선택 시 해당 건물의 층 fetch
   useEffect(() => {
     if (!selectedBuilding) {
       setFloors([])
@@ -48,12 +48,16 @@ export default function BuildingPage() {
         )
         if (!res.ok) throw new Error("Failed to fetch floors")
         const data = await res.json()
-        console.log("층 콤보박스/표 데이터:", data.floors) // ← 여기!
-        setFloors(data.floors || [])
+
+        console.log("서버 응답:", data)
+
+        setFloors(Array.isArray(data.floors) ? data.floors : [])
         setSelectedFloor("")
+        setFloorPage(1)
       } catch (err) {
         setFloors([])
         setSelectedFloor("")
+        setFloorPage(1)
       }
     }
     fetchFloors()
@@ -87,11 +91,14 @@ export default function BuildingPage() {
     new Set(floors.map((f) => String(f.floor)))
   ).sort((a, b) => Number(a) - Number(b))
 
+  const [popupImg, setPopupImg] = useState(null) // base64 문자열 저장
+
   return (
     <div className="building-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className="building-content">
         <div className="building-filter-row">
+          {/* 건물 콤보박스 */}
           <select
             className="building-select"
             value={selectedBuilding}
@@ -107,6 +114,7 @@ export default function BuildingPage() {
               </option>
             ))}
           </select>
+          {/* 층 콤보박스: 건물 선택 시 항상 활성화. 옵션 없으면 "없음"만 */}
           <select
             className="floor-select"
             value={selectedFloor}
@@ -114,14 +122,20 @@ export default function BuildingPage() {
               setSelectedFloor(e.target.value)
               setFloorPage(1)
             }}
-            disabled={!floorOptions.length}
+            disabled={!selectedBuilding} // 건물 선택 전에는 비활성화
           >
-            <option value="">층</option>
-            {floorOptions.map((f, idx) => (
-              <option key={f || idx} value={f}>
-                {f}
+            <option value="">전체</option>
+            {floorOptions.length > 0 ? (
+              floorOptions.map((f, idx) => (
+                <option key={f || idx} value={f}>
+                  {f}
+                </option>
+              ))
+            ) : (
+              <option value="" disabled>
+                없음
               </option>
-            ))}
+            )}
           </select>
         </div>
 
@@ -195,25 +209,25 @@ export default function BuildingPage() {
                       <td>{row.building}</td>
                       <td>{row.floor}</td>
                       <td>
-                        {row.fileBase64 ? (
-                          <a
-                            href={`data:image/png;base64,${row.fileBase64}`}
-                            download={`${row.building}_${row.floor}.png`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
+                        {row.file ? (
+                          <>
                             <img
-                              src={`data:image/png;base64,${row.fileBase64}`}
+                              src={`data:image/png;base64,${row.file}`}
                               alt="맵 미리보기"
                               style={{
                                 width: 60,
                                 height: "auto",
                                 border: "1px solid #ccc",
+                                display: "block",
+                                marginBottom: 4,
+                                cursor: "pointer",
                               }}
+                              onClick={() => setPopupImg(row.file)}
                             />
-                            <br />
-                            다운로드
-                          </a>
+                            <button onClick={() => setPopupImg(row.file)}>
+                              이미지 불러오기
+                            </button>
+                          </>
                         ) : (
                           <span style={{ color: "#aaa" }}>없음</span>
                         )}
@@ -257,6 +271,57 @@ export default function BuildingPage() {
           </div>
         </div>
       </div>
+      {popupImg && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+          onClick={() => setPopupImg(null)}
+        >
+          <div
+            style={{
+              background: "#fff",
+              padding: 20,
+              borderRadius: 8,
+              boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+              maxWidth: "90vw",
+              maxHeight: "90vh",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={`data:image/png;base64,${popupImg}`}
+              alt="확대 이미지"
+              style={{
+                maxWidth: "80vw",
+                maxHeight: "80vh",
+                display: "block",
+                margin: "0 auto",
+              }}
+            />
+            <button
+              style={{
+                marginTop: 16,
+                display: "block",
+                marginLeft: "auto",
+                marginRight: "auto",
+              }}
+              onClick={() => setPopupImg(null)}
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

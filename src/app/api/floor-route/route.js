@@ -24,14 +24,13 @@ export async function GET(request) {
 
   // [{ floor, building, file(Base64) }, ...] 형태로 반환됨
   const data = await res.json()
-  // 안전하게 배열 변환
   const floors = Array.isArray(data) ? data : []
 
   // 필요시 클라이언트에 맞게 필드명 매핑
   const result = floors.map((row) => ({
-    building: row.building,
-    floor: row.floor,
-    fileBase64: row.file || null, // Base64 PNG
+    floor: row.Floor_Number,
+    building: row.Building_Name,
+    file: row.file || null, // Base64 PNG
   }))
 
   return NextResponse.json({ floors: result })

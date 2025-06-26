@@ -63,3 +63,54 @@ export async function POST(request) {
 
   return NextResponse.json({ success: true, ...data })
 }
+
+export async function PUT(request) {
+  const { searchParams } = new URL(request.url)
+  const building = searchParams.get("building")
+  const floor = searchParams.get("floor")
+
+  if (!building || !floor) {
+    return NextResponse.json(
+      { error: "floor_number와 building_name은 필수입니다." },
+      { status: 400 }
+    )
+  }
+
+  const formData = await request.formData()
+  const file = formData.get("file")
+
+  // 외부 서버로 요청
+  const externalFormData = new FormData()
+  externalFormData.append("file", file)
+  externalFormData.append("building_name", building)
+  externalFormData.append("floor_number", floor)
+
+  const res = await fetch(
+    `http://13.55.76.216:3000/floor/${encodeURIComponent(
+      floor
+    )}/${encodeURIComponent(building)}`,
+    {
+      method: "PUT",
+      body: externalFormData,
+    }
+  )
+
+  const text = await res.text()
+  let data = {}
+  if (text) {
+    try {
+      data = JSON.parse(text)
+    } catch {
+      data = { message: text }
+    }
+  }
+
+  if (!res.ok) {
+    return NextResponse.json(
+      { error: data.error || data.message || "건물정보 수정 중 오류" },
+      { status: res.status }
+    )
+  }
+
+  return NextResponse.json(data)
+}

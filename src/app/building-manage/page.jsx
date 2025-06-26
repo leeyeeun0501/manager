@@ -27,9 +27,13 @@ export default function BuildingPage() {
   const [addFloorError, setAddFloorError] = useState("")
   const addFloorFileRef = useRef(null)
 
-  // 이미지 팝업
+  // 이미지 팝업 및 수정 상태
   const [popupImg, setPopupImg] = useState(null)
-  const [visibleImages, setVisibleImages] = useState({})
+  const [popupFloor, setPopupFloor] = useState(null)
+  const [popupBuilding, setPopupBuilding] = useState(null)
+  const [editFile, setEditFile] = useState(null)
+  const [editError, setEditError] = useState("")
+  const editFileRef = useRef(null)
 
   // 건물 목록 fetch
   useEffect(() => {
@@ -192,6 +196,49 @@ export default function BuildingPage() {
     }
   }
 
+  // 층 맵 파일 수정 핸들러 (쿼리 파라미터 방식)
+  const handleEditFloorMap = async () => {
+    setEditError("")
+    if (!popupBuilding || !popupFloor || !editFile) {
+      setEditError("파일을 선택하세요.")
+      return
+    }
+    const formData = new FormData()
+    formData.append("file", editFile)
+    try {
+      const res = await fetch(
+        `/api/floor-route?building=${encodeURIComponent(
+          popupBuilding
+        )}&floor=${encodeURIComponent(popupFloor)}`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      )
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setEditError(data.error || "맵 파일 수정 실패")
+        return
+      }
+      // 수정 후 floors 새로고침
+      if (selectedBuilding === popupBuilding) {
+        const floorsRes = await fetch(
+          `/api/floor-route?building=${encodeURIComponent(popupBuilding)}`
+        )
+        const floorsData = await floorsRes.json()
+        setFloors(floorsData.floors || [])
+      }
+      alert("맵 파일이 수정되었습니다!")
+      setPopupImg(null)
+      setEditFile(null)
+      setEditError("")
+      if (editFileRef.current) editFileRef.current.value = ""
+      setPopupFloor(null)
+      setPopupBuilding(null)
+    } catch (err) {
+      setEditError("맵 파일 수정 중 오류가 발생했습니다.")
+    }
+  }
   return (
     <div className="building-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
@@ -462,7 +509,23 @@ export default function BuildingPage() {
                       <td>{row.floor}</td>
                       <td>
                         {row.file ? (
-                          <button onClick={() => setPopupImg(row.file)}>
+                          <button
+                            onClick={() => {
+                              // 최신 floors에서 해당 층의 file을 찾아서 popupImg로 세팅
+                              const latest = floors.find(
+                                (f) =>
+                                  f.building === row.building &&
+                                  String(f.floor) === String(row.floor)
+                              )
+                              setPopupImg(latest?.file || "")
+                              setPopupFloor(row.floor)
+                              setPopupBuilding(row.building)
+                              setEditFile(null)
+                              setEditError("")
+                              if (editFileRef.current)
+                                editFileRef.current.value = ""
+                            }}
+                          >
                             이미지 불러오기
                           </button>
                         ) : (
@@ -507,6 +570,7 @@ export default function BuildingPage() {
           </div>
         </div>
       </div>
+      {/* 팝업: 이미지+수정 */}
       {popupImg && (
         <div
           style={{
@@ -521,7 +585,12 @@ export default function BuildingPage() {
             justifyContent: "center",
             zIndex: 9999,
           }}
-          onClick={() => setPopupImg(null)}
+          onClick={() => {
+            setPopupImg(null)
+            setEditFile(null)
+            setEditError("")
+            if (editFileRef.current) editFileRef.current.value = ""
+          }}
         >
           <div
             style={{
@@ -539,22 +608,36 @@ export default function BuildingPage() {
               alt="확대 이미지"
               style={{
                 maxWidth: "80vw",
-                maxHeight: "80vh",
+                maxHeight: "60vh",
                 display: "block",
                 margin: "0 auto",
               }}
             />
-            <button
-              style={{
-                marginTop: 16,
-                display: "block",
-                marginLeft: "auto",
-                marginRight: "auto",
-              }}
-              onClick={() => setPopupImg(null)}
-            >
-              닫기
-            </button>
+            <div style={{ marginTop: 16 }}>
+              <input
+                type="file"
+                accept="image/png"
+                ref={editFileRef}
+                onChange={(e) => setEditFile(e.target.files[0])}
+              />
+              <button style={{ marginLeft: 8 }} onClick={handleEditFloorMap}>
+                수정
+              </button>
+              <button
+                style={{ marginLeft: 8 }}
+                onClick={() => {
+                  setPopupImg(null)
+                  setEditFile(null)
+                  setEditError("")
+                  if (editFileRef.current) editFileRef.current.value = ""
+                }}
+              >
+                닫기
+              </button>
+            </div>
+            {editError && (
+              <div style={{ color: "red", marginTop: 8 }}>{editError}</div>
+            )}
           </div>
         </div>
       )}

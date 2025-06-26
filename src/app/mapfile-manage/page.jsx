@@ -19,6 +19,19 @@ export default function MapfileManagePage() {
   const buildingOptions = Array.from({ length: 19 }, (_, i) => `W${i + 1}`)
   const floorOptions = ["1", "2"]
 
+  const categoryOptions = [
+    "카페",
+    "식당",
+    "편의점",
+    "자판기",
+    "정수기",
+    "프린터",
+    "라운지",
+    "은행(atm)",
+    "열람실",
+    "스터디룸",
+  ]
+
   // 도면 불러오기
   const handleLoadMap = async () => {
     setImgUrl("")
@@ -71,7 +84,8 @@ export default function MapfileManagePage() {
       setSubmitMsg("카테고리를 선택하세요.")
       return
     }
-    const res = await fetch("/api/mapfile-manage", {
+
+    const res = await fetch("/api/mapfile-image-route", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -82,6 +96,7 @@ export default function MapfileManagePage() {
         y: popup.y,
       }),
     })
+
     const data = await res.json()
     if (data.success) {
       setSubmitMsg("저장 완료!")
@@ -157,8 +172,8 @@ export default function MapfileManagePage() {
                 autoFocus
               >
                 <option value="">카테고리 선택</option>
-                {categoryList.map((cat, idx) => (
-                  <option key={cat || idx} value={cat}>
+                {categoryOptions.map((cat) => (
+                  <option key={cat} value={cat}>
                     {cat}
                   </option>
                 ))}

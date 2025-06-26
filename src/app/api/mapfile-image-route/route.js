@@ -51,11 +51,17 @@ export async function POST(request) {
     )
   }
 
-  const res = await fetch("http://13.55.76.216:3000/category", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ building, floor, category, x, y }),
-  })
+  const res = await fetch(
+    `http://13.55.76.216:3000/category/${encodeURIComponent(
+      building
+    )}/${encodeURIComponent(floor)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category, x, y }),
+    }
+  )
+
   if (!res.ok) {
     const data = await res.json().catch(() => ({}))
     return NextResponse.json(
@@ -63,5 +69,6 @@ export async function POST(request) {
       { status: res.status }
     )
   }
+
   return NextResponse.json({ success: true })
 }

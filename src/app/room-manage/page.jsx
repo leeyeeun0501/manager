@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from "react"
 import Menu from "../components/menu"
 import "./room-manage.css"
+import { MdEditSquare } from "react-icons/md"
 
 export default function RoomManagePage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -33,6 +34,48 @@ export default function RoomManagePage() {
   })
   const [addMsg, setAddMsg] = useState("")
   const [addLoading, setAddLoading] = useState(false)
+
+  const [showEditRoomModal, setShowEditRoomModal] = useState(false)
+  const [editRoom, setEditRoom] = useState(null) // {building, floor, name, description}
+  const [editRoomName, setEditRoomName] = useState("")
+  const [editRoomDesc, setEditRoomDesc] = useState("")
+  const [editRoomError, setEditRoomError] = useState("")
+  const [editRoomLoading, setEditRoomLoading] = useState(false)
+
+  const handleEditRoom = async () => {
+    setEditRoomError("")
+    if (!editRoom) return
+    setEditRoomLoading(true)
+    try {
+      const res = await fetch(
+        `/api/room-route/${encodeURIComponent(
+          editRoom.building
+        )}/${encodeURIComponent(editRoom.floor)}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            room_name: editRoomName,
+            room_desc: editRoomDesc,
+          }),
+        }
+      )
+      const data = await res.json()
+      if (!res.ok) {
+        setEditRoomError(data.error || "수정 실패")
+        return
+      }
+      fetchRooms()
+      setShowEditRoomModal(false)
+      setEditRoom(null)
+      setEditRoomName("")
+      setEditRoomDesc("")
+    } catch {
+      setEditRoomError("수정 중 오류가 발생했습니다.")
+    } finally {
+      setEditRoomLoading(false)
+    }
+  }
 
   // --- 데이터 불러오기 ---
   // 강의실 정보
@@ -244,7 +287,32 @@ export default function RoomManagePage() {
                         <td>{room.building}</td>
                         <td>{room.floor}</td>
                         <td>{room.name}</td>
-                        <td>{room.description}</td>
+                        <td style={{ position: "relative" }}>
+                          {room.description}
+                          <button
+                            style={{
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: 0,
+                              marginLeft: 6,
+                              position: "absolute",
+                              right: 6,
+                              top: "50%",
+                              transform: "translateY(-50%)",
+                            }}
+                            onClick={() => {
+                              setEditRoom(room)
+                              setEditRoomName(room.name)
+                              setEditRoomDesc(room.description || "")
+                              setShowEditRoomModal(true)
+                              setEditRoomError("")
+                            }}
+                            aria-label="강의실 정보 수정"
+                          >
+                            <MdEditSquare size={18} color="#007bff" />
+                          </button>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -348,6 +416,74 @@ export default function RoomManagePage() {
             ) : (
               <div className="mapfile-map-placeholder">
                 건물과 층을 선택 후 맵을 불러오세요.
+              </div>
+            )}
+            {showEditRoomModal && (
+              <div
+                style={{
+                  position: "fixed",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: "rgba(0,0,0,0.4)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 9999,
+                }}
+                onClick={() => setShowEditRoomModal(false)}
+              >
+                <div
+                  style={{
+                    background: "#fff",
+                    padding: 24,
+                    borderRadius: 8,
+                    minWidth: 320,
+                    boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 style={{ marginBottom: 12 }}>강의실 정보 수정</h3>
+                  <div style={{ marginBottom: 12 }}>
+                    <input
+                      type="text"
+                      value={editRoomName}
+                      onChange={(e) => setEditRoomName(e.target.value)}
+                      style={{ width: "100%", padding: 8, fontSize: 16 }}
+                      placeholder="강의실명"
+                    />
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <input
+                      type="text"
+                      value={editRoomDesc}
+                      onChange={(e) => setEditRoomDesc(e.target.value)}
+                      style={{ width: "100%", padding: 8, fontSize: 16 }}
+                      placeholder="강의실 설명"
+                    />
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button
+                      className="modal-save-btn"
+                      onClick={handleEditRoom}
+                      disabled={editRoomLoading}
+                    >
+                      {editRoomLoading ? "저장 중..." : "저장"}
+                    </button>
+                    <button
+                      className="modal-cancel-btn"
+                      onClick={() => setShowEditRoomModal(false)}
+                    >
+                      취소
+                    </button>
+                  </div>
+                  {editRoomError && (
+                    <div style={{ color: "red", marginTop: 8 }}>
+                      {editRoomError}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

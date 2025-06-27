@@ -1,6 +1,6 @@
 // mapfile-manage
 "use client"
-import React, { useRef, useState } from "react"
+import React, { useRef, useState, useEffect } from "react"
 import Menu from "../components/menu"
 import "./mapfile-manage.css"
 
@@ -19,6 +19,60 @@ export default function MapfileManagePage() {
   // 건물, 층 콤보박스 옵션
   const buildingOptions = Array.from({ length: 19 }, (_, i) => `W${i + 1}`)
   const floorOptions = ["1", "2"]
+
+  const [floors, setFloors] = useState([])
+  const [floorPage, setFloorPage] = useState(1)
+  const [buildingInfos, setBuildingInfos] = useState([])
+  const [buildingPage, setBuildingPage] = useState(1)
+
+  // 건물 목록 fetch
+  useEffect(() => {
+    async function fetchBuildings() {
+      try {
+        const res = await fetch("/api/building-route")
+        if (!res.ok) throw new Error("Failed to fetch buildings")
+        const data = await res.json()
+        const infos = (data.all || [])
+          .filter((b) => b && b.Building_Name)
+          .map((b) => ({
+            name: b.Building_Name,
+            desc: b.Description || "",
+            file: b.File || null,
+          }))
+        setBuildingInfos(infos)
+      } catch (err) {
+        setBuildingInfos([])
+      }
+    }
+    fetchBuildings()
+  }, [])
+
+  // 건물 선택 시 해당 건물의 층 fetch
+  useEffect(() => {
+    if (!selectedBuilding) {
+      setFloors([])
+      setSelectedFloor("")
+      setFloorPage(1)
+      return
+    }
+    async function fetchFloors() {
+      try {
+        const res = await fetch(
+          `/api/floor-route?building=${encodeURIComponent(selectedBuilding)}`
+        )
+        if (!res.ok) throw new Error("Failed to fetch floors")
+        const data = await res.json()
+        setFloors(Array.isArray(data.floors) ? data.floors : [])
+        setSelectedFloor("")
+        setFloorPage(1)
+      } catch (err) {
+        setFloors([])
+        setSelectedFloor("")
+        setFloorPage(1)
+      }
+    }
+    fetchFloors()
+  }, [selectedBuilding])
 
   // 서버에서 안 받고 여기서 목록 부름
   const categoryOptions = [
@@ -112,26 +166,36 @@ export default function MapfileManagePage() {
       <h2 className="mapfile-manage-title">2D 도면 카테고리 위치 관리</h2>
       <div className="mapfile-manage-controls">
         <select
+          className="building-select"
           value={selectedBuilding}
-          onChange={(e) => setSelectedBuilding(e.target.value)}
-          style={{ width: 120, marginRight: 8 }}
+          onChange={(e) => {
+            setSelectedBuilding(e.target.value)
+            setBuildingPage(1)
+            setFloorPage(1)
+          }}
         >
-          {buildingOptions.map((b) => (
-            <option key={b} value={b}>
-              {b}
+          <option value="">건물</option>
+          {buildingInfos.map((b, idx) => (
+            <option key={b.name || idx} value={b.name}>
+              {b.name}
             </option>
-          ))}
+          ))}{" "}
         </select>
         <select
+          className="floor-select"
           value={selectedFloor}
-          onChange={(e) => setSelectedFloor(e.target.value)}
-          style={{ width: 80, marginRight: 8 }}
+          onChange={(e) => {
+            setSelectedFloor(e.target.value)
+            setFloorPage(1)
+          }}
+          disabled={!selectedBuilding}
         >
-          {floorOptions.map((f) => (
-            <option key={f} value={f}>
-              {f}
+          <option value="">전체</option>
+          {floors.map((f, idx) => (
+            <option key={f.floor || idx} value={f.floor}>
+              {f.floor}
             </option>
-          ))}
+          ))}{" "}
         </select>
         <button onClick={handleLoadMap}>도면 불러오기</button>
       </div>

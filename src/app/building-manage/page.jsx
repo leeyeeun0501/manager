@@ -242,7 +242,9 @@ export default function BuildingPage() {
       // 수정 후 floors 새로고침
       if (selectedBuilding === popupBuilding) {
         const floorsRes = await fetch(
-          `/api/floor-route?building=${encodeURIComponent(popupBuilding)}`
+          `/api/floor-route?building=${encodeURIComponent(
+            popupBuilding
+          )}&_=${Date.now()}`
         )
         const floorsData = await floorsRes.json()
         setFloors(floorsData.floors || [])
@@ -862,7 +864,12 @@ export default function BuildingPage() {
                 ref={editFileRef}
                 onChange={(e) => setEditFile(e.target.files[0])}
               />
-              <button style={{ marginLeft: 8 }} onClick={handleEditBuildingMap}>
+              <button
+                style={{ marginLeft: 8 }}
+                onClick={
+                  isBuildingMap ? handleEditBuildingMap : handleEditFloorMap
+                }
+              >
                 수정
               </button>
               <button

@@ -12,7 +12,7 @@ export async function GET(request) {
   // 외부 서버에서 건물별 층 목록+도면(Base64) 조회
   const res = await fetch(
     `http://13.55.76.216:3000/floor/${encodeURIComponent(building)}`,
-    { method: "GET" }
+    { method: "GET", cache: "no-store" }
   )
 
   if (!res.ok) {
@@ -65,6 +65,7 @@ export async function POST(request) {
 }
 
 export async function PUT(request) {
+  console.log("PUT 함수 진입") // 이 로그가 찍히는지 먼저 확인!
   const { searchParams } = new URL(request.url)
   const building = searchParams.get("building")
   const floor = searchParams.get("floor")
@@ -103,6 +104,22 @@ export async function PUT(request) {
     } catch {
       data = { message: text }
     }
+  }
+
+  // *** PUT 성공 후 바로 GET해서 Base64 로그 찍기 ***
+  if (res.ok) {
+    const getRes = await fetch(
+      `http://13.55.76.216:3000/floor/${encodeURIComponent(building)}`,
+      { method: "GET", cache: "no-store" }
+    )
+    const getData = await getRes.json()
+    const target = Array.isArray(getData)
+      ? getData.find((row) => String(row.Floor_Number) === String(floor))
+      : null
+    console.log(
+      "[PUT 후 GET] file(Base64) 앞 100글자:",
+      target?.file?.slice(0, 100)
+    )
   }
 
   if (!res.ok) {

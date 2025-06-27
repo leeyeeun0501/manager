@@ -1,37 +1,37 @@
 // room-route
-// 이거 강의실 관리 페이지 따로 만들어서 다시 기능 넣고 수정해야 됨
+import { NextResponse } from "next/server"
 
-export async function PATCH(request) {
-  const body = await request.json()
-
-  if (body.type === "building") {
-    const patchBody = {}
-    if (body.desc !== undefined) patchBody.desc = body.desc
-    if (body.newName !== undefined) patchBody.newName = body.newName
-
-    const res = await fetch(
-      `http://13.55.76.216:3000/buildings/${body.building}`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(patchBody),
-      }
-    )
-
-    const data = await res.json()
+// 강의실 전체 조회 (GET)
+export async function GET() {
+  try {
+    // 외부 서버에서 강의실(방) 목록 받아오기
+    const res = await fetch("http://13.55.76.216:3000/room", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    })
 
     if (!res.ok) {
       return NextResponse.json(
-        { success: false, error: data.error || "수정 실패" },
+        { error: "강의실 정보를 불러올 수 없습니다." },
         { status: res.status }
       )
     }
 
-    return NextResponse.json({ success: true })
-  }
+    // 예시 반환값: [{ Building_Name, Floor_Number, Room_Name, Room_Description }, ...]
+    const data = await res.json()
 
-  return NextResponse.json(
-    { success: false, error: "잘못된 요청" },
-    { status: 400 }
-  )
+    // 프론트엔드에서 쓰기 좋은 형태로 필드명 매핑
+    const rooms = Array.isArray(data)
+      ? data.map((room) => ({
+          building: room.Building_Name,
+          floor: room.Floor_Number,
+          name: room.Room_Name,
+          description: room.Room_Description,
+        }))
+      : []
+
+    return NextResponse.json({ rooms })
+  } catch (err) {
+    return NextResponse.json({ error: "서버 오류" }, { status: 500 })
+  }
 }

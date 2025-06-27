@@ -1,3 +1,4 @@
+// mapfile-manage
 "use client"
 import React, { useRef, useState } from "react"
 import Menu from "../components/menu"
@@ -19,6 +20,7 @@ export default function MapfileManagePage() {
   const buildingOptions = Array.from({ length: 19 }, (_, i) => `W${i + 1}`)
   const floorOptions = ["1", "2"]
 
+  // 서버에서 안 받고 여기서 목록 부름
   const categoryOptions = [
     "카페",
     "식당",
@@ -40,7 +42,6 @@ export default function MapfileManagePage() {
     setSubmitMsg("")
     setLoading(true)
     try {
-      // 건물/층 쿼리스트링에 넣어서 요청!
       const res = await fetch(
         `/api/mapfile-image-route?floor=${encodeURIComponent(
           selectedFloor
@@ -56,8 +57,7 @@ export default function MapfileManagePage() {
       const objectUrl = URL.createObjectURL(blob)
       setImgUrl(objectUrl)
 
-      // 필요하면 카테고리 목록도 fetch해서 setCategoryList([...]) 하세요.
-      setCategoryList([]) // 예시: 빈 배열
+      setCategoryList([])
     } catch (e) {
       setImgUrl("")
       setSubmitMsg("도면을 불러오는 중 오류가 발생했습니다.")

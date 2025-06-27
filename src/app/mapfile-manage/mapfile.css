@@ -1,3 +1,4 @@
+/* mapfile-manage.css */
 .mapfile-manage-root {
   max-width: 900px;
   margin: 0 auto;
@@ -106,9 +107,11 @@
   margin-top: 7px;
   font-size: 0.97rem;
 }
+
 .mapfile-popup-msg.success {
   color: #059669;
 }
+
 .mapfile-popup-msg.error {
   color: #dc2626;
 }

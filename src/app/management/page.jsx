@@ -1,4 +1,4 @@
-// management
+// management (메인 화면)
 "use client"
 import React, { useState } from "react"
 import Menu from "../components/menu"

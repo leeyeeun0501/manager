@@ -1,4 +1,4 @@
-// app/layout.js (또는 app/page.js)
+// layout.js (창 껐을 때 자동 로그아웃 - islogin = false 서버로 보냄)
 "use client"
 import { useEffect } from "react"
 

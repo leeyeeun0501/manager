@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
+  // 로그인 핸들러
   const handleLogin = async (e) => {
     e.preventDefault()
     setError("")

@@ -1,3 +1,4 @@
+// building-manage
 "use client"
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
@@ -34,7 +35,7 @@ export default function BuildingPage() {
   const [editFile, setEditFile] = useState(null)
   const [editError, setEditError] = useState("")
   const editFileRef = useRef(null)
-  const [isBuildingMap, setIsBuildingMap] = useState(false) // 건물맵/층맵 구분
+  const [isBuildingMap, setIsBuildingMap] = useState(false)
 
   const [hoveredBuilding, setHoveredBuilding] = useState("")
   const [showEditDescModal, setShowEditDescModal] = useState(false)
@@ -44,6 +45,35 @@ export default function BuildingPage() {
 
   const [addBuildingFile, setAddBuildingFile] = useState(null)
   const addBuildingFileRef = useRef(null)
+
+  // 건물/층 옵션
+  const buildingOptions = buildingInfos.map((b) => b.name)
+  const floorOptions = Array.from(
+    new Set(floors.map((f) => String(f.floor)))
+  ).sort((a, b) => Number(a) - Number(b))
+
+  // 건물 표 페이지네이션
+  const buildingTotalPages = Math.max(
+    1,
+    Math.ceil((buildingInfos.length || 0) / pageSize)
+  )
+  const buildingPaged = buildingInfos.slice(
+    (buildingPage - 1) * pageSize,
+    buildingPage * pageSize
+  )
+
+  // 층 표 필터 및 페이지네이션
+  const floorFiltered = selectedFloor
+    ? floors.filter((f) => String(f.floor) === String(selectedFloor))
+    : floors
+  const floorTotalPages = Math.max(
+    1,
+    Math.ceil((floorFiltered.length || 0) / pageSize)
+  )
+  const floorPaged = floorFiltered.slice(
+    (floorPage - 1) * pageSize,
+    floorPage * pageSize
+  )
 
   // 건물 목록 fetch
   useEffect(() => {
@@ -94,35 +124,6 @@ export default function BuildingPage() {
     fetchFloors()
   }, [selectedBuilding])
 
-  // 건물/층 옵션
-  const buildingOptions = buildingInfos.map((b) => b.name)
-  const floorOptions = Array.from(
-    new Set(floors.map((f) => String(f.floor)))
-  ).sort((a, b) => Number(a) - Number(b))
-
-  // 건물 표 페이지네이션
-  const buildingTotalPages = Math.max(
-    1,
-    Math.ceil((buildingInfos.length || 0) / pageSize)
-  )
-  const buildingPaged = buildingInfos.slice(
-    (buildingPage - 1) * pageSize,
-    buildingPage * pageSize
-  )
-
-  // 층 표 필터 및 페이지네이션
-  const floorFiltered = selectedFloor
-    ? floors.filter((f) => String(f.floor) === String(selectedFloor))
-    : floors
-  const floorTotalPages = Math.max(
-    1,
-    Math.ceil((floorFiltered.length || 0) / pageSize)
-  )
-  const floorPaged = floorFiltered.slice(
-    (floorPage - 1) * pageSize,
-    floorPage * pageSize
-  )
-
   // 건물 추가 핸들러
   const handleAddBuilding = async (e) => {
     e.preventDefault()
@@ -157,6 +158,7 @@ export default function BuildingPage() {
       setAddBuildingDesc("")
       setAddBuildingFile(null)
       if (addBuildingFileRef.current) addBuildingFileRef.current.value = ""
+
       // 새로고침
       const buildingsRes = await fetch("/api/building-route")
       const buildingsData = await buildingsRes.json()
@@ -170,6 +172,93 @@ export default function BuildingPage() {
       setBuildingInfos(infos)
     } catch (err) {
       setAddBuildingError("건물 추가 중 오류가 발생했습니다.")
+    }
+  }
+
+  // 건물 설명 수정 핸들러
+  const handleEditDesc = async () => {
+    setEditDescError("")
+    if (!editDescBuilding) {
+      setEditDescError("수정할 건물을 선택하세요.")
+      return
+    }
+    try {
+      const formData = new FormData()
+      formData.append("desc", editDescValue)
+      const res = await fetch(
+        `/api/building-route?building=${encodeURIComponent(editDescBuilding)}`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      )
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setEditDescError(data.error || "설명 수정 실패")
+        return
+      }
+
+      // 새로고침
+      const buildingsRes = await fetch("/api/building-route")
+      const buildingsData = await buildingsRes.json()
+      setBuildingInfos(
+        (buildingsData.all || []).map((b) => ({
+          name: b.Building_Name,
+          desc: b.Description || "",
+        }))
+      )
+      setShowEditDescModal(false)
+      setEditDescBuilding("")
+      setEditDescValue("")
+    } catch (err) {
+      setEditDescError("설명 수정 중 오류가 발생했습니다.")
+    }
+  }
+
+  // 건물 맵 파일 수정 핸들러
+  const handleEditBuildingMap = async () => {
+    setEditError("")
+    if (!popupBuilding || !editFile) {
+      setEditError("파일을 선택하세요.")
+      return
+    }
+    const formData = new FormData()
+    formData.append("file", editFile)
+
+    try {
+      const res = await fetch(
+        `/api/building-route?building=${encodeURIComponent(popupBuilding)}`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      )
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setEditError(data.error || "맵 파일 수정 실패")
+        return
+      }
+      // 새로고침
+      const buildingsRes = await fetch("/api/building-route")
+      const buildingsData = await buildingsRes.json()
+      const infos = (buildingsData.all || [])
+        .filter((b) => b && b.Building_Name)
+        .map((b) => ({
+          name: b.Building_Name,
+          desc: b.Description || "",
+          file: b.file || b.File || null,
+        }))
+      setBuildingInfos(infos)
+
+      alert("맵 파일이 수정되었습니다!")
+      setPopupImg(null)
+      setEditFile(null)
+      setEditError("")
+      setIsBuildingMap(false)
+      if (editFileRef.current) editFileRef.current.value = ""
+      setPopupBuilding(null)
+    } catch (err) {
+      setEditError("맵 파일 수정 중 오류가 발생했습니다.")
     }
   }
 
@@ -202,6 +291,7 @@ export default function BuildingPage() {
       setAddFloorNum("")
       setAddFloorFile(null)
       if (addFloorFileRef.current) addFloorFileRef.current.value = ""
+
       // 데이터 새로고침
       if (selectedBuilding === addFloorBuilding) {
         const floorsRes = await fetch(
@@ -215,7 +305,7 @@ export default function BuildingPage() {
     }
   }
 
-  // 층 맵 파일 수정 핸들러 (쿼리 파라미터 방식)
+  // 층 맵 파일 수정 핸들러
   const handleEditFloorMap = async () => {
     setEditError("")
     if (!popupBuilding || !popupFloor || !editFile) {
@@ -239,7 +329,7 @@ export default function BuildingPage() {
         setEditError(data.error || "맵 파일 수정 실패")
         return
       }
-      // 수정 후 floors 새로고침
+      // 새로고침
       if (selectedBuilding === popupBuilding) {
         const floorsRes = await fetch(
           `/api/floor-route?building=${encodeURIComponent(
@@ -258,92 +348,6 @@ export default function BuildingPage() {
       setPopupBuilding(null)
     } catch (err) {
       setEditError("맵 파일 수정 중 오류가 발생했습니다.")
-    }
-  }
-
-  // 건물 맵 파일 수정 핸들러 (쿼리 파라미터 방식)
-  const handleEditBuildingMap = async () => {
-    setEditError("")
-    if (!popupBuilding || !editFile) {
-      setEditError("파일을 선택하세요.")
-      return
-    }
-    const formData = new FormData()
-    formData.append("file", editFile)
-    // 설명도 같이 보내고 싶으면 formData.append("desc", 설명)
-    try {
-      const res = await fetch(
-        `/api/building-route?building=${encodeURIComponent(popupBuilding)}`,
-        {
-          method: "PUT",
-          body: formData,
-        }
-      )
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setEditError(data.error || "맵 파일 수정 실패")
-        return
-      }
-      // 수정 후 건물 목록 새로고침
-      const buildingsRes = await fetch("/api/building-route")
-      const buildingsData = await buildingsRes.json()
-      const infos = (buildingsData.all || [])
-        .filter((b) => b && b.Building_Name)
-        .map((b) => ({
-          name: b.Building_Name,
-          desc: b.Description || "",
-          file: b.file || b.File || null,
-        }))
-      setBuildingInfos(infos)
-
-      alert("맵 파일이 수정되었습니다!")
-      setPopupImg(null)
-      setEditFile(null)
-      setEditError("")
-      setIsBuildingMap(false)
-      if (editFileRef.current) editFileRef.current.value = ""
-      setPopupBuilding(null)
-    } catch (err) {
-      setEditError("맵 파일 수정 중 오류가 발생했습니다.")
-    }
-  }
-
-  // 건물 설명 수정 핸들러
-  const handleEditDesc = async () => {
-    setEditDescError("")
-    if (!editDescBuilding) {
-      setEditDescError("수정할 건물을 선택하세요.")
-      return
-    }
-    try {
-      const formData = new FormData()
-      formData.append("desc", editDescValue)
-      const res = await fetch(
-        `/api/building-route?building=${encodeURIComponent(editDescBuilding)}`,
-        {
-          method: "PUT",
-          body: formData,
-        }
-      )
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setEditDescError(data.error || "설명 수정 실패")
-        return
-      }
-      // 수정 성공 시 목록 갱신
-      const buildingsRes = await fetch("/api/building-route")
-      const buildingsData = await buildingsRes.json()
-      setBuildingInfos(
-        (buildingsData.all || []).map((b) => ({
-          name: b.Building_Name,
-          desc: b.Description || "",
-        }))
-      )
-      setShowEditDescModal(false)
-      setEditDescBuilding("")
-      setEditDescValue("")
-    } catch (err) {
-      setEditDescError("설명 수정 중 오류가 발생했습니다.")
     }
   }
 

@@ -268,6 +268,7 @@ export default function BuildingPage() {
     }
     const formData = new FormData()
     formData.append("file", editFile)
+    // 설명도 같이 보내고 싶으면 formData.append("desc", 설명)
     try {
       const res = await fetch(
         `/api/building-route?building=${encodeURIComponent(popupBuilding)}`,
@@ -289,7 +290,7 @@ export default function BuildingPage() {
         .map((b) => ({
           name: b.Building_Name,
           desc: b.Description || "",
-          file: b.File || null,
+          file: b.file || b.File || null,
         }))
       setBuildingInfos(infos)
 
@@ -297,6 +298,7 @@ export default function BuildingPage() {
       setPopupImg(null)
       setEditFile(null)
       setEditError("")
+      setIsBuildingMap(false)
       if (editFileRef.current) editFileRef.current.value = ""
       setPopupBuilding(null)
     } catch (err) {
@@ -543,7 +545,30 @@ export default function BuildingPage() {
                             이미지 불러오기
                           </button>
                         ) : (
-                          <span style={{ color: "#aaa" }}>없음</span>
+                          // 맵 파일 없을 때 연필 아이콘
+                          <button
+                            style={{
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              color: "#888",
+                              fontSize: 18,
+                              padding: 0,
+                            }}
+                            aria-label="맵 파일 추가"
+                            onClick={() => {
+                              setPopupImg(null)
+                              setPopupBuilding(b.name)
+                              setPopupFloor(null)
+                              setIsBuildingMap(true)
+                              setEditFile(null)
+                              setEditError("")
+                              if (editFileRef.current)
+                                editFileRef.current.value = ""
+                            }}
+                          >
+                            ✏️
+                          </button>
                         )}
                       </td>
                     </tr>
@@ -785,7 +810,7 @@ export default function BuildingPage() {
         </div>
       )}
       {/* 팝업: 이미지+수정 */}
-      {popupImg && (
+      {(popupImg !== null || (isBuildingMap && popupBuilding)) && (
         <div
           style={{
             position: "fixed",
@@ -818,16 +843,18 @@ export default function BuildingPage() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <img
-              src={`data:image/png;base64,${popupImg}`}
-              alt="확대 이미지"
-              style={{
-                maxWidth: "80vw",
-                maxHeight: "60vh",
-                display: "block",
-                margin: "0 auto",
-              }}
-            />
+            {popupImg && (
+              <img
+                src={`data:image/png;base64,${popupImg}`}
+                alt="확대 이미지"
+                style={{
+                  maxWidth: "80vw",
+                  maxHeight: "60vh",
+                  display: "block",
+                  margin: "0 auto",
+                }}
+              />
+            )}
             <div style={{ marginTop: 16 }}>
               <input
                 type="file"
@@ -835,12 +862,7 @@ export default function BuildingPage() {
                 ref={editFileRef}
                 onChange={(e) => setEditFile(e.target.files[0])}
               />
-              <button
-                style={{ marginLeft: 8 }}
-                onClick={
-                  isBuildingMap ? handleEditBuildingMap : handleEditFloorMap
-                }
-              >
+              <button style={{ marginLeft: 8 }} onClick={handleEditBuildingMap}>
                 수정
               </button>
               <button

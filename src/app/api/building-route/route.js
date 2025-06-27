@@ -25,35 +25,28 @@ export async function GET(request) {
 export async function PUT(request) {
   const { searchParams } = new URL(request.url)
   const building = searchParams.get("building")
-
   if (!building) {
     return NextResponse.json(
       { error: "building은 필수입니다." },
       { status: 400 }
     )
   }
-
   const formData = await request.formData()
-  const desc = formData.get("desc") || formData.get("desc")
-
-  if (!desc) {
+  const file = formData.get("file")
+  const desc = formData.get("desc")
+  if (!file && !desc) {
     return NextResponse.json(
-      { error: "수정할 설명을 입력하세요." },
+      { error: "수정할 항목이 없습니다." },
       { status: 400 }
     )
   }
-
   const externalForm = new FormData()
-  externalForm.append("desc", desc)
-
+  if (file) externalForm.append("file", file)
+  if (desc) externalForm.append("desc", desc)
   const res = await fetch(
     `http://13.55.76.216:3000/building/${encodeURIComponent(building)}`,
-    {
-      method: "PUT",
-      body: externalForm,
-    }
+    { method: "PUT", body: externalForm }
   )
-
   const text = await res.text()
   let data = {}
   if (text) {
@@ -63,14 +56,12 @@ export async function PUT(request) {
       data = { message: text }
     }
   }
-
   if (!res.ok) {
     return NextResponse.json(
       { error: data.error || data.message || "건물정보 수정 중 오류" },
       { status: res.status }
     )
   }
-
   return NextResponse.json(data)
 }
 

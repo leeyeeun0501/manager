@@ -1,3 +1,4 @@
+// building-route
 import { NextResponse } from "next/server"
 
 // 전체 데이터 조회 (GET)
@@ -11,35 +12,39 @@ export async function GET(request) {
       method: "GET",
     })
     const data = await res.json()
-    // File(대문자) → file(소문자)로 변환해서 반환
     const mapped = (Array.isArray(data) ? data : []).map((b) => ({
       ...b,
-      file: b.File || null, // File 필드를 file로 매핑
+      file: b.File || null,
     }))
     return NextResponse.json({ all: mapped })
   }
 
   return NextResponse.json({ error: "잘못된 요청" }, { status: 400 })
 }
-// 건물 이름/설명 수정 (PATCH)
+
+// 건물 설명/맵 파일 수정 (PUT)
 export async function PUT(request) {
   const { searchParams } = new URL(request.url)
   const building = searchParams.get("building")
+
   if (!building) {
     return NextResponse.json(
       { error: "building은 필수입니다." },
       { status: 400 }
     )
   }
+
   const formData = await request.formData()
   const file = formData.get("file")
   const desc = formData.get("desc")
+
   if (!file && !desc) {
     return NextResponse.json(
       { error: "수정할 항목이 없습니다." },
       { status: 400 }
     )
   }
+
   const externalForm = new FormData()
   if (file) externalForm.append("file", file)
   if (desc) externalForm.append("desc", desc)
@@ -47,6 +52,7 @@ export async function PUT(request) {
     `http://13.55.76.216:3000/building/${encodeURIComponent(building)}`,
     { method: "PUT", body: externalForm }
   )
+
   const text = await res.text()
   let data = {}
   if (text) {
@@ -56,19 +62,20 @@ export async function PUT(request) {
       data = { message: text }
     }
   }
+
   if (!res.ok) {
     return NextResponse.json(
       { error: data.error || data.message || "건물정보 수정 중 오류" },
       { status: res.status }
     )
   }
+
   return NextResponse.json(data)
 }
 
 // 건물 추가 (POST)
 export async function POST(request) {
   try {
-    // JSON이 아니라 form-data로 받기
     const formData = await request.formData()
     const building_name = formData.get("building_name")
     const x = formData.get("x")
@@ -89,7 +96,6 @@ export async function POST(request) {
       )
     }
 
-    // 외부 서버 form-data 생성
     const externalForm = new FormData()
     externalForm.append("building_name", building_name)
     externalForm.append("x", x)

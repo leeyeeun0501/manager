@@ -1,9 +1,11 @@
 // logout-route
 import { NextResponse } from "next/server"
 
+// 로그아웃 (POST)
 export async function POST(req) {
   try {
     const { id } = await req.json()
+
     if (!id) {
       return NextResponse.json(
         { success: false, error: "id가 필요합니다." },
@@ -16,6 +18,7 @@ export async function POST(req) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     })
+
     if (!res.ok) {
       return NextResponse.json(
         { success: false, error: "서버에서 로그아웃 처리 실패" },

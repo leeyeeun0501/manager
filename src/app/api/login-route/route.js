@@ -1,19 +1,22 @@
+// login-route
 export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
 
+// 로그인 API 요청
 async function login(id, pw) {
   const res = await fetch("http://13.55.76.216:3001/user/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, pw }),
   })
+
   if (!res.ok) return null
   const user = await res.json()
   return user
 }
 
-// POST: 로그인
+// 로그인 (POST)
 export async function POST(request) {
   try {
     const { id, pw } = await request.json()
@@ -42,7 +45,7 @@ export async function POST(request) {
   }
 }
 
-// GET 등 다른 메서드는 허용하지 않음
+// GET 등 다른 메서드는 허용하지 않음 -> 사실 뭔지 모르겠음
 export async function GET() {
   return NextResponse.json(
     { error: "허용되지 않은 요청입니다." },

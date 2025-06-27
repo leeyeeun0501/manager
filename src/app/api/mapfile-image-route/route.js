@@ -1,5 +1,7 @@
+//mapfile-image-route
 import { NextResponse } from "next/server"
 
+// 전체 데이터 조회 (GET)
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const building = searchParams.get("building")
@@ -9,7 +11,6 @@ export async function GET(request) {
     return new NextResponse("잘못된 요청", { status: 400 })
   }
 
-  // 외부 이미지 서버에서 이미지 바이너리 fetch
   const imageRes = await fetch(
     `http://13.55.76.216:3000/floor/${encodeURIComponent(
       floor
@@ -22,9 +23,9 @@ export async function GET(request) {
     })
   }
 
-  // 바이너리 스트림 그대로 반환 (Content-Type 유지)
   const contentType = imageRes.headers.get("content-type") || "image/png"
   const arrayBuffer = await imageRes.arrayBuffer()
+
   return new NextResponse(Buffer.from(arrayBuffer), {
     status: 200,
     headers: {
@@ -34,10 +35,11 @@ export async function GET(request) {
   })
 }
 
-// POST: 위치+카테고리 저장 (변경 없음)
+// 카테고리 추가 (POST)
 export async function POST(request) {
   const body = await request.json()
   const { building, floor, category, x, y } = body
+
   if (
     !building ||
     !floor ||

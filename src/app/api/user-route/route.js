@@ -21,7 +21,7 @@ export async function GET(request) {
   }
 }
 
-// 사용자 삭제 (DELETE: id를 body로 받음)
+// 사용자 삭제 (DELETE)
 export async function DELETE(request) {
   try {
     const { id } = await request.json()
@@ -31,11 +31,13 @@ export async function DELETE(request) {
         { status: 400 }
       )
     }
+
     const res = await fetch(`http://13.55.76.216:3001/user/delete`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }), // body에 id 포함!
     })
+
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
       console.error("외부 서버 응답:", data)

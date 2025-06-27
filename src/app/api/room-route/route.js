@@ -1,11 +1,10 @@
 // room-route
-// 건물 설명/이름 수정 (PATCH)
+// 이거 강의실 관리 페이지 따로 만들어서 다시 기능 넣고 수정해야 됨
+
 export async function PATCH(request) {
   const body = await request.json()
-  // body: { type: "building", building, desc?, newName? }
 
   if (body.type === "building") {
-    // 건물 설명/이름 수정
     const patchBody = {}
     if (body.desc !== undefined) patchBody.desc = body.desc
     if (body.newName !== undefined) patchBody.newName = body.newName
@@ -18,13 +17,16 @@ export async function PATCH(request) {
         body: JSON.stringify(patchBody),
       }
     )
+
     const data = await res.json()
+
     if (!res.ok) {
       return NextResponse.json(
         { success: false, error: data.error || "수정 실패" },
         { status: res.status }
       )
     }
+
     return NextResponse.json({ success: true })
   }
 

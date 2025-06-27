@@ -47,7 +47,8 @@ export async function POST(req, { params }) {
   }
 }
 
-export async function PUT(req, { params }) {
+export async function PUT(req, context) {
+  const params = context.params ? await context.params : {}
   const { building, floor } = params
   try {
     const body = await req.json()

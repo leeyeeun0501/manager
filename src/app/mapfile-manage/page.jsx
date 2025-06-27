@@ -2,7 +2,7 @@
 "use client"
 import React, { useRef, useState } from "react"
 import Menu from "../components/menu"
-import "./mapfile.css"
+import "./mapfile-manage.css"
 
 export default function MapfileManagePage() {
   const [menuOpen, setMenuOpen] = useState(false)

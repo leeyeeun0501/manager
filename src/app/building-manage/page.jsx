@@ -2,7 +2,7 @@
 "use client"
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
-import "./building.css"
+import "./building-manage.css"
 
 export default function BuildingPage() {
   const [menuOpen, setMenuOpen] = useState(false)

@@ -34,6 +34,7 @@ export default function BuildingPage() {
   const [editFile, setEditFile] = useState(null)
   const [editError, setEditError] = useState("")
   const editFileRef = useRef(null)
+  const [isBuildingMap, setIsBuildingMap] = useState(false) // 건물맵/층맵 구분
 
   const [hoveredBuilding, setHoveredBuilding] = useState("")
   const [showEditDescModal, setShowEditDescModal] = useState(false)
@@ -56,6 +57,7 @@ export default function BuildingPage() {
           .map((b) => ({
             name: b.Building_Name,
             desc: b.Description || "",
+            file: b.File || null,
           }))
         setBuildingInfos(infos)
       } catch (err) {
@@ -251,6 +253,51 @@ export default function BuildingPage() {
       setEditError("")
       if (editFileRef.current) editFileRef.current.value = ""
       setPopupFloor(null)
+      setPopupBuilding(null)
+    } catch (err) {
+      setEditError("맵 파일 수정 중 오류가 발생했습니다.")
+    }
+  }
+
+  // 건물 맵 파일 수정 핸들러 (쿼리 파라미터 방식)
+  const handleEditBuildingMap = async () => {
+    setEditError("")
+    if (!popupBuilding || !editFile) {
+      setEditError("파일을 선택하세요.")
+      return
+    }
+    const formData = new FormData()
+    formData.append("file", editFile)
+    try {
+      const res = await fetch(
+        `/api/building-route?building=${encodeURIComponent(popupBuilding)}`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      )
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setEditError(data.error || "맵 파일 수정 실패")
+        return
+      }
+      // 수정 후 건물 목록 새로고침
+      const buildingsRes = await fetch("/api/building-route")
+      const buildingsData = await buildingsRes.json()
+      const infos = (buildingsData.all || [])
+        .filter((b) => b && b.Building_Name)
+        .map((b) => ({
+          name: b.Building_Name,
+          desc: b.Description || "",
+          file: b.File || null,
+        }))
+      setBuildingInfos(infos)
+
+      alert("맵 파일이 수정되었습니다!")
+      setPopupImg(null)
+      setEditFile(null)
+      setEditError("")
+      if (editFileRef.current) editFileRef.current.value = ""
       setPopupBuilding(null)
     } catch (err) {
       setEditError("맵 파일 수정 중 오류가 발생했습니다.")
@@ -482,9 +529,16 @@ export default function BuildingPage() {
                       <td>
                         {b.file ? (
                           <button
-                            onClick={() =>
-                              alert("이미지 불러오기(팝업 등 구현 필요)")
-                            }
+                            onClick={() => {
+                              setPopupImg(b.file)
+                              setPopupBuilding(b.name)
+                              setPopupFloor(null)
+                              setIsBuildingMap(true)
+                              setEditFile(null)
+                              setEditError("")
+                              if (editFileRef.current)
+                                editFileRef.current.value = ""
+                            }}
                           >
                             이미지 불러오기
                           </button>
@@ -622,14 +676,10 @@ export default function BuildingPage() {
                         {row.file ? (
                           <button
                             onClick={() => {
-                              const latest = floors.find(
-                                (f) =>
-                                  f.building === row.building &&
-                                  String(f.floor) === String(row.floor)
-                              )
-                              setPopupImg(latest?.file || "")
-                              setPopupFloor(row.floor)
+                              setPopupImg(row.file)
                               setPopupBuilding(row.building)
+                              setPopupFloor(row.floor)
+                              setIsBuildingMap(false)
                               setEditFile(null)
                               setEditError("")
                               if (editFileRef.current)
@@ -753,6 +803,7 @@ export default function BuildingPage() {
             setPopupImg(null)
             setEditFile(null)
             setEditError("")
+            setIsBuildingMap(false)
             if (editFileRef.current) editFileRef.current.value = ""
           }}
         >
@@ -784,7 +835,12 @@ export default function BuildingPage() {
                 ref={editFileRef}
                 onChange={(e) => setEditFile(e.target.files[0])}
               />
-              <button style={{ marginLeft: 8 }} onClick={handleEditFloorMap}>
+              <button
+                style={{ marginLeft: 8 }}
+                onClick={
+                  isBuildingMap ? handleEditBuildingMap : handleEditFloorMap
+                }
+              >
                 수정
               </button>
               <button
@@ -793,6 +849,7 @@ export default function BuildingPage() {
                   setPopupImg(null)
                   setEditFile(null)
                   setEditError("")
+                  setIsBuildingMap(false)
                   if (editFileRef.current) editFileRef.current.value = ""
                 }}
               >

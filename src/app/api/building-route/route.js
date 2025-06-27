@@ -11,12 +11,16 @@ export async function GET(request) {
       method: "GET",
     })
     const data = await res.json()
-    return NextResponse.json({ all: data })
+    // File(대문자) → file(소문자)로 변환해서 반환
+    const mapped = (Array.isArray(data) ? data : []).map((b) => ({
+      ...b,
+      file: b.File || null, // File 필드를 file로 매핑
+    }))
+    return NextResponse.json({ all: mapped })
   }
 
   return NextResponse.json({ error: "잘못된 요청" }, { status: 400 })
 }
-
 // 건물 이름/설명 수정 (PATCH)
 export async function PUT(request) {
   const { searchParams } = new URL(request.url)

@@ -85,14 +85,14 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
           건물 관리
         </Link>
         <Link
-          href="/mapfile-manage"
+          href="/room-manage"
           className="menu-link"
           onClick={() => setMenuOpen(false)}
         >
           강의실 관리
         </Link>
         <Link
-          href="/room-manage"
+          href="/mapfile-manage"
           className="menu-link"
           onClick={() => setMenuOpen(false)}
         >

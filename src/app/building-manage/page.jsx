@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
 import "./building-manage.css"
+import { MdEditSquare } from "react-icons/md"
 
 export default function BuildingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -530,7 +531,7 @@ export default function BuildingPage() {
                             }}
                             tabIndex={0}
                           >
-                            ✏️
+                            <MdEditSquare size={18} color="#007bff" />
                           </button>
                         )}
                       </td>
@@ -573,7 +574,7 @@ export default function BuildingPage() {
                                 editFileRef.current.value = ""
                             }}
                           >
-                            ✏️
+                            <MdEditSquare size={18} color="#007bff" />
                           </button>
                         )}
                       </td>

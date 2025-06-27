@@ -41,6 +41,9 @@ export default function BuildingPage() {
   const [editDescValue, setEditDescValue] = useState("")
   const [editDescError, setEditDescError] = useState("")
 
+  const [addBuildingFile, setAddBuildingFile] = useState(null)
+  const addBuildingFileRef = useRef(null)
+
   // 건물 목록 fetch
   useEffect(() => {
     async function fetchBuildings() {
@@ -127,37 +130,45 @@ export default function BuildingPage() {
       setAddBuildingError("모든 값을 올바르게 입력하세요.")
       return
     }
-    const res = await fetch("/api/building-route", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        building_name: addBuildingName,
-        x,
-        y,
-        desc: addBuildingDesc,
-      }),
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      setAddBuildingError(data.error || "건물 추가 실패")
-      return
+    const formData = new FormData()
+    formData.append("building_name", addBuildingName)
+    formData.append("x", x)
+    formData.append("y", y)
+    formData.append("desc", addBuildingDesc)
+    if (addBuildingFile) formData.append("file", addBuildingFile)
+
+    try {
+      const res = await fetch("/api/building-route", {
+        method: "POST",
+        body: formData,
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setAddBuildingError(data.error || "건물 추가 실패")
+        return
+      }
+      alert("건물 추가가 완료되었습니다!")
+      setShowAddBuilding(false)
+      setAddBuildingName("")
+      setAddBuildingX("")
+      setAddBuildingY("")
+      setAddBuildingDesc("")
+      setAddBuildingFile(null)
+      if (addBuildingFileRef.current) addBuildingFileRef.current.value = ""
+      // 새로고침
+      const buildingsRes = await fetch("/api/building-route")
+      const buildingsData = await buildingsRes.json()
+      const infos = (buildingsData.all || [])
+        .filter((b) => b && b.Building_Name)
+        .map((b) => ({
+          name: b.Building_Name,
+          desc: b.Description || "",
+          file: b.file || null,
+        }))
+      setBuildingInfos(infos)
+    } catch (err) {
+      setAddBuildingError("건물 추가 중 오류가 발생했습니다.")
     }
-    alert("건물 추가가 완료되었습니다!")
-    setShowAddBuilding(false)
-    setAddBuildingName("")
-    setAddBuildingX("")
-    setAddBuildingY("")
-    setAddBuildingDesc("")
-    // 새로고침
-    const buildingsRes = await fetch("/api/building-route")
-    const buildingsData = await buildingsRes.json()
-    const infos = (buildingsData.all || [])
-      .filter((b) => b && b.Building_Name)
-      .map((b) => ({
-        name: b.Building_Name,
-        desc: b.Description || "",
-      }))
-    setBuildingInfos(infos)
   }
 
   // 층 추가 핸들러
@@ -390,6 +401,13 @@ export default function BuildingPage() {
                   onChange={(e) => setAddBuildingDesc(e.target.value)}
                   placeholder="설명"
                   required
+                  style={{ width: "100%" }}
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={addBuildingFileRef}
+                  onChange={(e) => setAddBuildingFile(e.target.files[0])}
                   style={{ width: "100%" }}
                 />
                 <div style={{ display: "flex", gap: 8 }}>

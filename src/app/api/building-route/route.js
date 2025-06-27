@@ -73,34 +73,39 @@ export async function PUT(request) {
 // 건물 추가 (POST)
 export async function POST(request) {
   try {
-    const body = await request.json()
-    const { building_name, x, y, desc } = body
+    // JSON이 아니라 form-data로 받기
+    const formData = await request.formData()
+    const building_name = formData.get("building_name")
+    const x = formData.get("x")
+    const y = formData.get("y")
+    const desc = formData.get("desc")
+    const file = formData.get("file")
 
-    // desc는 필수값이 아니면 조건에서 제외
     if (
       !building_name ||
       x === undefined ||
       y === undefined ||
-      typeof x !== "number" ||
-      typeof y !== "number" ||
-      isNaN(x) ||
-      isNaN(y)
+      isNaN(Number(x)) ||
+      isNaN(Number(y))
     ) {
       return NextResponse.json(
         { success: false, error: "건물 이름, 위도, 경도는 필수입니다." },
         { status: 400 }
       )
     }
+
+    // 외부 서버 form-data 생성
+    const externalForm = new FormData()
+    externalForm.append("building_name", building_name)
+    externalForm.append("x", x)
+    externalForm.append("y", y)
+    externalForm.append("desc", desc || "")
+    if (file) externalForm.append("file", file)
+
     const res = await fetch("http://13.55.76.216:3000/building/", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        building_name,
-        x,
-        y,
-        desc: desc || "",
-        // 3D 단면도 파일은 일단 제외
-      }),
+      body: externalForm,
+      // Content-Type 헤더는 지정하지 마세요! (자동 처리됨)
     })
 
     const data = await res.json()

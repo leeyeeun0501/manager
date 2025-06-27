@@ -1,6 +1,6 @@
 // room-manage
 "use client"
-import React, { useEffect, useState } from "react"
+import React, { useRef, useState, useEffect } from "react"
 import Menu from "../components/menu"
 import "./room-manage.css"
 
@@ -18,7 +18,24 @@ export default function RoomManagePage() {
   const [filterBuilding, setFilterBuilding] = useState("")
   const [filterFloor, setFilterFloor] = useState("")
 
-  // 강의실 정보 불러오기
+  // 맵 이미지 관련
+  const [imgUrl, setImgUrl] = useState("")
+  const [mapLoading, setMapLoading] = useState(false)
+  const imgRef = useRef(null)
+
+  // 강의실 추가 팝업
+  const [addPopup, setAddPopup] = useState(null)
+  const [addForm, setAddForm] = useState({
+    room_name: "",
+    room_desc: "",
+    x: "",
+    y: "",
+  })
+  const [addMsg, setAddMsg] = useState("")
+  const [addLoading, setAddLoading] = useState(false)
+
+  // --- 데이터 불러오기 ---
+  // 강의실 정보
   const fetchRooms = async () => {
     setLoading(true)
     setError("")
@@ -34,8 +51,7 @@ export default function RoomManagePage() {
       setLoading(false)
     }
   }
-
-  // 전체 건물 목록 불러오기
+  // 건물 목록
   const fetchBuildings = async () => {
     try {
       const res = await fetch("/api/building-route")
@@ -49,8 +65,7 @@ export default function RoomManagePage() {
       setBuildingOptions([])
     }
   }
-
-  // 선택된 건물의 전체 층 목록 불러오기
+  // 층 목록
   const fetchFloors = async (building) => {
     if (!building) {
       setFloorOptions([])
@@ -81,9 +96,81 @@ export default function RoomManagePage() {
       setFloorOptions([])
     }
     setFilterFloor("")
+    setImgUrl("")
   }, [filterBuilding])
 
-  // 필터링된 rooms
+  // --- 맵 이미지 불러오기 ---
+  const handleLoadMap = async () => {
+    setImgUrl("")
+    setMapLoading(true)
+    try {
+      const res = await fetch(
+        `/api/mapfile-image-route?floor=${encodeURIComponent(
+          filterFloor
+        )}&building=${encodeURIComponent(filterBuilding)}`
+      )
+      if (!res.ok) {
+        setImgUrl("")
+        setMapLoading(false)
+        return
+      }
+      const blob = await res.blob()
+      const objectUrl = URL.createObjectURL(blob)
+      setImgUrl(objectUrl)
+    } catch (e) {
+      setImgUrl("")
+    }
+    setMapLoading(false)
+  }
+
+  // --- 맵 클릭 시 좌표로 강의실 추가 폼 열기 ---
+  const handleImageClick = (e) => {
+    if (!imgRef.current) return
+    const rect = imgRef.current.getBoundingClientRect()
+    const x = Math.round(e.clientX - rect.left)
+    const y = Math.round(e.clientY - rect.top)
+    setAddPopup({ x, y })
+    setAddForm({ room_name: "", room_desc: "", x, y })
+    setAddMsg("")
+  }
+
+  // --- 강의실 추가 폼 제출 ---
+  const handleAddRoom = async (e) => {
+    e.preventDefault()
+    setAddMsg("")
+    setAddLoading(true)
+    try {
+      const res = await fetch(
+        `/api/room-route/${encodeURIComponent(
+          filterBuilding
+        )}/${encodeURIComponent(filterFloor)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            room_name: addForm.room_name,
+            room_desc: addForm.room_desc,
+            x: addForm.x,
+            y: addForm.y,
+          }),
+        }
+      )
+      const data = await res.json()
+      if (!res.ok) {
+        setAddMsg(data.error || "방 추가 실패")
+      } else {
+        setAddMsg("강의실이 추가되었습니다!")
+        setAddPopup(null)
+        fetchRooms()
+      }
+    } catch {
+      setAddMsg("서버 오류가 발생했습니다.")
+    } finally {
+      setAddLoading(false)
+    }
+  }
+
+  // --- 필터링된 rooms ---
   const filteredRooms = rooms.filter(
     (room) =>
       (!filterBuilding || room.building === filterBuilding) &&
@@ -91,18 +178,16 @@ export default function RoomManagePage() {
   )
 
   return (
-    <div className="management-root">
+    <div className="management-root" style={{ display: "flex" }}>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <div className="management-content">
+      <div className="management-content" style={{ flex: 1 }}>
         <h1>강의실 관리</h1>
-
         {/* ----------- 필터 콤보박스 ----------- */}
         <div style={{ marginBottom: 16, display: "flex", gap: 12 }}>
           <select
             value={filterBuilding}
             onChange={(e) => {
               setFilterBuilding(e.target.value)
-              // setFilterFloor("")는 useEffect에서 자동 처리
             }}
             style={{ minWidth: 120 }}
           >
@@ -126,39 +211,147 @@ export default function RoomManagePage() {
               </option>
             ))}
           </select>
+          <button
+            onClick={handleLoadMap}
+            disabled={!filterBuilding || !filterFloor}
+          >
+            맵 불러오기
+          </button>
         </div>
-
-        {/* ----------- 강의실 표 ----------- */}
-        {loading && <p>로딩 중...</p>}
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {!loading && !error && (
-          <table className="user-table center-table">
-            <thead>
-              <tr>
-                <th>건물명</th>
-                <th>층</th>
-                <th>강의실명</th>
-                <th>강의실 설명</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRooms.length === 0 ? (
-                <tr>
-                  <td colSpan={4}>강의실 데이터가 없습니다.</td>
-                </tr>
-              ) : (
-                filteredRooms.map((room, idx) => (
-                  <tr key={room.name + room.floor + room.building + idx}>
-                    <td>{room.building}</td>
-                    <td>{room.floor}</td>
-                    <td>{room.name}</td>
-                    <td>{room.description}</td>
+        <div style={{ display: "flex", gap: 40 }}>
+          {/* ----------- 강의실 표 ----------- */}
+          <div style={{ flex: 1 }}>
+            {loading && <p>로딩 중...</p>}
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            {!loading && !error && (
+              <table className="user-table center-table">
+                <thead>
+                  <tr>
+                    <th>건물명</th>
+                    <th>층</th>
+                    <th>강의실명</th>
+                    <th>강의실 설명</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        )}
+                </thead>
+                <tbody>
+                  {filteredRooms.length === 0 ? (
+                    <tr>
+                      <td colSpan={4}>강의실 데이터가 없습니다.</td>
+                    </tr>
+                  ) : (
+                    filteredRooms.map((room, idx) => (
+                      <tr key={room.name + room.floor + room.building + idx}>
+                        <td>{room.building}</td>
+                        <td>{room.floor}</td>
+                        <td>{room.name}</td>
+                        <td>{room.description}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
+          {/* ----------- 맵 이미지 + 클릭 추가 폼 ----------- */}
+          <div style={{ minWidth: 400, maxWidth: 600 }}>
+            {mapLoading ? (
+              <div className="mapfile-map-placeholder">로딩 중...</div>
+            ) : imgUrl ? (
+              <div style={{ position: "relative" }}>
+                <img
+                  ref={imgRef}
+                  src={imgUrl}
+                  alt="도면"
+                  className="mapfile-map-image"
+                  onClick={handleImageClick}
+                  style={{
+                    width: "100%",
+                    maxWidth: 500,
+                    border: "1px solid #eee",
+                    borderRadius: 8,
+                    cursor: "crosshair",
+                  }}
+                />
+                {/* 강의실 추가 팝업 */}
+                {addPopup && (
+                  <div
+                    className="mapfile-popup"
+                    style={{
+                      left: addPopup.x,
+                      top: addPopup.y,
+                      position: "absolute",
+                      background: "#fff",
+                      border: "1px solid #ccc",
+                      borderRadius: 8,
+                      padding: 16,
+                      zIndex: 10,
+                      minWidth: 200,
+                    }}
+                  >
+                    <form onSubmit={handleAddRoom}>
+                      <div>
+                        <b>좌표:</b> ({addPopup.x}, {addPopup.y})
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="강의실명"
+                        value={addForm.room_name}
+                        onChange={(e) =>
+                          setAddForm((f) => ({
+                            ...f,
+                            room_name: e.target.value,
+                          }))
+                        }
+                        required
+                        style={{ width: "100%", margin: "8px 0" }}
+                      />
+                      <input
+                        type="text"
+                        placeholder="강의실 설명"
+                        value={addForm.room_desc}
+                        onChange={(e) =>
+                          setAddForm((f) => ({
+                            ...f,
+                            room_desc: e.target.value,
+                          }))
+                        }
+                        style={{ width: "100%", marginBottom: 8 }}
+                      />
+                      <input type="hidden" value={addPopup.x} readOnly />
+                      <input type="hidden" value={addPopup.y} readOnly />
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button type="submit" disabled={addLoading}>
+                          {addLoading ? "저장 중..." : "저장"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAddPopup(null)}
+                          style={{ background: "#bbb" }}
+                        >
+                          취소
+                        </button>
+                      </div>
+                      {addMsg && (
+                        <div
+                          style={{
+                            color: addMsg.includes("추가") ? "green" : "red",
+                            marginTop: 8,
+                          }}
+                        >
+                          {addMsg}
+                        </div>
+                      )}
+                    </form>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="mapfile-map-placeholder">
+                건물과 층을 선택 후 맵을 불러오세요.
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

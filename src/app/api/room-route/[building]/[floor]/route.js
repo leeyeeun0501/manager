@@ -51,12 +51,13 @@ export async function PUT(req, { params }) {
   const { building, floor } = params
   try {
     const body = await req.json()
-    const { room_name, room_desc } = body
+    const { old_room_name, room_name, room_desc } = body
 
-    if (!room_name) {
+    if (!old_room_name || !room_name) {
       return NextResponse.json({ error: "필수 항목 누락" }, { status: 400 })
     }
 
+    // 외부 서버로 PUT 요청 (기존 강의실명 포함)
     const res = await fetch(
       `http://13.55.76.216:3000/room/${encodeURIComponent(
         building
@@ -65,8 +66,9 @@ export async function PUT(req, { params }) {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          room_name,
-          room_desc,
+          old_room_name, // 기존 강의실명
+          room_name, // 수정된 강의실명
+          room_desc, // 수정된 설명
         }),
       }
     )

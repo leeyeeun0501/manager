@@ -36,11 +36,13 @@ export default function RoomManagePage() {
   const [addLoading, setAddLoading] = useState(false)
 
   const [showEditRoomModal, setShowEditRoomModal] = useState(false)
-  const [editRoom, setEditRoom] = useState(null) // {building, floor, name, description}
+  const [editRoom, setEditRoom] = useState(null)
   const [editRoomName, setEditRoomName] = useState("")
   const [editRoomDesc, setEditRoomDesc] = useState("")
   const [editRoomError, setEditRoomError] = useState("")
   const [editRoomLoading, setEditRoomLoading] = useState(false)
+
+  const [editRoomOldName, setEditRoomOldName] = useState("")
 
   const handleEditRoom = async () => {
     setEditRoomError("")
@@ -55,8 +57,9 @@ export default function RoomManagePage() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            room_name: editRoomName,
-            room_desc: editRoomDesc,
+            old_room_name: editRoomOldName, // 기존 강의실명
+            room_name: editRoomName, // 수정된 강의실명
+            room_desc: editRoomDesc, // 수정된 설명
           }),
         }
       )
@@ -70,6 +73,7 @@ export default function RoomManagePage() {
       setEditRoom(null)
       setEditRoomName("")
       setEditRoomDesc("")
+      setEditRoomOldName("")
     } catch {
       setEditRoomError("수정 중 오류가 발생했습니다.")
     } finally {
@@ -305,6 +309,7 @@ export default function RoomManagePage() {
                               setEditRoom(room)
                               setEditRoomName(room.name)
                               setEditRoomDesc(room.description || "")
+                              setEditRoomOldName(room.name)
                               setShowEditRoomModal(true)
                               setEditRoomError("")
                             }}

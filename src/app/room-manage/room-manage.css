@@ -45,3 +45,38 @@
   margin-top: 40px;
   width: 900px;
 }
+
+/* Combo box(셀렉트) 기본 스타일 */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  color: #333;
+  cursor: pointer;
+  width: 100px; /* 필요에 따라 조절 */
+  transition: border-color 0.3s ease;
+  margin-right: 12px;
+}
+
+/* 호버/포커스 효과 */
+select:hover,
+select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* IE/Edge에서 기본 화살표 숨기기 */
+select::-ms-expand {
+  display: none;
+}
+
+/* 컨테이너로 정렬할 때 */
+.select-container {
+  display: inline-block;
+  position: relative;
+}

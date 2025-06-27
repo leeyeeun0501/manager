@@ -10,18 +10,13 @@ export default function RoomManagePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
-  // 강의실 추가 폼 상태
-  const [showAdd, setShowAdd] = useState(false)
-  const [form, setForm] = useState({
-    building: "",
-    floor: "",
-    room_name: "",
-    room_desc: "",
-    x: "",
-    y: "",
-  })
-  const [addError, setAddError] = useState("")
-  const [addLoading, setAddLoading] = useState(false)
+  // 전체 건물/층 목록
+  const [buildingOptions, setBuildingOptions] = useState([])
+  const [floorOptions, setFloorOptions] = useState([])
+
+  // 필터 상태
+  const [filterBuilding, setFilterBuilding] = useState("")
+  const [filterFloor, setFilterFloor] = useState("")
 
   // 강의실 정보 불러오기
   const fetchRooms = async () => {
@@ -40,59 +35,100 @@ export default function RoomManagePage() {
     }
   }
 
-  useEffect(() => {
-    fetchRooms()
-  }, [])
-
-  // 강의실 추가 핸들러
-  const handleAddRoom = async (e) => {
-    e.preventDefault()
-    setAddError("")
-    setAddLoading(true)
+  // 전체 건물 목록 불러오기
+  const fetchBuildings = async () => {
     try {
-      const res = await fetch(
-        `/api/room-route/${encodeURIComponent(
-          form.building
-        )}/${encodeURIComponent(form.floor)}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            room_name: form.room_name,
-            room_desc: form.room_desc,
-            x: form.x,
-            y: form.y,
-          }),
-        }
-      )
+      const res = await fetch("/api/building-route")
       const data = await res.json()
-      if (!res.ok) {
-        setAddError(data.error || "방 추가 실패")
-      } else {
-        alert(data.message || "방 추가가 완료되었습니다")
-        setShowAdd(false)
-        setForm({
-          building: "",
-          floor: "",
-          room_name: "",
-          room_desc: "",
-          x: "",
-          y: "",
-        })
-        fetchRooms()
-      }
-    } catch (err) {
-      setAddError("서버 오류가 발생했습니다.")
-    } finally {
-      setAddLoading(false)
+      setBuildingOptions(
+        (data.all || [])
+          .filter((b) => b && b.Building_Name)
+          .map((b) => b.Building_Name)
+      )
+    } catch {
+      setBuildingOptions([])
     }
   }
+
+  // 선택된 건물의 전체 층 목록 불러오기
+  const fetchFloors = async (building) => {
+    if (!building) {
+      setFloorOptions([])
+      return
+    }
+    try {
+      const res = await fetch(
+        `/api/floor-route?building=${encodeURIComponent(building)}`
+      )
+      const data = await res.json()
+      setFloorOptions(
+        Array.isArray(data.floors) ? data.floors.map((f) => f.floor) : []
+      )
+    } catch {
+      setFloorOptions([])
+    }
+  }
+
+  useEffect(() => {
+    fetchRooms()
+    fetchBuildings()
+  }, [])
+
+  useEffect(() => {
+    if (filterBuilding) {
+      fetchFloors(filterBuilding)
+    } else {
+      setFloorOptions([])
+    }
+    setFilterFloor("")
+  }, [filterBuilding])
+
+  // 필터링된 rooms
+  const filteredRooms = rooms.filter(
+    (room) =>
+      (!filterBuilding || room.building === filterBuilding) &&
+      (!filterFloor || room.floor === filterFloor)
+  )
 
   return (
     <div className="management-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className="management-content">
         <h1>강의실 관리</h1>
+
+        {/* ----------- 필터 콤보박스 ----------- */}
+        <div style={{ marginBottom: 16, display: "flex", gap: 12 }}>
+          <select
+            value={filterBuilding}
+            onChange={(e) => {
+              setFilterBuilding(e.target.value)
+              // setFilterFloor("")는 useEffect에서 자동 처리
+            }}
+            style={{ minWidth: 120 }}
+          >
+            <option value="">전체 건물</option>
+            {buildingOptions.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterFloor}
+            onChange={(e) => setFilterFloor(e.target.value)}
+            style={{ minWidth: 80 }}
+            disabled={!filterBuilding}
+          >
+            <option value="">전체 층</option>
+            {floorOptions.map((f) => (
+              <option key={f} value={f}>
+                {f}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* ----------- 강의실 표 ----------- */}
         {loading && <p>로딩 중...</p>}
         {error && <p style={{ color: "red" }}>{error}</p>}
         {!loading && !error && (
@@ -106,12 +142,12 @@ export default function RoomManagePage() {
               </tr>
             </thead>
             <tbody>
-              {rooms.length === 0 ? (
+              {filteredRooms.length === 0 ? (
                 <tr>
                   <td colSpan={4}>강의실 데이터가 없습니다.</td>
                 </tr>
               ) : (
-                rooms.map((room, idx) => (
+                filteredRooms.map((room, idx) => (
                   <tr key={room.name + room.floor + room.building + idx}>
                     <td>{room.building}</td>
                     <td>{room.floor}</td>

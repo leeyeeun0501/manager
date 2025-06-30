@@ -266,12 +266,11 @@ export default function BuildingPage() {
 
   // 건물 삭제 핸들러
   const handleDeleteBuilding = async (buildingName) => {
-    console.log("삭제 요청 건물명:", buildingName) // 추가!
     if (!window.confirm(`정말로 ${buildingName} 건물을 삭제하시겠습니까?`))
       return
     try {
       const res = await fetch(
-        `/api/building-route?building=${encodeURIComponent(buildingName)}`,
+        `/api/building-route?building_name=${encodeURIComponent(buildingName)}`,
         { method: "DELETE" }
       )
       const text = await res.text()
@@ -282,7 +281,7 @@ export default function BuildingPage() {
         alert(text)
       }
     } catch (err) {
-      alert("삭제 중 오류가 발생했습니다.")
+      alert("건물 삭제 중 오류가 발생했습니다.")
     }
   }
 

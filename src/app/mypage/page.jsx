@@ -1,5 +1,4 @@
 "use client"
-
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
 import "./mypage.css"
@@ -59,6 +58,7 @@ export default function MyPage() {
     setLoading(false)
   }
 
+  // 로그아웃
   const handleLogout = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("id")
@@ -68,6 +68,7 @@ export default function MyPage() {
     window.location.href = "/login"
   }
 
+  // 계정 삭제
   const handleDeleteAccount = async () => {
     setDeleteMsg("")
     if (!window.confirm("정말로 계정을 삭제하시겠습니까?")) return

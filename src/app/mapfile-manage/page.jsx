@@ -161,109 +161,111 @@ export default function MapfileManagePage() {
   }
 
   return (
-    <div className="mapfile-manage-root">
+    <div className="layout">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <h2 className="mapfile-manage-title">2D 도면 카테고리 위치 관리</h2>
-      <div className="mapfile-manage-controls">
-        <select
-          className="building-select"
-          value={selectedBuilding}
-          onChange={(e) => {
-            setSelectedBuilding(e.target.value)
-            setBuildingPage(1)
-            setFloorPage(1)
-          }}
-        >
-          <option value="">건물</option>
-          {buildingInfos.map((b, idx) => (
-            <option key={b.name || idx} value={b.name}>
-              {b.name}
-            </option>
-          ))}{" "}
-        </select>
-        <select
-          className="floor-select"
-          value={selectedFloor}
-          onChange={(e) => {
-            setSelectedFloor(e.target.value)
-            setFloorPage(1)
-          }}
-          disabled={!selectedBuilding}
-        >
-          <option value="">전체</option>
-          {floors.map((f, idx) => (
-            <option key={f.floor || idx} value={f.floor}>
-              {f.floor}
-            </option>
-          ))}{" "}
-        </select>
-        <button onClick={handleLoadMap}>도면 불러오기</button>
-      </div>
-      <div className="mapfile-map-area">
-        {loading ? (
-          <div className="mapfile-map-placeholder">로딩 중...</div>
-        ) : imgUrl ? (
-          <img
-            ref={imgRef}
-            src={imgUrl}
-            alt="도면"
-            className="mapfile-map-image"
-            onClick={handleImageClick}
-          />
-        ) : (
-          <div className="mapfile-map-placeholder">
-            도면 이미지를 선택하세요.
-          </div>
-        )}
-
-        {/* 팝업: 좌표와 카테고리 선택 */}
-        {popup && (
-          <div
-            className="mapfile-popup"
-            style={{
-              left: popup.x,
-              top: popup.y,
+      <div className="mapfile-manage-root">
+        <h2 className="mapfile-manage-title">2D 도면 카테고리 위치 관리</h2>
+        <div className="mapfile-manage-controls">
+          <select
+            className="building-select"
+            value={selectedBuilding}
+            onChange={(e) => {
+              setSelectedBuilding(e.target.value)
+              setBuildingPage(1)
+              setFloorPage(1)
             }}
           >
-            <form onSubmit={handleSubmit}>
-              <div>
-                <b>좌표:</b> ({popup.x}, {popup.y})
-              </div>
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                required
-                autoFocus
-              >
-                <option value="">카테고리 선택</option>
-                {categoryOptions.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-              <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-                <button type="submit">저장</button>
-                <button
-                  type="button"
-                  onClick={() => setPopup(null)}
-                  style={{ background: "#bbb" }}
+            <option value="">건물</option>
+            {buildingInfos.map((b, idx) => (
+              <option key={b.name || idx} value={b.name}>
+                {b.name}
+              </option>
+            ))}{" "}
+          </select>
+          <select
+            className="floor-select"
+            value={selectedFloor}
+            onChange={(e) => {
+              setSelectedFloor(e.target.value)
+              setFloorPage(1)
+            }}
+            disabled={!selectedBuilding}
+          >
+            <option value="">전체</option>
+            {floors.map((f, idx) => (
+              <option key={f.floor || idx} value={f.floor}>
+                {f.floor}
+              </option>
+            ))}{" "}
+          </select>
+          <button onClick={handleLoadMap}>도면 불러오기</button>
+        </div>
+        <div className="mapfile-map-area">
+          {loading ? (
+            <div className="mapfile-map-placeholder">로딩 중...</div>
+          ) : imgUrl ? (
+            <img
+              ref={imgRef}
+              src={imgUrl}
+              alt="도면"
+              className="mapfile-map-image"
+              onClick={handleImageClick}
+            />
+          ) : (
+            <div className="mapfile-map-placeholder">
+              도면 이미지를 선택하세요.
+            </div>
+          )}
+
+          {/* 팝업: 좌표와 카테고리 선택 */}
+          {popup && (
+            <div
+              className="mapfile-popup"
+              style={{
+                left: popup.x,
+                top: popup.y,
+              }}
+            >
+              <form onSubmit={handleSubmit}>
+                <div>
+                  <b>좌표:</b> ({popup.x}, {popup.y})
+                </div>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  required
+                  autoFocus
                 >
-                  취소
-                </button>
-              </div>
-            </form>
-            {submitMsg && (
-              <div
-                className={`mapfile-popup-msg ${
-                  submitMsg === "저장 완료!" ? "success" : "error"
-                }`}
-              >
-                {submitMsg}
-              </div>
-            )}
-          </div>
-        )}
+                  <option value="">카테고리 선택</option>
+                  {categoryOptions.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+                <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+                  <button type="submit">저장</button>
+                  <button
+                    type="button"
+                    onClick={() => setPopup(null)}
+                    style={{ background: "#bbb" }}
+                  >
+                    취소
+                  </button>
+                </div>
+              </form>
+              {submitMsg && (
+                <div
+                  className={`mapfile-popup-msg ${
+                    submitMsg === "저장 완료!" ? "success" : "error"
+                  }`}
+                >
+                  {submitMsg}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

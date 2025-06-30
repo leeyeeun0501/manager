@@ -1,9 +1,14 @@
-/* mapfile-manage.css */
+body,
+.mapfile-manage-root {
+  background: #f7f7f7;
+}
+
 .mapfile-manage-root {
   max-width: 900px;
   margin: 0 auto;
   padding: 32px;
   font-family: "Pretendard", Arial, sans-serif;
+  /* 사이드바, 좌우 flex 등은 절대 쓰지 마세요! */
 }
 
 .mapfile-manage-title {

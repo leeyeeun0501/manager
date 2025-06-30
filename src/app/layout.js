@@ -8,7 +8,6 @@ import ProfileButton from "./components/profilebutton"
 export default function RootLayout({ children }) {
   const pathname = usePathname()
 
-  // 로그인/회원가입 페이지에서는 메뉴/프로필 숨김
   const hideMenuAndProfile = pathname === "/login" || pathname === "/signup"
 
   useEffect(() => {

@@ -1,6 +1,5 @@
 // login-route
 export const dynamic = "force-dynamic"
-
 import { NextResponse } from "next/server"
 
 // 로그인 API 요청

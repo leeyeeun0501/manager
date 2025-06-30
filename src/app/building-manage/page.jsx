@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
 import "./building-manage.css"
 import { MdEditSquare, MdDelete } from "react-icons/md"
+import { FaTrashAlt } from "react-icons/fa"
 
 export default function BuildingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -265,6 +266,7 @@ export default function BuildingPage() {
 
   // 건물 삭제 핸들러
   const handleDeleteBuilding = async (buildingName) => {
+    console.log("삭제 요청 건물명:", buildingName) // 추가!
     if (!window.confirm(`정말로 ${buildingName} 건물을 삭제하시겠습니까?`))
       return
     try {
@@ -275,9 +277,9 @@ export default function BuildingPage() {
       const text = await res.text()
       if (res.status === 200) {
         setBuildingInfos((prev) => prev.filter((b) => b.name !== buildingName))
-        alert(text) // "건물 삭제 성공"
+        alert(text)
       } else {
-        alert(text) // "존재하지 않는 건물입니다." 등
+        alert(text)
       }
     } catch (err) {
       alert("삭제 중 오류가 발생했습니다.")
@@ -370,6 +372,40 @@ export default function BuildingPage() {
       setPopupBuilding(null)
     } catch (err) {
       setEditError("맵 파일 수정 중 오류가 발생했습니다.")
+    }
+  }
+
+  const handleDeleteFloor = async (buildingName, floorNum) => {
+    if (
+      !window.confirm(
+        `정말로 ${buildingName}의 ${floorNum}층을 삭제하시겠습니까?`
+      )
+    )
+      return
+    try {
+      const res = await fetch(
+        `/api/floor-route?building=${encodeURIComponent(
+          buildingName
+        )}&floor=${encodeURIComponent(floorNum)}`,
+        { method: "DELETE" }
+      )
+      const text = await res.text()
+      if (res.status === 200) {
+        setFloors((prev) =>
+          prev.filter(
+            (f) =>
+              !(
+                String(f.building) === String(buildingName) &&
+                String(f.floor) === String(floorNum)
+              )
+          )
+        )
+        alert(text)
+      } else {
+        alert(text)
+      }
+    } catch (err) {
+      alert("층 삭제 중 오류가 발생했습니다.")
     }
   }
 
@@ -733,12 +769,13 @@ export default function BuildingPage() {
                   <th style={{ minWidth: 100 }}>건물명</th>
                   <th style={{ minWidth: 60 }}>층</th>
                   <th style={{ minWidth: 150 }}>맵 파일</th>
+                  <th>삭제</th>
                 </tr>
               </thead>
               <tbody>
                 {floorPaged.length > 0 ? (
                   floorPaged.map((row, idx) => (
-                    <tr key={idx}>
+                    <tr key={row.building + "-" + row.floor + "-" + idx}>
                       <td>{row.building}</td>
                       <td>{row.floor}</td>
                       <td>
@@ -760,6 +797,23 @@ export default function BuildingPage() {
                         ) : (
                           <span style={{ color: "#aaa" }}>없음</span>
                         )}
+                      </td>
+                      <td>
+                        <button
+                          className="floor-delete-btn"
+                          onClick={() =>
+                            handleDeleteFloor(row.building, row.floor)
+                          }
+                          title="삭제"
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            padding: 0,
+                          }}
+                        >
+                          <FaTrashAlt size={18} color="#e74c3c" />
+                        </button>
                       </td>
                     </tr>
                   ))

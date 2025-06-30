@@ -200,3 +200,8 @@
   flex: 1 1 0;
   max-width: 500px;
 }
+
+.floor-delete-btn:hover {
+  background: #ffeaea;
+  border-radius: 4px;
+}

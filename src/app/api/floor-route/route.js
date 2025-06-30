@@ -113,3 +113,32 @@ export async function PUT(request) {
 
   return NextResponse.json(data)
 }
+
+export async function DELETE(request) {
+  const { searchParams } = new URL(request.url)
+  const building = searchParams.get("building")
+  const floor = searchParams.get("floor")
+
+  if (!building || !floor) {
+    return NextResponse.json("건물명과 층번호가 필요합니다.", { status: 400 })
+  }
+
+  try {
+    const res = await fetch(
+      `http://13.55.76.216:3000/floor/${encodeURIComponent(
+        floor
+      )}/${encodeURIComponent(building)}`,
+      { method: "DELETE" }
+    )
+    const text = await res.text()
+    if (res.status === 200) {
+      return new NextResponse("층 삭제 성공", { status: 200 })
+    } else if (res.status === 404) {
+      return new NextResponse("존재하지 않는 층입니다.", { status: 404 })
+    } else {
+      return new NextResponse("층 삭제 처리 중 오류", { status: 500 })
+    }
+  } catch (err) {
+    return new NextResponse("층 삭제 처리 중 오류", { status: 500 })
+  }
+}

@@ -12,7 +12,6 @@ export default function ManagementPage() {
     user: 0,
   })
 
-  // 서버에서 데이터 fetch
   useEffect(() => {
     // 건물 수
     fetch("/api/building-route")
@@ -63,7 +62,6 @@ export default function ManagementPage() {
             <div className="summary-value">{summary.user}</div>
           </div>
         </div>
-        {/* 최근 활동은 activity-route가 없으므로 제외 */}
       </div>
     </div>
   )

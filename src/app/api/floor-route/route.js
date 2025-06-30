@@ -114,6 +114,7 @@ export async function PUT(request) {
   return NextResponse.json(data)
 }
 
+// 층 삭제 (DELETE)
 export async function DELETE(request) {
   const { searchParams } = new URL(request.url)
   const building = searchParams.get("building")

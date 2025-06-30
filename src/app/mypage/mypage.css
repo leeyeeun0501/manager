@@ -1,16 +1,14 @@
-/* 전체 배경색 통일 */
+/* mypage.css */
 body,
 .page-root {
   background: #f7f7f7;
 }
 
-/* 전체 레이아웃: 좌우 분할 */
 .page-root {
   min-height: 100vh;
   display: flex;
 }
 
-/* 오른쪽 본문(카드형 UI를 중앙 정렬) */
 .page-content {
   flex: 1;
   min-width: 0;
@@ -18,12 +16,11 @@ body,
   min-height: 100vh;
   box-sizing: border-box;
   display: flex;
-  justify-content: center; /* 카드형 UI를 가로 중앙 정렬 */
-  align-items: flex-start; /* 세로는 위에서 시작 */
-  background: #f7f7f7; /* body와 통일 */
+  justify-content: center;
+  align-items: flex-start;
+  background: #f7f7f7;
 }
 
-/* 카드형 마이페이지 UI */
 .mypage-card {
   width: 340px;
   max-width: 420px;
@@ -37,7 +34,6 @@ body,
   margin: 60px 0;
 }
 
-/* 이하 폼/버튼/입력창 스타일 */
 .mypage-title {
   font-size: 1.5rem;
   font-weight: 700;

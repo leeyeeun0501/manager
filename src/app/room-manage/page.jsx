@@ -81,7 +81,6 @@ export default function RoomManagePage() {
     }
   }
 
-  // --- 데이터 불러오기 ---
   // 강의실 정보
   const fetchRooms = async () => {
     setLoading(true)
@@ -98,6 +97,7 @@ export default function RoomManagePage() {
       setLoading(false)
     }
   }
+
   // 건물 목록
   const fetchBuildings = async () => {
     try {
@@ -112,6 +112,7 @@ export default function RoomManagePage() {
       setBuildingOptions([])
     }
   }
+
   // 층 목록
   const fetchFloors = async (building) => {
     if (!building) {

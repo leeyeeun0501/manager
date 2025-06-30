@@ -46,7 +46,6 @@
   width: 900px;
 }
 
-/* Combo box(셀렉트) 기본 스타일 */
 select {
   appearance: none;
   -webkit-appearance: none;
@@ -63,19 +62,16 @@ select {
   margin-right: 12px;
 }
 
-/* 호버/포커스 효과 */
 select:hover,
 select:focus {
   border-color: #007bff;
   outline: none;
 }
 
-/* IE/Edge에서 기본 화살표 숨기기 */
 select::-ms-expand {
   display: none;
 }
 
-/* 컨테이너로 정렬할 때 */
 .select-container {
   display: inline-block;
   position: relative;

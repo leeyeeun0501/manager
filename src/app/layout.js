@@ -1,10 +1,16 @@
 // app/layout.js
 "use client"
 import { useEffect } from "react"
+import { usePathname } from "next/navigation"
 import Menu from "./components/menu"
 import ProfileButton from "./components/profilebutton"
 
 export default function RootLayout({ children }) {
+  const pathname = usePathname()
+
+  // 로그인/회원가입 페이지에서는 메뉴/프로필 숨김
+  const hideMenuAndProfile = pathname === "/login" || pathname === "/signup"
+
   useEffect(() => {
     const id = localStorage.getItem("id")
     if (!id) return
@@ -24,17 +30,21 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko">
       <body>
-        <div
-          style={{
-            position: "fixed",
-            top: 24,
-            right: 32,
-            zIndex: 2000,
-          }}
-        >
-          <ProfileButton />
-        </div>
-        <Menu />
+        {!hideMenuAndProfile && (
+          <>
+            <div
+              style={{
+                position: "fixed",
+                top: 24,
+                right: 32,
+                zIndex: 2000,
+              }}
+            >
+              <ProfileButton />
+            </div>
+            <Menu />
+          </>
+        )}
         {children}
       </body>
     </html>

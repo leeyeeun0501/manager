@@ -1,0 +1,160 @@
+.mypage-root {
+  min-height: 100vh;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mypage-card {
+  width: 340px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 6px 24px #0002;
+  padding: 44px 32px 36px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mypage-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 30px;
+  letter-spacing: -1px;
+}
+
+.mypage-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mypage-label {
+  font-size: 0.98rem;
+  margin-bottom: 3px;
+  font-weight: 500;
+}
+
+.mypage-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 22px;
+  background: #fafafa;
+  font-size: 1rem;
+  outline: none;
+  margin-bottom: 2px;
+  transition: border 0.2s;
+}
+
+.mypage-input:focus {
+  border-color: #007bff;
+  background: #fff;
+}
+
+.mypage-input[disabled] {
+  background: #f5f5f5;
+  color: #aaa;
+}
+
+.mypage-btn-main {
+  width: 100%;
+  padding: 14px 0;
+  border: none;
+  border-radius: 22px;
+  background: #222;
+  color: #fff;
+  font-size: 1.08rem;
+  font-weight: 600;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mypage-btn-main:active {
+  background: #444;
+}
+
+.mypage-btn-sub {
+  width: 100%;
+  padding: 13px 0;
+  border: none;
+  border-radius: 22px;
+  background: #bbb;
+  color: #333;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+.mypage-btn-danger {
+  width: 100%;
+  padding: 13px 0;
+  border: none;
+  border-radius: 22px;
+  background: #ff4444;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.mypage-message {
+  margin-top: 10px;
+  font-size: 0.98rem;
+  text-align: center;
+}
+
+.mypage-message.success {
+  color: #2b8a3e;
+}
+
+.mypage-message.error {
+  color: #d32f2f;
+}
+
+.page-root {
+  min-height: 100vh;
+  display: flex;
+  background: #f7f7f7;
+}
+
+.sidebar {
+  width: 220px;
+  background: #fff;
+  border-right: 1.5px solid #eee;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 0 0 0;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.page-content {
+  flex: 1;
+  min-width: 0;
+  padding: 40px 0 0 0;
+  max-width: 1100px;
+  margin: 0 auto;
+  background: #fafafa;
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+.mypage-card {
+  max-width: 420px;
+  width: 100%;
+  margin: 60px 0;
+  padding: 24px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px #0001;
+}

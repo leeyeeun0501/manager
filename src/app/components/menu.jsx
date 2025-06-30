@@ -96,7 +96,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
           className="menu-link"
           onClick={() => setMenuOpen(false)}
         >
-          맵 파일 관리
+          카테고리 관리
         </Link>
         <Link
           href="/user-manage"

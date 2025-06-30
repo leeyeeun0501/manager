@@ -1,6 +1,7 @@
-// room-route/building/floor/
+// room-route/[building]/[floor]
 import { NextResponse } from "next/server"
 
+// 강의실 추가 (POST)
 export async function POST(req, { params }) {
   const { building, floor } = params
   try {
@@ -47,6 +48,7 @@ export async function POST(req, { params }) {
   }
 }
 
+// 강의실명/강의실 설명 수정 (PUT)
 export async function PUT(req, context) {
   const params = context.params ? await context.params : {}
   const { building, floor } = params

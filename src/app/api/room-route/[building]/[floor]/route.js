@@ -95,3 +95,35 @@ export async function PUT(req, context) {
     return NextResponse.json({ error: "서버 오류" }, { status: 500 })
   }
 }
+
+// 강의실 삭제 (DELETE)
+export async function DELETE(request, { params }) {
+  const { building, floor } = params
+  const { room_name } = await request.json()
+
+  console.log("삭제 요청:", { building, floor, room_name })
+
+  if (!building || !floor || !room_name) {
+    return NextResponse.json("필수 정보가 누락되었습니다.", { status: 400 })
+  }
+
+  // 외부 서버에 DELETE 요청 보내기
+  const res = await fetch(
+    `http://13.55.76.216:3000/room/${encodeURIComponent(
+      building
+    )}/${encodeURIComponent(floor)}`,
+    {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ room_name }),
+    }
+  )
+
+  if (res.status === 200) {
+    return NextResponse.json("방 삭제 성공", { status: 200 })
+  } else if (res.status === 404) {
+    return NextResponse.json("존재하지 않는 건물/층/방입니다.", { status: 404 })
+  } else {
+    return NextResponse.json("방 삭제 처리 중 오류", { status: 500 })
+  }
+}

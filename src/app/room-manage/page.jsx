@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect } from "react"
 import Menu from "../components/menu"
 import "./room-manage.css"
-import { MdEditSquare } from "react-icons/md"
+import { MdEditSquare, MdDelete } from "react-icons/md"
 
 export default function RoomManagePage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -41,7 +41,6 @@ export default function RoomManagePage() {
   const [editRoomDesc, setEditRoomDesc] = useState("")
   const [editRoomError, setEditRoomError] = useState("")
   const [editRoomLoading, setEditRoomLoading] = useState(false)
-
   const [editRoomOldName, setEditRoomOldName] = useState("")
 
   const handleEditRoom = async () => {
@@ -225,6 +224,46 @@ export default function RoomManagePage() {
       (!filterFloor || room.floor === filterFloor)
   )
 
+  // 방 삭제 핸들러
+  const handleDeleteRoom = async (building, floor, room_name) => {
+    if (
+      !window.confirm(
+        `정말로 ${building} ${floor}층 ${room_name} 방을 삭제하시겠습니까?`
+      )
+    )
+      return
+    try {
+      const res = await fetch(
+        `/api/room-route/${encodeURIComponent(building)}/${encodeURIComponent(
+          floor
+        )}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ room_name }),
+        }
+      )
+      const text = await res.text()
+      if (res.status === 200) {
+        setRooms((prev) =>
+          prev.filter(
+            (r) =>
+              !(
+                r.building === building &&
+                r.floor === floor &&
+                r.name === room_name
+              )
+          )
+        )
+        alert(text)
+      } else {
+        alert(text)
+      }
+    } catch (err) {
+      alert("방 삭제 중 오류가 발생했습니다.")
+    }
+  }
+
   return (
     <div className="management-root" style={{ display: "flex" }}>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
@@ -234,9 +273,7 @@ export default function RoomManagePage() {
         <div style={{ marginBottom: 16, display: "flex", gap: 12 }}>
           <select
             value={filterBuilding}
-            onChange={(e) => {
-              setFilterBuilding(e.target.value)
-            }}
+            onChange={(e) => setFilterBuilding(e.target.value)}
             style={{ minWidth: 120 }}
           >
             <option value="">전체 건물</option>
@@ -279,12 +316,13 @@ export default function RoomManagePage() {
                     <th>층</th>
                     <th>강의실명</th>
                     <th>강의실 설명</th>
+                    <th>삭제</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredRooms.length === 0 ? (
                     <tr>
-                      <td colSpan={4}>강의실 데이터가 없습니다.</td>
+                      <td colSpan={5}>강의실 데이터가 없습니다.</td>
                     </tr>
                   ) : (
                     filteredRooms.map((room, idx) => (
@@ -317,6 +355,27 @@ export default function RoomManagePage() {
                             aria-label="강의실 정보 수정"
                           >
                             <MdEditSquare size={18} color="#007bff" />
+                          </button>
+                        </td>
+                        <td style={{ textAlign: "center" }}>
+                          <button
+                            style={{
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: 0,
+                            }}
+                            onClick={() =>
+                              handleDeleteRoom(
+                                room.building,
+                                room.floor,
+                                room.name
+                              )
+                            }
+                            aria-label="강의실 삭제"
+                            title="삭제"
+                          >
+                            <MdDelete size={22} color="#e74c3c" />
                           </button>
                         </td>
                       </tr>
@@ -486,7 +545,7 @@ export default function RoomManagePage() {
                   </div>
                   {editRoomError && (
                     <div style={{ color: "red", marginTop: 8 }}>
-                      {editRoomError}
+                      {editRoomError}...
                     </div>
                   )}
                 </div>

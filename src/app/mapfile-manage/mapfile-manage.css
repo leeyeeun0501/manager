@@ -1,3 +1,4 @@
+/* mapfile-manage.css */
 body,
 .mapfile-manage-root {
   background: #f7f7f7;
@@ -119,4 +120,15 @@ body,
 
 .mapfile-popup-msg.error {
   color: #dc2626;
+}
+
+.category-select {
+  min-width: 180px; /* 원하는 만큼 넓게 조절 (예: 220px, 250px 등) */
+  max-width: 100%;
+  padding: 6px 10px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin: 8px 0;
+  box-sizing: border-box;
 }

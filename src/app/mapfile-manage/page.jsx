@@ -231,6 +231,7 @@ export default function MapfileManagePage() {
                   <b>좌표:</b> ({popup.x}, {popup.y})
                 </div>
                 <select
+                  className="category-select"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   required

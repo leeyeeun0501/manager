@@ -265,16 +265,15 @@ export default function RoomManagePage() {
   }
 
   return (
-    <div className="management-root" style={{ display: "flex" }}>
+    <div className="management-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <div className="management-content" style={{ flex: 1 }}>
+      <div className="management-content">
         <h1>강의실 관리</h1>
-        {/* ----------- 필터 콤보박스 ----------- */}
-        <div style={{ marginBottom: 16, display: "flex", gap: 12 }}>
+        {/* 필터/맵 불러오기 */}
+        <div className="room-manage-filter-row">
           <select
             value={filterBuilding}
             onChange={(e) => setFilterBuilding(e.target.value)}
-            style={{ minWidth: 120 }}
           >
             <option value="">전체 건물</option>
             {buildingOptions.map((b) => (
@@ -286,7 +285,6 @@ export default function RoomManagePage() {
           <select
             value={filterFloor}
             onChange={(e) => setFilterFloor(e.target.value)}
-            style={{ minWidth: 80 }}
             disabled={!filterBuilding}
           >
             <option value="">전체 층</option>
@@ -303,9 +301,9 @@ export default function RoomManagePage() {
             맵 불러오기
           </button>
         </div>
-        <div style={{ display: "flex", gap: 40 }}>
-          {/* ----------- 강의실 표 ----------- */}
-          <div style={{ flex: 1 }}>
+        <div className="room-manage-main-row">
+          {/* 강의실 표 */}
+          <div className="room-manage-table-wrap">
             {loading && <p>로딩 중...</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {!loading && !error && (
@@ -385,174 +383,161 @@ export default function RoomManagePage() {
               </table>
             )}
           </div>
-          {/* ----------- 맵 이미지 + 클릭 추가 폼 ----------- */}
-          <div style={{ minWidth: 400, maxWidth: 600 }}>
-            {mapLoading ? (
-              <div className="mapfile-map-placeholder">로딩 중...</div>
-            ) : imgUrl ? (
-              <div style={{ position: "relative" }}>
+          {/* 오른쪽: 정사각형 도화지(맵) */}
+          <div className="room-manage-canvas-outer">
+            <div className="room-manage-canvas">
+              {mapLoading ? (
+                <div className="room-manage-canvas-placeholder">로딩 중...</div>
+              ) : imgUrl ? (
                 <img
                   ref={imgRef}
                   src={imgUrl}
                   alt="도면"
-                  className="mapfile-map-image"
+                  className="room-manage-canvas-img"
                   onClick={handleImageClick}
-                  style={{
-                    width: "100%",
-                    maxWidth: 500,
-                    border: "1px solid #eee",
-                    borderRadius: 8,
-                    cursor: "crosshair",
-                  }}
                 />
-                {/* 강의실 추가 팝업 */}
-                {addPopup && (
-                  <div
-                    className="mapfile-popup"
-                    style={{
-                      left: addPopup.x,
-                      top: addPopup.y,
-                      position: "absolute",
-                      background: "#fff",
-                      border: "1px solid #ccc",
-                      borderRadius: 8,
-                      padding: 16,
-                      zIndex: 10,
-                      minWidth: 200,
-                    }}
-                  >
-                    <form onSubmit={handleAddRoom}>
-                      <div>
-                        <b>좌표:</b> ({addPopup.x}, {addPopup.y})
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="강의실명"
-                        value={addForm.room_name}
-                        onChange={(e) =>
-                          setAddForm((f) => ({
-                            ...f,
-                            room_name: e.target.value,
-                          }))
-                        }
-                        required
-                        style={{ width: "100%", margin: "8px 0" }}
-                      />
-                      <input
-                        type="text"
-                        placeholder="강의실 설명"
-                        value={addForm.room_desc}
-                        onChange={(e) =>
-                          setAddForm((f) => ({
-                            ...f,
-                            room_desc: e.target.value,
-                          }))
-                        }
-                        style={{ width: "100%", marginBottom: 8 }}
-                      />
-                      <input type="hidden" value={addPopup.x} readOnly />
-                      <input type="hidden" value={addPopup.y} readOnly />
-                      <div style={{ display: "flex", gap: 8 }}>
-                        <button type="submit" disabled={addLoading}>
-                          {addLoading ? "저장 중..." : "저장"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setAddPopup(null)}
-                          style={{ background: "#bbb" }}
-                        >
-                          취소
-                        </button>
-                      </div>
-                      {addMsg && (
-                        <div
-                          style={{
-                            color: addMsg.includes("추가") ? "green" : "red",
-                            marginTop: 8,
-                          }}
-                        >
-                          {addMsg}
-                        </div>
-                      )}
-                    </form>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="mapfile-map-placeholder">
-                건물과 층을 선택 후 맵을 불러오세요.
-              </div>
-            )}
-            {showEditRoomModal && (
-              <div
-                style={{
-                  position: "fixed",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: "rgba(0,0,0,0.4)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  zIndex: 9999,
-                }}
-                onClick={() => setShowEditRoomModal(false)}
-              >
-                <div
-                  style={{
-                    background: "#fff",
-                    padding: 24,
-                    borderRadius: 8,
-                    minWidth: 320,
-                    boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <h3 style={{ marginBottom: 12 }}>강의실 정보 수정</h3>
-                  <div style={{ marginBottom: 12 }}>
-                    <input
-                      type="text"
-                      value={editRoomName}
-                      onChange={(e) => setEditRoomName(e.target.value)}
-                      style={{ width: "100%", padding: 8, fontSize: 16 }}
-                      placeholder="강의실명"
-                    />
-                  </div>
-                  <div style={{ marginBottom: 12 }}>
-                    <input
-                      type="text"
-                      value={editRoomDesc}
-                      onChange={(e) => setEditRoomDesc(e.target.value)}
-                      style={{ width: "100%", padding: 8, fontSize: 16 }}
-                      placeholder="강의실 설명"
-                    />
-                  </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button
-                      className="modal-save-btn"
-                      onClick={handleEditRoom}
-                      disabled={editRoomLoading}
-                    >
-                      {editRoomLoading ? "저장 중..." : "저장"}
-                    </button>
-                    <button
-                      className="modal-cancel-btn"
-                      onClick={() => setShowEditRoomModal(false)}
-                    >
-                      취소
-                    </button>
-                  </div>
-                  {editRoomError && (
-                    <div style={{ color: "red", marginTop: 8 }}>
-                      {editRoomError}...
-                    </div>
-                  )}
+              ) : (
+                <div className="room-manage-canvas-placeholder">
+                  건물과 층을 선택 후 맵을 불러오세요.
                 </div>
-              </div>
-            )}
+              )}
+              {/* 강의실 추가 팝업 */}
+              {addPopup && (
+                <div
+                  className="room-manage-popup"
+                  style={{
+                    left: addPopup.x,
+                    top: addPopup.y,
+                  }}
+                >
+                  <form onSubmit={handleAddRoom}>
+                    <div>
+                      <b>좌표:</b> ({addPopup.x}, {addPopup.y})
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="강의실명"
+                      value={addForm.room_name}
+                      onChange={(e) =>
+                        setAddForm((f) => ({
+                          ...f,
+                          room_name: e.target.value,
+                        }))
+                      }
+                      required
+                      style={{ width: "100%", margin: "8px 0" }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="강의실 설명"
+                      value={addForm.room_desc}
+                      onChange={(e) =>
+                        setAddForm((f) => ({
+                          ...f,
+                          room_desc: e.target.value,
+                        }))
+                      }
+                      style={{ width: "100%", marginBottom: 8 }}
+                    />
+                    <input type="hidden" value={addPopup.x} readOnly />
+                    <input type="hidden" value={addPopup.y} readOnly />
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button type="submit" disabled={addLoading}>
+                        {addLoading ? "저장 중..." : "저장"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAddPopup(null)}
+                        style={{ background: "#bbb" }}
+                      >
+                        취소
+                      </button>
+                    </div>
+                    {addMsg && (
+                      <div
+                        style={{
+                          color: addMsg.includes("추가") ? "green" : "red",
+                          marginTop: 8,
+                        }}
+                      >
+                        {addMsg}
+                      </div>
+                    )}
+                  </form>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+        {/* 수정 모달 등 기존 UI 유지 */}
+        {showEditRoomModal && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(0,0,0,0.4)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+            }}
+            onClick={() => setShowEditRoomModal(false)}
+          >
+            <div
+              style={{
+                background: "#fff",
+                padding: 24,
+                borderRadius: 8,
+                minWidth: 320,
+                boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 style={{ marginBottom: 12 }}>강의실 정보 수정</h3>
+              <div style={{ marginBottom: 12 }}>
+                <input
+                  type="text"
+                  value={editRoomName}
+                  onChange={(e) => setEditRoomName(e.target.value)}
+                  style={{ width: "100%", padding: 8, fontSize: 16 }}
+                  placeholder="강의실명"
+                />
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <input
+                  type="text"
+                  value={editRoomDesc}
+                  onChange={(e) => setEditRoomDesc(e.target.value)}
+                  style={{ width: "100%", padding: 8, fontSize: 16 }}
+                  placeholder="강의실 설명"
+                />
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  className="modal-save-btn"
+                  onClick={handleEditRoom}
+                  disabled={editRoomLoading}
+                >
+                  {editRoomLoading ? "저장 중..." : "저장"}
+                </button>
+                <button
+                  className="modal-cancel-btn"
+                  onClick={() => setShowEditRoomModal(false)}
+                >
+                  취소
+                </button>
+              </div>
+              {editRoomError && (
+                <div style={{ color: "red", marginTop: 8 }}>
+                  {editRoomError}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

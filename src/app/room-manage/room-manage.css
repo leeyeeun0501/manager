@@ -4,9 +4,23 @@
 }
 
 .management-content {
-  flex: 1;
-  margin-left: 60px;
-  padding: 32px 12px 0 12px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 0 0 0;
+}
+
+.room-manage-filter-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  align-items: center;
+}
+
+.room-manage-main-row {
+  display: flex;
+  align-items: center; /* 세로 중앙 정렬 */
+  gap: 48px; /* 표-맵 간격 */
+  min-height: 480px;
 }
 
 .user-table {
@@ -75,4 +89,49 @@ select::-ms-expand {
 .select-container {
   display: inline-block;
   position: relative;
+}
+
+/* 오른쪽 정사각형 도화지 */
+.room-manage-canvas {
+  width: 400px;
+  height: 400px;
+  background: #f5f6fa;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+/* 도면 이미지 */
+.room-manage-canvas-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+  cursor: crosshair;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* 도면 안내 메시지 */
+.room-manage-canvas-placeholder {
+  color: #bbb;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+/* 강의실 추가 팝업 */
+.room-manage-popup {
+  position: absolute;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 16px;
+  z-index: 10;
+  min-width: 200px;
 }

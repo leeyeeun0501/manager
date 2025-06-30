@@ -1,23 +1,54 @@
 // management (메인 화면)
 "use client"
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
 import "./management.css"
 
 export default function ManagementPage() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [summary, setSummary] = useState({
+    building: 0,
+    classroom: 0,
+    user: 0,
+  })
 
-  // 임시 데이터 (실제 데이터 연동 시 API로 대체)
-  const summary = {
-    building: 5,
-    classroom: 32,
-    user: 120,
-  }
+  // 서버에서 데이터 fetch
+  useEffect(() => {
+    // 건물 수
+    fetch("/api/building-route")
+      .then((res) => res.json())
+      .then((data) => {
+        setSummary((prev) => ({
+          ...prev,
+          building: Array.isArray(data.all) ? data.all.length : 0,
+        }))
+      })
+
+    // 강의실 수
+    fetch("/api/room-route")
+      .then((res) => res.json())
+      .then((data) => {
+        setSummary((prev) => ({
+          ...prev,
+          classroom: Array.isArray(data.rooms) ? data.rooms.length : 0,
+        }))
+      })
+
+    // 사용자 수
+    fetch("/api/user-route")
+      .then((res) => res.json())
+      .then((data) => {
+        setSummary((prev) => ({
+          ...prev,
+          user: Array.isArray(data.users) ? data.users.length : 0,
+        }))
+      })
+  }, [])
 
   return (
     <div className="management-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <div className={`management-content${menuOpen ? " menu-open" : ""}`}>
+      <div className="management-content">
         <div className="dashboard-summary-row">
           <div className="dashboard-summary-box">
             <div className="summary-label">총 건물 수</div>
@@ -32,14 +63,7 @@ export default function ManagementPage() {
             <div className="summary-value">{summary.user}</div>
           </div>
         </div>
-        <div className="dashboard-section">
-          <h3>최근 활동</h3>
-          <ul className="dashboard-list">
-            <li>2025-06-23 | 강의실 A-101 정보 수정</li>
-            <li>2025-06-22 | 건물2 추가</li>
-            <li>2025-06-21 | 사용자 홍길동 계정 생성</li>
-          </ul>
-        </div>
+        {/* 최근 활동은 activity-route가 없으므로 제외 */}
       </div>
     </div>
   )

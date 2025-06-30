@@ -1,6 +1,7 @@
 // layout.js (창 껐을 때 자동 로그아웃 - islogin = false 서버로 보냄)
 "use client"
 import { useEffect } from "react"
+import Menu from "./components/menu"
 
 export default function RootLayout({ children }) {
   useEffect(() => {
@@ -22,7 +23,10 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        <Menu />
+        {children}
+      </body>
     </html>
   )
 }

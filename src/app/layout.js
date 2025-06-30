@@ -1,7 +1,8 @@
-// layout.js (창 껐을 때 자동 로그아웃 - islogin = false 서버로 보냄)
+// app/layout.js
 "use client"
 import { useEffect } from "react"
 import Menu from "./components/menu"
+import ProfileButton from "./components/profilebutton"
 
 export default function RootLayout({ children }) {
   useEffect(() => {
@@ -11,7 +12,6 @@ export default function RootLayout({ children }) {
     const handleUnload = (event) => {
       const nav = performance.getEntriesByType("navigation")[0]
       if (nav && nav.type === "reload") {
-        // 새로고침은 무시
         return
       }
       navigator.sendBeacon("/api/logout-route", JSON.stringify({ id }))
@@ -24,6 +24,16 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko">
       <body>
+        <div
+          style={{
+            position: "fixed",
+            top: 24,
+            right: 32,
+            zIndex: 2000,
+          }}
+        >
+          <ProfileButton />
+        </div>
         <Menu />
         {children}
       </body>

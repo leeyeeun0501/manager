@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
 import "./building-manage.css"
-import { MdEditSquare } from "react-icons/md"
+import { MdEditSquare, MdDelete } from "react-icons/md"
 
 export default function BuildingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -263,6 +263,27 @@ export default function BuildingPage() {
     }
   }
 
+  // 건물 삭제 핸들러
+  const handleDeleteBuilding = async (buildingName) => {
+    if (!window.confirm(`정말로 ${buildingName} 건물을 삭제하시겠습니까?`))
+      return
+    try {
+      const res = await fetch(
+        `/api/building-route?building=${encodeURIComponent(buildingName)}`,
+        { method: "DELETE" }
+      )
+      const text = await res.text()
+      if (res.status === 200) {
+        setBuildingInfos((prev) => prev.filter((b) => b.name !== buildingName))
+        alert(text) // "건물 삭제 성공"
+      } else {
+        alert(text) // "존재하지 않는 건물입니다." 등
+      }
+    } catch (err) {
+      alert("삭제 중 오류가 발생했습니다.")
+    }
+  }
+
   // 층 추가 핸들러
   const handleAddFloor = async (e) => {
     e.preventDefault()
@@ -494,6 +515,7 @@ export default function BuildingPage() {
                   <th style={{ minWidth: 100 }}>건물명</th>
                   <th style={{ minWidth: 200 }}>건물 설명</th>
                   <th style={{ minWidth: 150 }}>맵 파일</th>
+                  <th>삭제</th>
                 </tr>
               </thead>
               <tbody>
@@ -577,6 +599,21 @@ export default function BuildingPage() {
                             <MdEditSquare size={18} color="#007bff" />
                           </button>
                         )}
+                      </td>
+                      <td>
+                        <button
+                          className="building-delete-btn"
+                          onClick={() => handleDeleteBuilding(b.name)}
+                          title="삭제"
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            padding: 0,
+                          }}
+                        >
+                          <MdDelete size={20} color="#e74c3c" />
+                        </button>
                       </td>
                     </tr>
                   ))

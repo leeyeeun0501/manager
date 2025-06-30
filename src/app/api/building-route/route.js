@@ -124,3 +124,31 @@ export async function POST(request) {
     )
   }
 }
+
+// 건물 삭제 (DELETE)
+export async function DELETE(request) {
+  const { searchParams } = new URL(request.url)
+  const building = searchParams.get("building")
+
+  if (!building) {
+    return NextResponse.json("건물명이 필요합니다.", { status: 400 })
+  }
+
+  try {
+    const res = await fetch(
+      `http://13.55.76.216:3000/building/${encodeURIComponent(building)}`,
+      { method: "DELETE" }
+    )
+    const text = await res.text()
+
+    if (res.status === 200) {
+      return new NextResponse("건물 삭제 성공", { status: 200 })
+    } else if (res.status === 404) {
+      return new NextResponse("존재하지 않는 건물입니다.", { status: 404 })
+    } else {
+      return new NextResponse("건물 삭제 처리 중 오류", { status: 500 })
+    }
+  } catch (err) {
+    return new NextResponse("건물 삭제 처리 중 오류", { status: 500 })
+  }
+}

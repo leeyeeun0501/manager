@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import { usePathname } from "next/navigation"
 import Menu from "./components/menu"
 import ProfileButton from "./components/profilebutton"
+import Script from "next/script" // 추가!
 
 export default function RootLayout({ children }) {
   const pathname = usePathname()
@@ -29,6 +30,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko">
       <body>
+        {/* 네이버 지도 API 스크립트 전역 추가 */}
+        <Script
+          src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=yxffktqahm"
+          strategy="beforeInteractive"
+        />
         {!hideMenuAndProfile && (
           <>
             <div

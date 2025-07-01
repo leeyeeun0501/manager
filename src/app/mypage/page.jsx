@@ -25,13 +25,28 @@ export default function MyPage() {
     fetch(`/api/mypage-route?id=${encodeURIComponent(id)}`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("마이페이지 fetch 결과:", data) // 응답 구조 확인
-        if (data.success && data.user) {
+        console.log("마이페이지 fetch 결과:", data)
+        if (
+          data.success &&
+          data.user &&
+          Array.isArray(data.user) &&
+          data.user[0]
+        ) {
+          const userData = data.user[0]
+          // 대문자 key → 소문자 key로 변환
           setUser((u) => ({
             ...u,
-            ...data.user,
+            id: userData.Id || "",
+            name: userData.Name || "",
+            phone: userData.Phone || "",
+            email: userData.Email || "",
           }))
+        } else {
+          console.error("마이페이지 fetch 실패 또는 데이터 없음:", data.error)
         }
+      })
+      .catch((err) => {
+        console.error("마이페이지 fetch 중 에러:", err)
       })
   }, [])
 

@@ -33,7 +33,6 @@ export default function MyPage() {
           data.user[0]
         ) {
           const userData = data.user[0]
-          // 대문자 key → 소문자 key로 변환
           setUser((u) => ({
             ...u,
             id: userData.Id || "",
@@ -55,7 +54,7 @@ export default function MyPage() {
     setEditMsg("")
     setLoading(true)
     try {
-      const res = await fetch("/api/user-route", {
+      const res = await fetch("/api/mypage-route", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

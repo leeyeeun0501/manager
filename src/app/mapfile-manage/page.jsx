@@ -92,29 +92,28 @@ export default function MapfileManagePage() {
   const handleLoadMap = async () => {
     setImgUrl("")
     setCategoryList([])
-    setPopup(null)
-    setSubmitMsg("")
     setLoading(true)
     try {
+      // 도면 이미지 fetch
       const res = await fetch(
         `/api/mapfile-image-route?floor=${encodeURIComponent(
           selectedFloor
         )}&building=${encodeURIComponent(selectedBuilding)}`
       )
-      if (!res.ok) {
-        setImgUrl("")
-        setLoading(false)
-        setSubmitMsg("도면 이미지를 불러올 수 없습니다.")
-        return
-      }
+      if (!res.ok) throw new Error()
       const blob = await res.blob()
-      const objectUrl = URL.createObjectURL(blob)
-      setImgUrl(objectUrl)
+      setImgUrl(URL.createObjectURL(blob))
 
+      // 카테고리 좌표 fetch
+      const catRes = await fetch(
+        `/api/category-route?building=${encodeURIComponent(
+          selectedBuilding
+        )}&floor=${encodeURIComponent(selectedFloor)}`
+      )
+      const catData = await catRes.json()
+      setCategoryList(Array.isArray(catData) ? catData : [])
+    } catch {
       setCategoryList([])
-    } catch (e) {
-      setImgUrl("")
-      setSubmitMsg("도면을 불러오는 중 오류가 발생했습니다.")
     }
     setLoading(false)
   }
@@ -200,16 +199,13 @@ export default function MapfileManagePage() {
           </select>
           <button onClick={handleLoadMap}>도면 불러오기</button>
         </div>
-        <div className="mapfile-map-area">
-          {loading ? (
-            <div className="mapfile-map-placeholder">로딩 중...</div>
-          ) : imgUrl ? (
+        <div className="mapfile-map-area" style={{ position: "relative" }}>
+          {imgUrl ? (
             <img
-              ref={imgRef}
               src={imgUrl}
               alt="도면"
               className="mapfile-map-image"
-              onClick={handleImageClick}
+              style={{ width: "100%", height: "auto", display: "block" }}
             />
           ) : (
             <div className="mapfile-map-placeholder">
@@ -217,54 +213,37 @@ export default function MapfileManagePage() {
             </div>
           )}
 
-          {/* 팝업: 좌표와 카테고리 선택 */}
-          {popup && (
-            <div
-              className="mapfile-popup"
-              style={{
-                left: popup.x,
-                top: popup.y,
-              }}
-            >
-              <form onSubmit={handleSubmit}>
-                <div>
-                  <b>좌표:</b> ({popup.x}, {popup.y})
-                </div>
-                <select
-                  className="category-select"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  required
-                  autoFocus
-                >
-                  <option value="">카테고리 선택</option>
-                  {categoryOptions.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-                <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-                  <button type="submit">저장</button>
-                  <button
-                    type="button"
-                    onClick={() => setPopup(null)}
-                    style={{ background: "#bbb" }}
-                  >
-                    취소
-                  </button>
-                </div>
-              </form>
-              {submitMsg && (
-                <div
-                  className={`mapfile-popup-msg ${
-                    submitMsg === "저장 완료!" ? "success" : "error"
-                  }`}
-                >
-                  {submitMsg}
-                </div>
-              )}
-            </div>
+          {/* 카테고리 마커 표시 */}
+          {categoryList.map((cat, idx) =>
+            cat.Location ? (
+              <div
+                key={cat.Category_Name + idx}
+                className="category-marker"
+                style={{
+                  position: "absolute",
+                  left: cat.Location.x,
+                  top: cat.Location.y,
+                  width: 36,
+                  height: 36,
+                  background: "#3b82f6",
+                  color: "#fff",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: "bold",
+                  fontSize: "1rem",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                  border: "2px solid #fff",
+                  zIndex: 5,
+                  transform: "translate(-50%, -50%)",
+                  pointerEvents: "none",
+                }}
+                title={cat.Category_Name}
+              >
+                {cat.Category_Name[0]}
+              </div>
+            ) : null
           )}
         </div>
       </div>

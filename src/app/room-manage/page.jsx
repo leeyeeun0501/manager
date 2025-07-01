@@ -43,6 +43,10 @@ export default function RoomManagePage() {
   const [editRoomLoading, setEditRoomLoading] = useState(false)
   const [editRoomOldName, setEditRoomOldName] = useState("")
 
+  // 페이징 상태
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+
   useEffect(() => {
     fetchRooms()
     fetchBuildings()
@@ -58,7 +62,6 @@ export default function RoomManagePage() {
     setImgUrl("")
   }, [filterBuilding])
 
-  // 수정 예정 - 건물 이름만 조회
   // 건물 목록
   const fetchBuildings = async () => {
     try {
@@ -74,7 +77,6 @@ export default function RoomManagePage() {
     }
   }
 
-  // 수정 예정
   // 층 목록
   const fetchFloors = async (building) => {
     if (!building) {
@@ -83,12 +85,10 @@ export default function RoomManagePage() {
     }
     try {
       const res = await fetch(
-        `/api/floor-route?building=${encodeURIComponent(building)}`
+        `/api/floor-route?building=${encodeURIComponent(building)}&type=names`
       )
       const data = await res.json()
-      setFloorOptions(
-        Array.isArray(data.floors) ? data.floors.map((f) => f.floor) : []
-      )
+      setFloorOptions(Array.isArray(data.floors) ? data.floors : [])
     } catch {
       setFloorOptions([])
     }
@@ -203,16 +203,7 @@ export default function RoomManagePage() {
       )
       const text = await res.text()
       if (res.status === 200) {
-        setRooms((prev) =>
-          prev.filter(
-            (r) =>
-              !(
-                r.building === building &&
-                r.floor === floor &&
-                r.name === room_name
-              )
-          )
-        )
+        fetchRooms() // 삭제 후 최신 목록 불러오기
         alert(text)
       } else {
         alert(text)
@@ -260,20 +251,35 @@ export default function RoomManagePage() {
     }
   }
 
-  // 룸 필터링 ???
+  // 룸 필터링
   const filteredRooms = rooms.filter(
     (room) =>
       (!filterBuilding || room.building === filterBuilding) &&
       (!filterFloor || room.floor === filterFloor)
   )
 
+  // 페이징
+  const totalRooms = filteredRooms.length
+  const totalPages = Math.ceil(totalRooms / itemsPerPage)
+  const startIdx = (currentPage - 1) * itemsPerPage
+  const endIdx = startIdx + itemsPerPage
+  const pagedRooms = filteredRooms.slice(startIdx, endIdx)
+
+  // 페이지 변경 시 스크롤 유지
+  useEffect(() => {
+    // 페이지 바뀔 때 스크롤 맨 위로 (필요시)
+    // window.scrollTo(0, 0)
+  }, [currentPage])
+
   return (
     <div className="management-root">
+      {/* 왼쪽 메뉴 */}
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+
+      {/* 오른쪽 메인 콘텐츠 */}
       <div className="management-content">
         <h1>강의실 관리</h1>
-
-        {/* 필터/맵 불러오기 */}
+        {/* 필터/버튼 */}
         <div className="room-manage-filter-row">
           <select
             value={filterBuilding}
@@ -305,90 +311,121 @@ export default function RoomManagePage() {
             맵 불러오기
           </button>
         </div>
+
+        {/* 표와 맵을 한 줄에 나란히 */}
         <div className="room-manage-main-row">
-          {/* 강의실 표 */}
+          {/* 표 */}
           <div className="room-manage-table-wrap">
             {loading && <p>로딩 중...</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {!loading && !error && (
-              <table className="user-table center-table">
-                <thead>
-                  <tr>
-                    <th>건물명</th>
-                    <th>층</th>
-                    <th>강의실명</th>
-                    <th>강의실 설명</th>
-                    <th>삭제</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredRooms.length === 0 ? (
+              <>
+                <table className="user-table center-table">
+                  <thead>
                     <tr>
-                      <td colSpan={5}>강의실 데이터가 없습니다.</td>
+                      <th>건물명</th>
+                      <th>층</th>
+                      <th>강의실명</th>
+                      <th>강의실 설명</th>
+                      <th>삭제</th>
                     </tr>
-                  ) : (
-                    filteredRooms.map((room, idx) => (
-                      <tr key={room.name + room.floor + room.building + idx}>
-                        <td>{room.building}</td>
-                        <td>{room.floor}</td>
-                        <td>{room.name}</td>
-                        <td style={{ position: "relative" }}>
-                          {room.description}
-                          <button
-                            style={{
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: 0,
-                              marginLeft: 6,
-                              position: "absolute",
-                              right: 6,
-                              top: "50%",
-                              transform: "translateY(-50%)",
-                            }}
-                            onClick={() => {
-                              setEditRoom(room)
-                              setEditRoomName(room.name)
-                              setEditRoomDesc(room.description || "")
-                              setEditRoomOldName(room.name)
-                              setShowEditRoomModal(true)
-                              setEditRoomError("")
-                            }}
-                            aria-label="강의실 정보 수정"
-                          >
-                            <MdEditSquare size={18} color="#007bff" />
-                          </button>
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          <button
-                            style={{
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: 0,
-                            }}
-                            onClick={() =>
-                              handleDeleteRoom(
-                                room.building,
-                                room.floor,
-                                room.name
-                              )
-                            }
-                            aria-label="강의실 삭제"
-                            title="삭제"
-                          >
-                            <MdDelete size={22} color="#e74c3c" />
-                          </button>
-                        </td>
+                  </thead>
+                  <tbody>
+                    {pagedRooms.length === 0 ? (
+                      <tr>
+                        <td colSpan={5}>강의실 데이터가 없습니다.</td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      pagedRooms.map((room, idx) => (
+                        <tr key={`${room.building}-${room.floor}-${room.name}`}>
+                          <td>{room.building}</td>
+                          <td>{room.floor}</td>
+                          <td>{room.name}</td>
+                          <td style={{ position: "relative" }}>
+                            {room.description}
+                            <button
+                              style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: 0,
+                                marginLeft: 6,
+                                position: "absolute",
+                                right: 6,
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                              onClick={() => {
+                                setEditRoom(room)
+                                setEditRoomName(room.name)
+                                setEditRoomDesc(room.description || "")
+                                setEditRoomOldName(room.name)
+                                setShowEditRoomModal(true)
+                                setEditRoomError("")
+                              }}
+                              aria-label="강의실 정보 수정"
+                            >
+                              <MdEditSquare size={18} color="#007bff" />
+                            </button>
+                          </td>
+                          <td style={{ textAlign: "center" }}>
+                            <button
+                              style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: 0,
+                              }}
+                              onClick={() =>
+                                handleDeleteRoom(
+                                  room.building,
+                                  room.floor,
+                                  room.name
+                                )
+                              }
+                              aria-label="강의실 삭제"
+                              title="삭제"
+                            >
+                              <MdDelete size={22} color="#e74c3c" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+                {/* 페이지네이션 */}
+                <div
+                  style={{
+                    marginTop: 16,
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 12,
+                  }}
+                >
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    이전
+                  </button>
+                  <span>
+                    {currentPage} / {totalPages}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
+                    disabled={currentPage === totalPages || totalPages === 0}
+                  >
+                    다음
+                  </button>
+                </div>
+              </>
             )}
           </div>
 
-          {/* 오른쪽: 정사각형 도화지(맵) */}
+          {/* 맵 */}
           <div className="room-manage-canvas-outer">
             <div className="room-manage-canvas">
               {mapLoading ? (

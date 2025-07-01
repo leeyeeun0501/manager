@@ -79,11 +79,18 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
           홈 화면
         </Link>
         <Link
-          href="/building-manage"
+          href="/tower-manage"
           className="menu-link"
           onClick={() => setMenuOpen(false)}
         >
           건물 관리
+        </Link>
+        <Link
+          href="/building-manage"
+          className="menu-link"
+          onClick={() => setMenuOpen(false)}
+        >
+          층 관리
         </Link>
         <Link
           href="/room-manage"

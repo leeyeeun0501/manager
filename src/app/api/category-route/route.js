@@ -1,4 +1,3 @@
-// app/api/category-route/route.js
 import { NextResponse } from "next/server"
 
 // 카테고리 위치 목록 조회 (GET)
@@ -15,7 +14,7 @@ export async function GET(request) {
   }
 
   // 외부 서버에서 데이터 가져오기
-  const apiUrl = `http://13.55.76.216:3000/manager/${encodeURIComponent(
+  const apiUrl = `http://13.55.76.216:3000/category/manager/${encodeURIComponent(
     building
   )}/${encodeURIComponent(floor)}`
   try {

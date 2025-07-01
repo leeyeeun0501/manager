@@ -17,8 +17,6 @@ export default function MapfileManagePage() {
   const imgRef = useRef(null)
 
   // 건물, 층 콤보박스 옵션
-  const buildingOptions = Array.from({ length: 19 }, (_, i) => `W${i + 1}`)
-  const floorOptions = ["1", "2"]
 
   const [floors, setFloors] = useState([])
   const [floorPage, setFloorPage] = useState(1)
@@ -92,28 +90,42 @@ export default function MapfileManagePage() {
   const handleLoadMap = async () => {
     setImgUrl("")
     setCategoryList([])
+    setPopup(null)
+    setSubmitMsg("")
     setLoading(true)
     try {
-      // 도면 이미지 fetch
       const res = await fetch(
         `/api/mapfile-image-route?floor=${encodeURIComponent(
           selectedFloor
         )}&building=${encodeURIComponent(selectedBuilding)}`
       )
-      if (!res.ok) throw new Error()
+      if (!res.ok) {
+        setImgUrl("")
+        setLoading(false)
+        setSubmitMsg("도면 이미지를 불러올 수 없습니다.")
+        return
+      }
       const blob = await res.blob()
-      setImgUrl(URL.createObjectURL(blob))
+      const objectUrl = URL.createObjectURL(blob)
+      setImgUrl(objectUrl)
 
-      // 카테고리 좌표 fetch
+      // 2. 카테고리 위치 fetch
       const catRes = await fetch(
         `/api/category-route?building=${encodeURIComponent(
           selectedBuilding
         )}&floor=${encodeURIComponent(selectedFloor)}`
       )
-      const catData = await catRes.json()
-      setCategoryList(Array.isArray(catData) ? catData : [])
-    } catch {
+      if (!catRes.ok) {
+        setCategoryList([])
+        setSubmitMsg("카테고리 위치를 불러올 수 없습니다.")
+      } else {
+        const catData = await catRes.json()
+        setCategoryList(Array.isArray(catData) ? catData : [])
+      }
+    } catch (e) {
+      setImgUrl("")
       setCategoryList([])
+      setSubmitMsg("도면을 불러오는 중 오류가 발생했습니다.")
     }
     setLoading(false)
   }
@@ -200,12 +212,15 @@ export default function MapfileManagePage() {
           <button onClick={handleLoadMap}>도면 불러오기</button>
         </div>
         <div className="mapfile-map-area" style={{ position: "relative" }}>
-          {imgUrl ? (
+          {loading ? (
+            <div className="mapfile-map-placeholder">로딩 중...</div>
+          ) : imgUrl ? (
             <img
+              ref={imgRef}
               src={imgUrl}
               alt="도면"
               className="mapfile-map-image"
-              style={{ width: "100%", height: "auto", display: "block" }}
+              onClick={handleImageClick}
             />
           ) : (
             <div className="mapfile-map-placeholder">
@@ -213,7 +228,7 @@ export default function MapfileManagePage() {
             </div>
           )}
 
-          {/* 카테고리 마커 표시 */}
+          {/* 카테고리 위치 도형(원) 표시 */}
           {categoryList.map((cat, idx) =>
             cat.Location ? (
               <div
@@ -237,13 +252,63 @@ export default function MapfileManagePage() {
                   border: "2px solid #fff",
                   zIndex: 5,
                   transform: "translate(-50%, -50%)",
-                  pointerEvents: "none",
+                  pointerEvents: "none", // 클릭 안 되게
                 }}
                 title={cat.Category_Name}
               >
                 {cat.Category_Name[0]}
               </div>
             ) : null
+          )}
+
+          {/* --- 기존 팝업 로직은 그대로 --- */}
+          {popup && (
+            <div
+              className="mapfile-popup"
+              style={{
+                left: popup.x,
+                top: popup.y,
+              }}
+            >
+              <form onSubmit={handleSubmit}>
+                <div>
+                  <b>좌표:</b> ({popup.x}, {popup.y})
+                </div>
+                <select
+                  className="category-select"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  required
+                  autoFocus
+                >
+                  <option value="">카테고리 선택</option>
+                  {categoryOptions.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+                <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+                  <button type="submit">저장</button>
+                  <button
+                    type="button"
+                    onClick={() => setPopup(null)}
+                    style={{ background: "#bbb" }}
+                  >
+                    취소
+                  </button>
+                </div>
+              </form>
+              {submitMsg && (
+                <div
+                  className={`mapfile-popup-msg ${
+                    submitMsg === "저장 완료!" ? "success" : "error"
+                  }`}
+                >
+                  {submitMsg}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

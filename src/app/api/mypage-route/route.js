@@ -1,3 +1,4 @@
+// mypage-route
 import { NextResponse } from "next/server"
 
 // 회원정보 검색 (PUT)
@@ -13,7 +14,6 @@ export async function GET(request) {
   }
 
   try {
-    // 외부 서버에서 사용자 정보 조회
     const apiUrl = `http://13.55.76.216:3001/user/${encodeURIComponent(id)}`
     const res = await fetch(apiUrl, { method: "GET" })
 
@@ -26,7 +26,7 @@ export async function GET(request) {
 
     const data = await res.json()
 
-    // data가 { id, name, phone, email, password } 형태라고 가정
+    // data가 { id, name, phone, email, password }
     return NextResponse.json({ success: true, user: data })
   } catch (err) {
     return NextResponse.json(
@@ -41,7 +41,6 @@ export async function PUT(request) {
   try {
     const { id, pw, phone, email } = await request.json()
 
-    // 유효성 검사
     if (!id) {
       return NextResponse.json(
         { success: false, error: "id는 필수입니다." },
@@ -55,7 +54,6 @@ export async function PUT(request) {
       )
     }
 
-    // 외부 서버로 수정 요청
     const apiUrl = "http://13.55.76.216:3001/user/update"
     const res = await fetch(apiUrl, {
       method: "PUT",

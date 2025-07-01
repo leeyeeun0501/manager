@@ -1,6 +1,7 @@
 // floor-route
 import { NextResponse } from "next/server"
 
+// 수정 예정
 // 전체 데이터 조회 (GET)
 export async function GET(request) {
   const { searchParams } = new URL(request.url)

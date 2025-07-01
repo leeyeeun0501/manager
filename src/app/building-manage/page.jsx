@@ -374,6 +374,7 @@ export default function BuildingPage() {
     }
   }
 
+  // 층 삭제 핸들러
   const handleDeleteFloor = async (buildingName, floorNum) => {
     if (
       !window.confirm(
@@ -686,6 +687,7 @@ export default function BuildingPage() {
               </button>
             </div>
           </div>
+
           {/* 층 표/추가 */}
           <div className="table-col" style={{ flex: 1, maxWidth: 700 }}>
             <button
@@ -852,6 +854,7 @@ export default function BuildingPage() {
           </div>
         </div>
       </div>
+
       {/* 건물 설명 수정 팝업 */}
       {showEditDescModal && (
         <div
@@ -906,6 +909,7 @@ export default function BuildingPage() {
           </div>
         </div>
       )}
+
       {/* 팝업: 이미지+수정 */}
       {(popupImg !== null || (isBuildingMap && popupBuilding)) && (
         <div

@@ -18,6 +18,7 @@ export default function MyPage() {
   const [deleteMsg, setDeleteMsg] = useState("")
   const [deleting, setDeleting] = useState(false)
 
+  // 마이 페이지 정보 받아옴
   useEffect(() => {
     const id = typeof window !== "undefined" ? localStorage.getItem("id") : ""
     setUser((u) => ({ ...u, id: id || "" }))
@@ -49,6 +50,7 @@ export default function MyPage() {
       })
   }, [])
 
+  // 수정 핸들러
   const handleEdit = async (e) => {
     e.preventDefault()
     setEditMsg("")
@@ -77,7 +79,8 @@ export default function MyPage() {
     setLoading(false)
   }
 
-  // 로그아웃
+  // 수정 예정
+  // 로그아웃 핸들러
   const handleLogout = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("id")
@@ -87,7 +90,8 @@ export default function MyPage() {
     window.location.href = "/login"
   }
 
-  // 계정 삭제
+  // 수정 예정
+  // 계정 삭제 핸들러
   const handleDeleteAccount = async () => {
     setDeleteMsg("")
     if (!window.confirm("정말로 계정을 삭제하시겠습니까?")) return
@@ -198,6 +202,7 @@ export default function MyPage() {
               {editMsg}
             </div>
           )}
+
           {/* 로그아웃 버튼 */}
           <button
             onClick={handleLogout}
@@ -213,6 +218,7 @@ export default function MyPage() {
           >
             로그아웃
           </button>
+
           {/* 계정 삭제 버튼 */}
           <button
             onClick={handleDeleteAccount}

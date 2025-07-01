@@ -43,40 +43,54 @@ export default function RoomManagePage() {
   const [editRoomLoading, setEditRoomLoading] = useState(false)
   const [editRoomOldName, setEditRoomOldName] = useState("")
 
-  const handleEditRoom = async () => {
-    setEditRoomError("")
-    if (!editRoom) return
-    setEditRoomLoading(true)
+  useEffect(() => {
+    fetchRooms()
+    fetchBuildings()
+  }, [])
+
+  useEffect(() => {
+    if (filterBuilding) {
+      fetchFloors(filterBuilding)
+    } else {
+      setFloorOptions([])
+    }
+    setFilterFloor("")
+    setImgUrl("")
+  }, [filterBuilding])
+
+  // 수정 예정 - 건물 이름만 조회
+  // 건물 목록
+  const fetchBuildings = async () => {
+    try {
+      const res = await fetch("/api/building-route")
+      const data = await res.json()
+      setBuildingOptions(
+        (data.all || [])
+          .filter((b) => b && b.Building_Name)
+          .map((b) => b.Building_Name)
+      )
+    } catch {
+      setBuildingOptions([])
+    }
+  }
+
+  // 수정 예정
+  // 층 목록
+  const fetchFloors = async (building) => {
+    if (!building) {
+      setFloorOptions([])
+      return
+    }
     try {
       const res = await fetch(
-        `/api/room-route/${encodeURIComponent(
-          editRoom.building
-        )}/${encodeURIComponent(editRoom.floor)}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            old_room_name: editRoomOldName, // 기존 강의실명
-            room_name: editRoomName, // 수정된 강의실명
-            room_desc: editRoomDesc, // 수정된 설명
-          }),
-        }
+        `/api/floor-route?building=${encodeURIComponent(building)}`
       )
       const data = await res.json()
-      if (!res.ok) {
-        setEditRoomError(data.error || "수정 실패")
-        return
-      }
-      fetchRooms()
-      setShowEditRoomModal(false)
-      setEditRoom(null)
-      setEditRoomName("")
-      setEditRoomDesc("")
-      setEditRoomOldName("")
+      setFloorOptions(
+        Array.isArray(data.floors) ? data.floors.map((f) => f.floor) : []
+      )
     } catch {
-      setEditRoomError("수정 중 오류가 발생했습니다.")
-    } finally {
-      setEditRoomLoading(false)
+      setFloorOptions([])
     }
   }
 
@@ -97,56 +111,7 @@ export default function RoomManagePage() {
     }
   }
 
-  // 건물 목록
-  const fetchBuildings = async () => {
-    try {
-      const res = await fetch("/api/building-route")
-      const data = await res.json()
-      setBuildingOptions(
-        (data.all || [])
-          .filter((b) => b && b.Building_Name)
-          .map((b) => b.Building_Name)
-      )
-    } catch {
-      setBuildingOptions([])
-    }
-  }
-
-  // 층 목록
-  const fetchFloors = async (building) => {
-    if (!building) {
-      setFloorOptions([])
-      return
-    }
-    try {
-      const res = await fetch(
-        `/api/floor-route?building=${encodeURIComponent(building)}`
-      )
-      const data = await res.json()
-      setFloorOptions(
-        Array.isArray(data.floors) ? data.floors.map((f) => f.floor) : []
-      )
-    } catch {
-      setFloorOptions([])
-    }
-  }
-
-  useEffect(() => {
-    fetchRooms()
-    fetchBuildings()
-  }, [])
-
-  useEffect(() => {
-    if (filterBuilding) {
-      fetchFloors(filterBuilding)
-    } else {
-      setFloorOptions([])
-    }
-    setFilterFloor("")
-    setImgUrl("")
-  }, [filterBuilding])
-
-  // --- 맵 이미지 불러오기 ---
+  // 맵 이미지 불러오기 핸들러
   const handleLoadMap = async () => {
     setImgUrl("")
     setMapLoading(true)
@@ -170,7 +135,7 @@ export default function RoomManagePage() {
     setMapLoading(false)
   }
 
-  // --- 맵 클릭 시 좌표로 강의실 추가 폼 열기 ---
+  // 맵 클릭 시 강의실 추가 폼 열리기 핸들러
   const handleImageClick = (e) => {
     if (!imgRef.current) return
     const rect = imgRef.current.getBoundingClientRect()
@@ -181,7 +146,7 @@ export default function RoomManagePage() {
     setAddMsg("")
   }
 
-  // --- 강의실 추가 폼 제출 ---
+  // 강의실 추가 폼 제출 핸들러
   const handleAddRoom = async (e) => {
     e.preventDefault()
     setAddMsg("")
@@ -216,13 +181,6 @@ export default function RoomManagePage() {
       setAddLoading(false)
     }
   }
-
-  // --- 필터링된 rooms ---
-  const filteredRooms = rooms.filter(
-    (room) =>
-      (!filterBuilding || room.building === filterBuilding) &&
-      (!filterFloor || room.floor === filterFloor)
-  )
 
   // 방 삭제 핸들러
   const handleDeleteRoom = async (building, floor, room_name) => {
@@ -264,11 +222,57 @@ export default function RoomManagePage() {
     }
   }
 
+  // 강의실 수정 핸들러
+  const handleEditRoom = async () => {
+    setEditRoomError("")
+    if (!editRoom) return
+    setEditRoomLoading(true)
+    try {
+      const res = await fetch(
+        `/api/room-route/${encodeURIComponent(
+          editRoom.building
+        )}/${encodeURIComponent(editRoom.floor)}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            old_room_name: editRoomOldName,
+            room_name: editRoomName,
+            room_desc: editRoomDesc,
+          }),
+        }
+      )
+      const data = await res.json()
+      if (!res.ok) {
+        setEditRoomError(data.error || "수정 실패")
+        return
+      }
+      fetchRooms()
+      setShowEditRoomModal(false)
+      setEditRoom(null)
+      setEditRoomName("")
+      setEditRoomDesc("")
+      setEditRoomOldName("")
+    } catch {
+      setEditRoomError("수정 중 오류가 발생했습니다.")
+    } finally {
+      setEditRoomLoading(false)
+    }
+  }
+
+  // 룸 필터링 ???
+  const filteredRooms = rooms.filter(
+    (room) =>
+      (!filterBuilding || room.building === filterBuilding) &&
+      (!filterFloor || room.floor === filterFloor)
+  )
+
   return (
     <div className="management-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className="management-content">
         <h1>강의실 관리</h1>
+
         {/* 필터/맵 불러오기 */}
         <div className="room-manage-filter-row">
           <select
@@ -383,6 +387,7 @@ export default function RoomManagePage() {
               </table>
             )}
           </div>
+
           {/* 오른쪽: 정사각형 도화지(맵) */}
           <div className="room-manage-canvas-outer">
             <div className="room-manage-canvas">
@@ -469,6 +474,7 @@ export default function RoomManagePage() {
             </div>
           </div>
         </div>
+
         {/* 수정 모달 등 기존 UI 유지 */}
         {showEditRoomModal && (
           <div

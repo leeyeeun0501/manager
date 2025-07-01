@@ -60,7 +60,6 @@ export async function PUT(req, context) {
       return NextResponse.json({ error: "필수 항목 누락" }, { status: 400 })
     }
 
-    // 외부 서버로 PUT 요청 (기존 강의실명 포함)
     const res = await fetch(
       `http://13.55.76.216:3000/room/${encodeURIComponent(
         building
@@ -69,9 +68,9 @@ export async function PUT(req, context) {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          old_room_name, // 기존 강의실명
-          room_name, // 수정된 강의실명
-          room_desc, // 수정된 설명
+          old_room_name,
+          room_name,
+          room_desc,
         }),
       }
     )
@@ -107,7 +106,6 @@ export async function DELETE(request, { params }) {
     return NextResponse.json("필수 정보가 누락되었습니다.", { status: 400 })
   }
 
-  // 외부 서버에 DELETE 요청 보내기
   const res = await fetch(
     `http://13.55.76.216:3000/room/${encodeURIComponent(
       building

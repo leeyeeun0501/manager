@@ -18,6 +18,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
     }
   }, [menuOpen])
 
+  // 로그아웃 핸들러
   const handleLogout = async () => {
     const id = localStorage.getItem("id")
     try {

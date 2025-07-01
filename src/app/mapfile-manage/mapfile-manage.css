@@ -152,7 +152,6 @@ body,
   pointer-events: none;
 }
 
-/* 모달 오버레이: 화면 전체 어둡게 */
 .modal-overlay {
   position: fixed;
   z-index: 1000;
@@ -166,7 +165,6 @@ body,
   justify-content: center;
 }
 
-/* 모달 본체 */
 .modal-box {
   background: #fff;
   border-radius: 12px;
@@ -176,6 +174,7 @@ body,
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   text-align: center;
 }
+
 .modal-box button {
   margin: 0 8px;
 }

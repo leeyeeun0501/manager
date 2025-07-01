@@ -20,14 +20,18 @@ export default function MyPage() {
 
   useEffect(() => {
     const id = typeof window !== "undefined" ? localStorage.getItem("id") : ""
-    const name =
-      typeof window !== "undefined" ? localStorage.getItem("name") : ""
-    setUser((u) => ({ ...u, id: id || "", name: name || "" }))
+    setUser((u) => ({ ...u, id: id || "" }))
     if (!id) return
-    fetch(`/api/user-route?id=${encodeURIComponent(id)}`)
+    fetch(`/api/mypage-route?id=${encodeURIComponent(id)}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.user) setUser((u) => ({ ...u, ...data.user }))
+        console.log("마이페이지 fetch 결과:", data) // 응답 구조 확인
+        if (data.success && data.user) {
+          setUser((u) => ({
+            ...u,
+            ...data.user,
+          }))
+        }
       })
   }, [])
 

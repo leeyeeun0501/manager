@@ -5,12 +5,33 @@ import { NextResponse } from "next/server"
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const building = searchParams.get("building")
+  const type = searchParams.get("type")
 
   if (!building) {
     return NextResponse.json({ error: "건물명을 입력하세요." }, { status: 400 })
   }
 
-  // 외부 서버에서 해당 건물의 층 목록 조회
+  // 1. 층 번호 목록만 반환 (type=names)
+  if (type === "names") {
+    const res = await fetch(
+      `http://13.55.76.216:3000/floor/names/${encodeURIComponent(building)}`,
+      { method: "GET", cache: "no-store" }
+    )
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: "층 목록을 불러올 수 없습니다." },
+        { status: res.status }
+      )
+    }
+    // 서버 응답 예: [{ Floor_Number: "1" }, { Floor_Number: "2" }, ...]
+    const data = await res.json()
+    const floorNames = (Array.isArray(data) ? data : [])
+      .map((row) => row.Floor_Number)
+      .filter(Boolean)
+    return NextResponse.json({ floors: floorNames })
+  }
+
+  // 2. 전체 층 정보 반환 (기존 방식)
   const res = await fetch(
     `http://13.55.76.216:3000/floor/${encodeURIComponent(building)}`,
     { method: "GET", cache: "no-store" }
@@ -26,7 +47,6 @@ export async function GET(request) {
   const data = await res.json()
   const floors = Array.isArray(data) ? data : []
 
-  // 필요한 정보만 추려서 반환
   const result = floors.map((row) => ({
     floor: row.Floor_Number,
     building: row.Building_Name,

@@ -6,7 +6,7 @@ import "./mapfile-manage.css"
 
 export default function MapfileManagePage() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [selectedBuilding, setSelectedBuilding] = useState("W1")
+  const [selectedBuilding, setSelectedBuilding] = useState("")
   const [selectedFloor, setSelectedFloor] = useState("1")
   const [imgUrl, setImgUrl] = useState("")
   const [loading, setLoading] = useState(false)
@@ -45,7 +45,7 @@ export default function MapfileManagePage() {
     fetchBuildingNames()
   }, [])
 
-  // 건물 선택 시 해당 건물의 층 fetch
+  // 건물 선택 시 해당 건물의 층 번호 목록만 fetch
   useEffect(() => {
     if (!selectedBuilding) {
       setFloors([])
@@ -56,10 +56,13 @@ export default function MapfileManagePage() {
     async function fetchFloors() {
       try {
         const res = await fetch(
-          `/api/floor-route?building=${encodeURIComponent(selectedBuilding)}`
+          `/api/floor-route?building=${encodeURIComponent(
+            selectedBuilding
+          )}&type=names`
         )
         if (!res.ok) throw new Error("Failed to fetch floors")
         const data = await res.json()
+        // data.floors: ["1", "2", ...]
         setFloors(Array.isArray(data.floors) ? data.floors : [])
         setSelectedFloor("")
         setFloorPage(1)
@@ -209,6 +212,7 @@ export default function MapfileManagePage() {
       <div className="mapfile-manage-root">
         <h2 className="mapfile-manage-title">2D 도면 카테고리 위치 관리</h2>
         <div className="mapfile-manage-controls">
+          {/* 건물 콤보박스 */}
           <select
             className="building-select"
             value={selectedBuilding}
@@ -218,13 +222,14 @@ export default function MapfileManagePage() {
               setFloorPage(1)
             }}
           >
-            <option value="">건물</option>
+            <option value="">전체</option>
             {buildingInfos.map((name, idx) => (
               <option key={name || idx} value={name}>
                 {name}
               </option>
             ))}
           </select>
+          {/* 층 콤보박스 */}
           <select
             className="floor-select"
             value={selectedFloor}
@@ -235,12 +240,12 @@ export default function MapfileManagePage() {
             disabled={!selectedBuilding}
           >
             <option value="">전체</option>
-            {floors.map((f, idx) => (
-              <option key={f.floor || idx} value={f.floor}>
-                {f.floor}
+            {floors.map((floor, idx) => (
+              <option key={floor || idx} value={floor}>
+                {floor}
               </option>
-            ))}{" "}
-          </select>
+            ))}
+          </select>{" "}
           <button onClick={handleLoadMap}>도면 불러오기</button>
         </div>
         <div
@@ -414,22 +419,7 @@ export default function MapfileManagePage() {
                         }
                       )
                       if (res.ok) {
-                        setCategoryList((prev) =>
-                          prev.filter(
-                            (cat) =>
-                              !(
-                                cat.Category_Name ===
-                                  deleteTarget.Category_Name &&
-                                cat.Category_Location.x ===
-                                  deleteTarget.Category_Location.x &&
-                                cat.Category_Location.y ===
-                                  deleteTarget.Category_Location.y
-                              )
-                          )
-                        )
-                      }
-                      if (res.ok) {
-                        await fetchCategoryList() // 삭제 후 최신 목록 다시 불러오기
+                        await fetchCategoryList()
                       } else {
                         alert("삭제 실패")
                       }

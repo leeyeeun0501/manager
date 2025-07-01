@@ -427,6 +427,9 @@ export default function MapfileManagePage() {
                               )
                           )
                         )
+                      }
+                      if (res.ok) {
+                        await fetchCategoryList() // 삭제 후 최신 목록 다시 불러오기
                       } else {
                         alert("삭제 실패")
                       }

@@ -79,24 +79,28 @@ export default function MyPage() {
     setLoading(false)
   }
 
-  // 수정 예정
   // 로그아웃 핸들러
   const handleLogout = () => {
+    const id = typeof window !== "undefined" ? localStorage.getItem("id") : ""
     if (typeof window !== "undefined") {
       localStorage.removeItem("id")
       localStorage.removeItem("name")
     }
-    fetch("/api/logout-route", { method: "POST" })
+    fetch("/api/logout-route", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }), // ← id를 body에 담아 보냄
+    })
     window.location.href = "/login"
   }
 
-  // 수정 예정
   // 계정 삭제 핸들러
   const handleDeleteAccount = async () => {
     setDeleteMsg("")
     if (!window.confirm("정말로 계정을 삭제하시겠습니까?")) return
     setDeleting(true)
     try {
+      // user.id를 body에 담아 DELETE 요청
       const res = await fetch("/api/user-route", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -104,6 +108,7 @@ export default function MyPage() {
       })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.success) {
+        // 성공 시 localStorage 정리 및 로그아웃
         if (typeof window !== "undefined") {
           localStorage.removeItem("id")
           localStorage.removeItem("name")
@@ -236,6 +241,9 @@ export default function MyPage() {
           >
             {deleting ? "계정 삭제 중..." : "계정 삭제"}
           </button>
+          {deleteMsg && (
+            <div style={{ marginTop: 12, color: "red" }}>{deleteMsg}</div>
+          )}
           {deleteMsg && (
             <div style={{ marginTop: 12, color: "red" }}>{deleteMsg}</div>
           )}

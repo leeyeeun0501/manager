@@ -1,9 +1,21 @@
 // building-route
 import { NextResponse } from "next/server"
 
-// 전체 데이터 조회 (GET)
+// 전체 데이터 조회 + 건물 이름만 조회 (GET)
 export async function GET(request) {
-  const { searchParams } = new URL(request.url)
+  const { searchParams, pathname } = new URL(request.url)
+
+  // 1. 건물 이름만 조회 (GET /api/building-route?type=names)
+  if (searchParams.get("type") === "names") {
+    const res = await fetch("http://13.55.76.216:3000/building/names", {
+      method: "GET",
+    })
+    const data = await res.json()
+    // [{ Building_Name: "W19" }, ...] 형태로 반환
+    return NextResponse.json({ names: data })
+  }
+
+  // 2. 전체 데이터 조회 (GET /api/building-route)
   const building = searchParams.get("building")
   const floor = searchParams.get("floor")
 
@@ -21,7 +33,6 @@ export async function GET(request) {
 
   return NextResponse.json({ error: "잘못된 요청" }, { status: 400 })
 }
-
 // 건물 설명/맵 파일 수정 (PUT)
 export async function PUT(request) {
   const { searchParams } = new URL(request.url)

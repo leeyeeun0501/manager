@@ -29,24 +29,21 @@ export default function MapfileManagePage() {
 
   // 건물 목록 fetch
   useEffect(() => {
-    async function fetchBuildings() {
+    async function fetchBuildingNames() {
       try {
-        const res = await fetch("/api/building-route")
-        if (!res.ok) throw new Error("Failed to fetch buildings")
+        const res = await fetch("/api/building-route?type=names")
+        if (!res.ok) throw new Error("Failed to fetch building names")
         const data = await res.json()
-        const infos = (data.all || [])
+        // [{ Building_Name: "W19" }, ...] 형태
+        const names = (data.names || [])
           .filter((b) => b && b.Building_Name)
-          .map((b) => ({
-            name: b.Building_Name,
-            desc: b.Description || "",
-            file: b.File || null,
-          }))
-        setBuildingInfos(infos)
+          .map((b) => b.Building_Name)
+        setBuildingInfos(names)
       } catch (err) {
         setBuildingInfos([])
       }
     }
-    fetchBuildings()
+    fetchBuildingNames()
   }, [])
 
   // 건물 선택 시 해당 건물의 층 fetch
@@ -207,11 +204,11 @@ export default function MapfileManagePage() {
             }}
           >
             <option value="">건물</option>
-            {buildingInfos.map((b, idx) => (
-              <option key={b.name || idx} value={b.name}>
-                {b.name}
+            {buildingInfos.map((name, idx) => (
+              <option key={name || idx} value={name}>
+                {name}
               </option>
-            ))}{" "}
+            ))}
           </select>
           <select
             className="floor-select"

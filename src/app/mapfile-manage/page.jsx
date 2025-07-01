@@ -15,6 +15,7 @@ export default function MapfileManagePage() {
   const [selectedCategory, setSelectedCategory] = useState("")
   const [submitMsg, setSubmitMsg] = useState("")
   const imgRef = useRef(null)
+  const canvasRef = useRef(null)
 
   // 건물, 층 콤보박스 옵션
 
@@ -171,6 +172,22 @@ export default function MapfileManagePage() {
     }
   }
 
+  const handleImageLoad = () => {
+    const img = imgRef.current
+    const canvas = canvasRef.current
+    if (!img || !canvas) return
+
+    // 1. 실제 렌더링 크기 기준으로 맞추기 (이미지에 width: 100% 등 스타일 적용 시)
+    canvas.width = img.clientWidth
+    canvas.height = img.clientHeight
+
+    // 2. 원본 이미지 크기 기준으로 맞추고 싶다면
+    // canvas.width = img.naturalWidth
+    // canvas.height = img.naturalHeight
+
+    // 필요하다면 여기서 캔버스에 그림 그리기 등 추가 작업 가능
+  }
+
   return (
     <div className="layout">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
@@ -211,23 +228,39 @@ export default function MapfileManagePage() {
           </select>
           <button onClick={handleLoadMap}>도면 불러오기</button>
         </div>
-        <div className="mapfile-map-area" style={{ position: "relative" }}>
+        <div
+          className="mapfile-map-area"
+          style={{ position: "relative", display: "inline-block" }}
+        >
           {loading ? (
             <div className="mapfile-map-placeholder">로딩 중...</div>
           ) : imgUrl ? (
-            <img
-              ref={imgRef}
-              src={imgUrl}
-              alt="도면"
-              className="mapfile-map-image"
-              onClick={handleImageClick}
-            />
+            <>
+              <img
+                ref={imgRef}
+                src={imgUrl}
+                alt="도면"
+                className="mapfile-map-image"
+                onClick={handleImageClick}
+                onLoad={handleImageLoad} // 이미지 로드 시 크기 동기화
+                style={{ display: "block" }}
+              />
+              <canvas
+                ref={canvasRef}
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  pointerEvents: "none",
+                  zIndex: 2,
+                }}
+              />
+            </>
           ) : (
             <div className="mapfile-map-placeholder">
               도면 이미지를 선택하세요.
             </div>
           )}
-
           {/* 카테고리 위치 도형(원) 표시 */}
           {categoryList.map((cat, idx) =>
             cat.Category_Location ? (

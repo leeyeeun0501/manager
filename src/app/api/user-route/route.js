@@ -95,7 +95,6 @@ export async function PUT(request) {
     }
 
     const data = await res.json().catch(() => ({}))
-    // 서버가 배열로 반환하면 메시지 추출
     const msg =
       Array.isArray(data) && data.length > 0
         ? data[0]

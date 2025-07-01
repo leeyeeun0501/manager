@@ -2,11 +2,7 @@
 
 /* 전체 컨테이너 */
 .container {
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 24px;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
+  max-width: none;
 }
 
 /* 제목 스타일 */
@@ -27,40 +23,53 @@ h2 {
   position: relative;
 }
 
-/* 위도/경도 표시 */
 .latlng-display {
-  margin-top: 16px;
+  margin-top: 20px;
   font-size: 16px;
   color: #444;
+  text-align: center;
 }
 
-/* 반응형 */
-@media (max-width: 600px) {
-  .container {
-    padding: 16px;
-    margin: 20px auto;
-  }
-  h2 {
-    font-size: 20px;
-    margin-bottom: 16px;
-  }
-  .latlng-display {
-    font-size: 14px;
+@media (max-width: 1000px) {
+  .tower-map-wrapper {
+    width: 98vw;
+    min-width: 0;
   }
 }
 
 .tower-content {
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 24px;
+  max-width: none;
 }
 
 .tower-map-wrapper {
-  width: 700px;
-  max-width: 95vw;
+  width: 900px;
+  max-width: 98vw;
   margin: 0 auto;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   background: #fff;
   overflow: hidden;
+}
+
+.tower-root {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f6fa;
+}
+
+.tower-centerbox {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 40px 0;
+}
+
+.tower-header {
+  margin-bottom: 24px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
 }

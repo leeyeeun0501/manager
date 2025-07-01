@@ -17,8 +17,6 @@ function NaverMap({ setLatLng }) {
       map = new naver.maps.Map(mapRef.current, {
         center: new naver.maps.LatLng(lat, lng),
         zoom: 16, // ← 더 확대해서 보려면 15~17 권장
-        zoomControl: true, // +, - 버튼 표시
-        zoomControlOptions: { position: naver.maps.Position.TOP_RIGHT },
       })
 
       marker = new naver.maps.Marker({
@@ -55,8 +53,8 @@ function NaverMap({ setLatLng }) {
     <div
       ref={mapRef}
       style={{
-        width: "100%",
-        height: "400px",
+        width: "1000px", // 가로 크기를 800px로 고정
+        height: "600px",
         borderRadius: "12px",
         boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
       }}

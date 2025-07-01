@@ -32,3 +32,37 @@ export async function GET(request) {
     return NextResponse.json({ error: "서버 통신 오류" }, { status: 500 })
   }
 }
+
+// 카테고리 삭제 (DELETE)
+export async function DELETE(request) {
+  const { searchParams } = new URL(request.url)
+  const building = searchParams.get("building")
+  const floor = searchParams.get("floor")
+
+  if (!building || !floor) {
+    return NextResponse.json(
+      { error: "건물명, 층 정보를 입력하세요." },
+      { status: 400 }
+    )
+  }
+
+  // 외부 서버에 DELETE 요청
+  const apiUrl = `http://13.55.76.216:3000/category/${encodeURIComponent(
+    building
+  )}/${encodeURIComponent(floor)}`
+
+  try {
+    const res = await fetch(apiUrl, { method: "DELETE" })
+    const text = await res.text()
+
+    if (res.status === 200) {
+      return NextResponse.json({ message: text }, { status: 200 })
+    } else if (res.status === 404) {
+      return NextResponse.json({ error: text }, { status: 404 })
+    } else {
+      return NextResponse.json({ error: text }, { status: 500 })
+    }
+  } catch (err) {
+    return NextResponse.json({ error: "서버 통신 오류" }, { status: 500 })
+  }
+}

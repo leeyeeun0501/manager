@@ -167,6 +167,7 @@ export default function MapfileManagePage() {
     if (data.success) {
       setSubmitMsg("저장 완료!")
       setPopup(null)
+      await fetchCategoryList() // ← 추가: 목록 즉시 갱신
     } else {
       setSubmitMsg(data.error || "저장 실패")
     }
@@ -186,6 +187,26 @@ export default function MapfileManagePage() {
     // canvas.height = img.naturalHeight
 
     // 필요하다면 여기서 캔버스에 그림 그리기 등 추가 작업 가능
+  }
+
+  const fetchCategoryList = async () => {
+    try {
+      const catRes = await fetch(
+        `/api/category-route?building=${encodeURIComponent(
+          selectedBuilding
+        )}&floor=${encodeURIComponent(selectedFloor)}`
+      )
+      if (!catRes.ok) {
+        setCategoryList([])
+        setSubmitMsg("카테고리 위치를 불러올 수 없습니다.")
+      } else {
+        const catData = await catRes.json()
+        setCategoryList(Array.isArray(catData) ? catData : [])
+      }
+    } catch (e) {
+      setCategoryList([])
+      setSubmitMsg("카테고리 위치를 불러오는 중 오류가 발생했습니다.")
+    }
   }
 
   return (
@@ -392,6 +413,7 @@ export default function MapfileManagePage() {
                           body: JSON.stringify({
                             x: deleteTarget.Category_Location.x,
                             y: deleteTarget.Category_Location.y,
+                            category_name: deleteTarget.Category_Name,
                           }),
                         }
                       )

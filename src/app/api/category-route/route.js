@@ -46,27 +46,33 @@ export async function DELETE(request) {
     )
   }
 
-  // 바디에서 x, y 좌표 받기
-  let x, y
+  // 바디에서 x, y, category_name 받기
+  let x, y, category_name
   try {
     const body = await request.json()
     x = body.x
     y = body.y
+    category_name = body.category_name
   } catch (e) {
     return NextResponse.json(
-      { error: "카테고리 좌표(x, y)를 포함한 body가 필요합니다." },
+      {
+        error:
+          "카테고리 좌표(x, y)와 이름(category_name)을 포함한 body가 필요합니다.",
+      },
       { status: 400 }
     )
   }
 
-  if (typeof x !== "number" || typeof y !== "number") {
+  if (typeof x !== "number" || typeof y !== "number" || !category_name) {
     return NextResponse.json(
-      { error: "카테고리 좌표(x, y)를 정확히 입력하세요." },
+      {
+        error: "카테고리 좌표(x, y)와 이름(category_name)을 정확히 입력하세요.",
+      },
       { status: 400 }
     )
   }
 
-  // 외부 서버에 DELETE 요청 (body에 x, y 좌표 포함)
+  // 외부 서버에 DELETE 요청 (body에 x, y, category_name 포함)
   const apiUrl = `http://13.55.76.216:3000/category/${encodeURIComponent(
     building
   )}/${encodeURIComponent(floor)}`
@@ -75,7 +81,7 @@ export async function DELETE(request) {
     const res = await fetch(apiUrl, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ x, y }),
+      body: JSON.stringify({ x, y, category_name }),
     })
     const text = await res.text()
 

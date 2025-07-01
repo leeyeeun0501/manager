@@ -230,14 +230,14 @@ export default function MapfileManagePage() {
 
           {/* 카테고리 위치 도형(원) 표시 */}
           {categoryList.map((cat, idx) =>
-            cat.Location ? (
+            cat.Category_Location ? (
               <div
                 key={cat.Category_Name + idx}
                 className="category-marker"
                 style={{
                   position: "absolute",
-                  left: cat.Location.x,
-                  top: cat.Location.y,
+                  left: cat.Category_Location.x,
+                  top: cat.Category_Location.y,
                   width: 36,
                   height: 36,
                   background: "#3b82f6",

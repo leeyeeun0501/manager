@@ -4,32 +4,51 @@ function NaverMap({ setLatLng }) {
   const mapRef = useRef(null)
 
   useEffect(() => {
-    // 네이버 지도 객체가 로드됐는지 체크
     const { naver } = window
     if (!naver || !mapRef.current) return
 
-    // 지도 생성 (초기 위치: 서울)
-    const map = new naver.maps.Map(mapRef.current, {
-      center: new naver.maps.LatLng(37.5665, 126.978),
-      zoom: 13,
-    })
+    let initialLat = 37.5665
+    let initialLng = 126.978
 
+    let map = null
     let marker = null
 
-    // 지도 클릭 이벤트
-    naver.maps.Event.addListener(map, "click", function (e) {
-      const latlng = e.coord
-      if (marker) {
+    function createMap(lat, lng) {
+      map = new naver.maps.Map(mapRef.current, {
+        center: new naver.maps.LatLng(lat, lng),
+        zoom: 16, // ← 더 확대해서 보려면 15~17 권장
+        zoomControl: true, // +, - 버튼 표시
+        zoomControlOptions: { position: naver.maps.Position.TOP_RIGHT },
+      })
+
+      marker = new naver.maps.Marker({
+        position: new naver.maps.LatLng(lat, lng),
+        map,
+      })
+
+      setLatLng && setLatLng({ lat, lng })
+
+      naver.maps.Event.addListener(map, "click", function (e) {
+        const latlng = e.coord
         marker.setPosition(latlng)
-      } else {
-        marker = new naver.maps.Marker({
-          position: latlng,
-          map,
-        })
-      }
-      // 부모로 위도, 경도 전달
-      setLatLng && setLatLng({ lat: latlng.y, lng: latlng.x })
-    })
+        setLatLng && setLatLng({ lat: latlng.y, lng: latlng.x })
+      })
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude
+          const lng = position.coords.longitude
+          createMap(lat, lng)
+        },
+        () => {
+          createMap(initialLat, initialLng)
+        }
+      )
+    } else {
+      createMap(initialLat, initialLng)
+    }
   }, [setLatLng])
 
   return (

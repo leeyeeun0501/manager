@@ -24,6 +24,9 @@ export default function MapfileManagePage() {
   const [buildingInfos, setBuildingInfos] = useState([])
   const [buildingPage, setBuildingPage] = useState(1)
 
+  const [deleteTarget, setDeleteTarget] = useState(null) // 삭제할 카테고리 정보
+  const [showDeletePopup, setShowDeletePopup] = useState(false)
+
   // 건물 목록 fetch
   useEffect(() => {
     async function fetchBuildings() {
@@ -285,9 +288,14 @@ export default function MapfileManagePage() {
                   border: "2px solid #fff",
                   zIndex: 5,
                   transform: "translate(-50%, -50%)",
-                  pointerEvents: "none", // 클릭 안 되게
+                  pointerEvents: "auto", // 클릭 가능하게
+                  cursor: "pointer",
                 }}
                 title={cat.Category_Name}
+                onClick={() => {
+                  setDeleteTarget(cat)
+                  setShowDeletePopup(true)
+                }}
               >
                 {cat.Category_Name[0]}
               </div>
@@ -341,6 +349,94 @@ export default function MapfileManagePage() {
                   {submitMsg}
                 </div>
               )}
+            </div>
+          )}
+
+          {showDeletePopup && deleteTarget && (
+            <div
+              className="modal-overlay"
+              onClick={() => {
+                setShowDeletePopup(false)
+                setDeleteTarget(null)
+              }}
+            >
+              <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+                <div style={{ marginBottom: 16 }}>
+                  <b>{deleteTarget.Category_Name}</b> 위치를
+                  <br />
+                  정말 삭제하시겠습니까?
+                </div>
+                <div
+                  style={{
+                    marginTop: 8,
+                    display: "flex",
+                    justifyContent: "center",
+                  }}
+                >
+                  <button
+                    style={{
+                      background: "#ef4444",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 6,
+                      padding: "7px 18px",
+                      fontWeight: "bold",
+                    }}
+                    onClick={async () => {
+                      setShowDeletePopup(false)
+                      setDeleteTarget(null)
+                      const res = await fetch(
+                        `/api/category-route?building=${encodeURIComponent(
+                          selectedBuilding
+                        )}&floor=${encodeURIComponent(selectedFloor)}`,
+                        {
+                          method: "DELETE",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            x: deleteTarget.Category_Location.x,
+                            y: deleteTarget.Category_Location.y,
+                          }),
+                        }
+                      )
+                      if (res.ok) {
+                        setCategoryList((prev) =>
+                          prev.filter(
+                            (cat) =>
+                              !(
+                                cat.Category_Name ===
+                                  deleteTarget.Category_Name &&
+                                cat.Category_Location.x ===
+                                  deleteTarget.Category_Location.x &&
+                                cat.Category_Location.y ===
+                                  deleteTarget.Category_Location.y
+                              )
+                          )
+                        )
+                      } else {
+                        alert("삭제 실패")
+                      }
+                    }}
+                  >
+                    삭제
+                  </button>
+                  <button
+                    style={{
+                      background: "#bbb",
+                      color: "#222",
+                      border: "none",
+                      borderRadius: 6,
+                      padding: "7px 18px",
+                      fontWeight: "bold",
+                    }}
+                    onClick={() => {
+                      setShowDeletePopup(false)
+                      setDeleteTarget(null)
+                    }}
+                  >
+                    취소
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

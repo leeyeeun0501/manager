@@ -19,7 +19,7 @@ function NaverMap({ setLatLng }) {
   })
   const [type, setType] = useState("building")
   const [nodeName, setNodeName] = useState("")
-  const [description, setDescription] = useState("")
+  const [desc, setDesc] = useState("")
 
   // nodes 데이터 fetch
   async function fetchNodes() {
@@ -79,7 +79,7 @@ function NaverMap({ setLatLng }) {
         })
         setType("building")
         setNodeName("")
-        setDescription("")
+        setDesc("")
       })
     }
   }, [setLatLng])
@@ -200,24 +200,28 @@ function NaverMap({ setLatLng }) {
     })
   }, [edges, nodes])
 
-  // 건물/노드 추가 팝업 저장 처리
+  // 건물/노드 추가 팝업 저장 처리 (여기만 수정)
   async function handleAddNode(e) {
     e.preventDefault()
     if (!nodeName || addPopup.x == null || addPopup.y == null) {
       alert("이름과 위치를 입력하세요.")
       return
     }
-    const formData = new FormData()
-    formData.append("type", type)
-    formData.append("node_name", nodeName)
-    formData.append("x", addPopup.x)
-    formData.append("y", addPopup.y)
-    if (type === "building") {
-      formData.append("description", description)
+    // body 객체 생성
+    const body = {
+      type,
+      node_name: nodeName,
+      x: addPopup.x,
+      y: addPopup.y,
     }
+    if (type === "building") {
+      body.desc = desc
+    }
+    // JSON 바디로 POST
     const res = await fetch("/api/tower-route", {
       method: "POST",
-      body: formData,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     })
     const data = await res.json()
     if (data.success) {
@@ -304,8 +308,8 @@ function NaverMap({ setLatLng }) {
                   설명
                   <br />
                   <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    value={desc}
+                    onChange={(e) => setDesc(e.target.value)}
                     style={{ width: "100%" }}
                     rows={3}
                   />

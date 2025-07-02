@@ -72,12 +72,8 @@ export async function PUT(request) {
 // 건물/노드 추가 (POST)
 export async function POST(request) {
   try {
-    const formData = await request.formData()
-    const type = formData.get("type") // building 또는 node
-    const node_name = formData.get("node_name")
-    const x = formData.get("x")
-    const y = formData.get("y")
-    const description = formData.get("desc") // 건물일 때만
+    const json = await request.json()
+    const { type, node_name, x, y, desc } = json
 
     if (
       !type ||
@@ -93,29 +89,31 @@ export async function POST(request) {
       )
     }
 
-    const externalForm = new FormData()
-    externalForm.append("type", type)
-    externalForm.append("node_name", node_name)
-    externalForm.append("x", x)
-    externalForm.append("y", y)
-    if (type === "building" && desc) {
-      externalForm.append("description", desc)
-    }
-
+    // 외부 API에 JSON 바디로 전달
     const res = await fetch("http://13.55.76.216:3000/path/create", {
       method: "POST",
-      body: externalForm,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type,
+        node_name,
+        x,
+        y,
+        ...(type === "building" && desc ? { desc } : {}),
+      }),
     })
 
     const data = await res.json()
+
     if (!res.ok) {
       return NextResponse.json(
         { success: false, error: data.error || "외부 서버 오류" },
         { status: res.status }
       )
     }
+
     return NextResponse.json({ success: true, node: data })
   } catch (err) {
+    console.error("POST /api/tower-route error:", err)
     return NextResponse.json(
       { success: false, error: "서버 오류" },
       { status: 500 }

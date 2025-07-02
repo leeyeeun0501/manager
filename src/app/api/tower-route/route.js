@@ -68,3 +68,57 @@ export async function PUT(request) {
     return NextResponse.json({ error: "서버 오류" }, { status: 500 })
   }
 }
+
+// 건물/노드 추가 (POST)
+export async function POST(request) {
+  try {
+    const formData = await request.formData()
+    const type = formData.get("type") // building 또는 node
+    const node_name = formData.get("node_name")
+    const x = formData.get("x")
+    const y = formData.get("y")
+    const description = formData.get("desc") // 건물일 때만
+
+    if (
+      !type ||
+      !node_name ||
+      x === undefined ||
+      y === undefined ||
+      isNaN(Number(x)) ||
+      isNaN(Number(y))
+    ) {
+      return NextResponse.json(
+        { success: false, error: "타입, 이름, 위도, 경도는 필수입니다." },
+        { status: 400 }
+      )
+    }
+
+    const externalForm = new FormData()
+    externalForm.append("type", type)
+    externalForm.append("node_name", node_name)
+    externalForm.append("x", x)
+    externalForm.append("y", y)
+    if (type === "building" && desc) {
+      externalForm.append("description", desc)
+    }
+
+    const res = await fetch("http://13.55.76.216:3000/path/create", {
+      method: "POST",
+      body: externalForm,
+    })
+
+    const data = await res.json()
+    if (!res.ok) {
+      return NextResponse.json(
+        { success: false, error: data.error || "외부 서버 오류" },
+        { status: res.status }
+      )
+    }
+    return NextResponse.json({ success: true, node: data })
+  } catch (err) {
+    return NextResponse.json(
+      { success: false, error: "서버 오류" },
+      { status: 500 }
+    )
+  }
+}

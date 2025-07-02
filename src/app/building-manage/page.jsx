@@ -726,7 +726,7 @@ export default function BuildingPage() {
                   ))}
                 </select>
                 <input
-                  type="number"
+                  type="text"
                   value={addFloorNum}
                   onChange={(e) => setAddFloorNum(e.target.value)}
                   min={1}

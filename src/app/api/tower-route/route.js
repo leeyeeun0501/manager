@@ -1,4 +1,3 @@
-// tower-route
 import { NextResponse } from "next/server"
 
 // 전체 데이터 조회 (GET)
@@ -18,11 +17,12 @@ export async function GET() {
 
     const data = await res.json()
 
+    // x: 위도, y: 경도로 변환
     const nodes = Array.isArray(data)
       ? data.map((node) => ({
           id: node.id,
-          lat: node.lat,
-          lng: node.lng,
+          x: node.lat, // 위도
+          y: node.lng, // 경도
         }))
       : []
 

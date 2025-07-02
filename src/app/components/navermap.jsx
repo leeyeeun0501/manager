@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 
-function NaverMap({ setLatLng, nodes = [] }) {
+function NaverMap({ setLatLng, nodes = {} }) {
   const mapRef = useRef(null)
   const mapInstance = useRef(null)
   const circlesRef = useRef([])
@@ -74,7 +74,7 @@ function NaverMap({ setLatLng, nodes = [] }) {
     circlesRef.current = []
     markersRef.current = []
 
-    // nodes를 항상 배열로 변환
+    // nodes를 항상 배열로 변환 (객체로 올 수도 있음)
     let nodesArray = []
     if (Array.isArray(nodes)) {
       nodesArray = nodes
@@ -89,10 +89,11 @@ function NaverMap({ setLatLng, nodes = [] }) {
 
     const nodeEntries = nodesArray.map((n, idx) => [n.id || String(idx), n])
 
-    nodeEntries.forEach(([id, { lat, lng, node_name }]) => {
+    nodeEntries.forEach(([id, { x, y, node_name }]) => {
+      // x: 위도(lat), y: 경도(lng)
       const circle = new naver.maps.Circle({
         map,
-        center: new naver.maps.LatLng(lat, lng),
+        center: new naver.maps.LatLng(x, y), // new naver.maps.LatLng(위도, 경도)
         radius: 2,
         fillColor: id && id.startsWith("O") ? "#ff0000" : "#0066ff",
         fillOpacity: 1,
@@ -103,7 +104,7 @@ function NaverMap({ setLatLng, nodes = [] }) {
       circlesRef.current.push(circle)
 
       const marker = new naver.maps.Marker({
-        position: new naver.maps.LatLng(lat, lng),
+        position: new naver.maps.LatLng(x, y),
         map,
         draggable: true,
         opacity: 0,
@@ -113,8 +114,8 @@ function NaverMap({ setLatLng, nodes = [] }) {
       markersRef.current.push(marker)
 
       naver.maps.Event.addListener(marker, "dragend", async function (e) {
-        const newLat = e.coord.y // 위도
-        const newLng = e.coord.x // 경도
+        const newLat = e.coord.y // 위도(lat)
+        const newLng = e.coord.x // 경도(lng)
         circle.setCenter(new naver.maps.LatLng(newLat, newLng))
         try {
           await fetch("/api/tower-route", {
@@ -122,8 +123,8 @@ function NaverMap({ setLatLng, nodes = [] }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               node_name: node_name || id,
-              x: newLng, // 경도(lng)
-              y: newLat, // 위도(lat)
+              x: newLat, // 위도(lat)
+              y: newLng, // 경도(lng)
             }),
           })
         } catch (err) {
@@ -131,7 +132,7 @@ function NaverMap({ setLatLng, nodes = [] }) {
         }
       })
     })
-  }, [nodes.length]) // 의존성 배열: nodes.length
+  }, [nodes])
 
   // 4. Polyline(노드 선) 표시 (edges + nodes 매핑)
   useEffect(() => {
@@ -152,10 +153,10 @@ function NaverMap({ setLatLng, nodes = [] }) {
       nodesArray = []
     }
 
-    // 노드 id → 좌표 매핑
+    // 노드 id → 좌표 매핑 (x: 위도, y: 경도)
     const nodeCoordMap = {}
     nodesArray.forEach((n) => {
-      nodeCoordMap[n.id] = { lat: n.lat, lng: n.lng }
+      nodeCoordMap[n.id] = { x: n.x, y: n.y }
     })
 
     // 기존 선 제거
@@ -164,13 +165,17 @@ function NaverMap({ setLatLng, nodes = [] }) {
     }
     polylineRef.current = []
 
-    // 각 edge별로 Polyline 생성 (nodes가 2개 이상일 때만)
+    // 각 edge의 id(건물)와 nodes의 node(연결노드)들을 1:1로 연결
     edges.forEach((edge) => {
-      const path = (edge.nodes || [])
-        .map((n) => nodeCoordMap[n.node])
-        .filter((coord) => coord)
-        .map((coord) => new naver.maps.LatLng(coord.lat, coord.lng))
-      if (path.length > 1) {
+      const fromCoord = nodeCoordMap[edge.id]
+      if (!fromCoord) return
+      ;(edge.nodes || []).forEach((n) => {
+        const toCoord = nodeCoordMap[n.node]
+        if (!toCoord) return
+        const path = [
+          new naver.maps.LatLng(fromCoord.x, fromCoord.y), // new naver.maps.LatLng(위도, 경도)
+          new naver.maps.LatLng(toCoord.x, toCoord.y),
+        ]
         const polyline = new naver.maps.Polyline({
           map,
           path,
@@ -180,9 +185,9 @@ function NaverMap({ setLatLng, nodes = [] }) {
           strokeStyle: "solid",
         })
         polylineRef.current.push(polyline)
-      }
+      })
     })
-  }, [edges.length, nodes.length]) // 의존성 배열: edges.length, nodes.length
+  }, [edges, nodes])
 
   return (
     <div

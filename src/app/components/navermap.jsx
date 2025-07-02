@@ -10,17 +10,19 @@ function NaverMap({ setLatLng, nodes = {} }) {
 
   const [edges, setEdges] = useState([])
 
+  // Function to fetch edges
+  async function fetchEdges() {
+    try {
+      const res = await fetch("/api/node-route")
+      const json = await res.json()
+      setEdges(json.edges || [])
+    } catch (e) {
+      setEdges([])
+    }
+  }
+
   // 1. edges(노드 연결 정보) GET
   useEffect(() => {
-    async function fetchEdges() {
-      try {
-        const res = await fetch("/api/node-route")
-        const json = await res.json()
-        setEdges(json.edges || [])
-      } catch (e) {
-        setEdges([])
-      }
-    }
     fetchEdges()
   }, [])
 
@@ -93,7 +95,7 @@ function NaverMap({ setLatLng, nodes = {} }) {
       // x: 위도(lat), y: 경도(lng)
       const circle = new naver.maps.Circle({
         map,
-        center: new naver.maps.LatLng(x, y), // new naver.maps.LatLng(위도, 경도)
+        center: new naver.maps.LatLng(x, y),
         radius: 2,
         fillColor: id && id.startsWith("O") ? "#ff0000" : "#0066ff",
         fillOpacity: 1,
@@ -127,6 +129,8 @@ function NaverMap({ setLatLng, nodes = {} }) {
               y: newLng, // 경도(lng)
             }),
           })
+          // 좌표 수정 후 edges 다시 불러오기
+          fetchEdges()
         } catch (err) {
           alert("서버에 좌표를 저장하는 데 실패했습니다.")
         }
@@ -165,6 +169,9 @@ function NaverMap({ setLatLng, nodes = {} }) {
     }
     polylineRef.current = []
 
+    // 중복 연결 방지용 Set
+    const drawnSet = new Set()
+
     // 각 edge의 id(건물)와 nodes의 node(연결노드)들을 1:1로 연결
     edges.forEach((edge) => {
       const fromCoord = nodeCoordMap[edge.id]
@@ -172,8 +179,12 @@ function NaverMap({ setLatLng, nodes = {} }) {
       ;(edge.nodes || []).forEach((n) => {
         const toCoord = nodeCoordMap[n.node]
         if (!toCoord) return
+        // 중복 방지 키 (A-B, B-A 모두 같은 키)
+        const key = [edge.id, n.node].sort().join("-")
+        if (drawnSet.has(key)) return
+        drawnSet.add(key)
         const path = [
-          new naver.maps.LatLng(fromCoord.x, fromCoord.y), // new naver.maps.LatLng(위도, 경도)
+          new naver.maps.LatLng(fromCoord.x, fromCoord.y), // x: 위도, y: 경도
           new naver.maps.LatLng(toCoord.x, toCoord.y),
         ]
         const polyline = new naver.maps.Polyline({

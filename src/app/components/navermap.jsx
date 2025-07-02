@@ -3,7 +3,8 @@ import React, { useEffect, useRef } from "react"
 function NaverMap({ setLatLng, nodes = [] }) {
   const mapRef = useRef(null)
   const mapInstance = useRef(null)
-  const markersRef = useRef([])
+  const circlesRef = useRef([])
+  const myLocationCircleRef = useRef(null) // 현재 위치 점
 
   // 지도는 최초 1회만 생성
   useEffect(() => {
@@ -16,21 +17,27 @@ function NaverMap({ setLatLng, nodes = [] }) {
 
       const map = new naver.maps.Map(mapRef.current, {
         center: new naver.maps.LatLng(initialLat, initialLng),
-        zoom: 16,
+        zoom: 19,
       })
       mapInstance.current = map
 
       // 클릭 마커 (1개)
-      let clickMarker = null
+      let clickCircle = null
       naver.maps.Event.addListener(map, "click", function (e) {
         const latlng = e.coord
-        if (!clickMarker) {
-          clickMarker = new naver.maps.Marker({
-            position: latlng,
+        if (!clickCircle) {
+          clickCircle = new naver.maps.Circle({
             map,
+            center: latlng,
+            radius: 5, // 미터 단위, 작게 하고 싶으면 3~7 정도
+            fillColor: "#ff0000",
+            fillOpacity: 1,
+            strokeColor: "#ff0000",
+            strokeOpacity: 1,
+            strokeWeight: 2,
           })
         } else {
-          clickMarker.setPosition(latlng)
+          clickCircle.setCenter(latlng)
         }
         setLatLng && setLatLng({ lat: latlng.y, lng: latlng.x })
       })
@@ -42,37 +49,42 @@ function NaverMap({ setLatLng, nodes = [] }) {
           const lng = position.coords.longitude
           map.setCenter(new naver.maps.LatLng(lat, lng))
           setLatLng && setLatLng({ lat, lng })
-          if (!clickMarker) {
-            clickMarker = new naver.maps.Marker({
+          if (!myLocationCircleRef) {
+            myLocationCircleRef = new naver.maps.Marker({
               position: new naver.maps.LatLng(lat, lng),
               map,
             })
           } else {
-            clickMarker.setPosition(new naver.maps.LatLng(lat, lng))
+            myLocationCircleRef.setPosition(new naver.maps.LatLng(lat, lng))
           }
         })
       }
     }
   }, [setLatLng, nodes])
 
-  // nodes 바뀔 때마다 마커만 갱신
+  // nodes 바뀔 때마다 점(원)만 갱신
   useEffect(() => {
     const { naver } = window
     const map = mapInstance.current
     if (!naver || !map) return
 
-    // 기존 마커 제거
-    markersRef.current.forEach((marker) => marker.setMap(null))
-    markersRef.current = []
+    // 기존 점(원) 제거
+    circlesRef.current.forEach((circle) => circle.setMap(null))
+    circlesRef.current = []
 
-    // 새 마커 추가
+    // 새 점(원) 추가
     if (Array.isArray(nodes)) {
-      markersRef.current = nodes.map(
-        ({ lat, lng, id }) =>
-          new naver.maps.Marker({
-            position: new naver.maps.LatLng(lat, lng),
+      circlesRef.current = nodes.map(
+        ({ lat, lng }) =>
+          new naver.maps.Circle({
             map,
-            title: id,
+            center: new naver.maps.LatLng(lat, lng),
+            radius: 5, // 미터 단위, 작게 하고 싶으면 3~7 정도
+            fillColor: "#0066ff",
+            fillOpacity: 1,
+            strokeColor: "#0066ff",
+            strokeOpacity: 1,
+            strokeWeight: 2,
           })
       )
     }

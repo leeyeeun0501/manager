@@ -273,13 +273,9 @@ export default function RoomManagePage() {
 
   return (
     <div className="management-root">
-      {/* 왼쪽 메뉴 */}
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-
-      {/* 오른쪽 메인 콘텐츠 */}
       <div className="management-content">
         <h1>강의실 관리</h1>
-        {/* 필터/버튼 */}
         <div className="room-manage-filter-row">
           <select
             value={filterBuilding}

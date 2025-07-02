@@ -4,13 +4,14 @@ import { useEffect } from "react"
 import { usePathname } from "next/navigation"
 import Menu from "./components/menu"
 import ProfileButton from "./components/profilebutton"
-import Script from "next/script" // 추가!
+import Script from "next/script"
 
 export default function RootLayout({ children }) {
   const pathname = usePathname()
 
   const hideMenuAndProfile = pathname === "/login" || pathname === "/signup"
 
+  // 창 꺼짐 로그아웃 fetch
   useEffect(() => {
     const id = localStorage.getItem("id")
     if (!id) return

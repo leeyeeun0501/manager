@@ -1,3 +1,4 @@
+// navermap
 import React, { useEffect, useRef, useState } from "react"
 
 function NaverMap({ setLatLng }) {

@@ -1,3 +1,4 @@
+// tower-manage
 "use client"
 import React, { useState, useEffect } from "react"
 import NaverMap from "../components/navermap"
@@ -7,7 +8,7 @@ import "./tower-manage.css"
 export default function TowerPage() {
   const [latLng, setLatLng] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [nodes, setNodes] = useState({}) // 객체 상태로 저장
+  const [nodes, setNodes] = useState({})
 
   // 노드 fetch
   useEffect(() => {
@@ -16,7 +17,7 @@ export default function TowerPage() {
       .then((data) => {
         if (data && data.nodes) {
           console.log("서버에서 받은 원본 nodes 객체:", data.nodes)
-          setNodes(data.nodes) // 변환 없이 그대로 저장
+          setNodes(data.nodes)
         }
       })
       .catch(console.error)

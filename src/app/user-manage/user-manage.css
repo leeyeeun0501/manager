@@ -77,10 +77,6 @@
   cursor: pointer;
   padding: 0;
   vertical-align: middle;
-  /* position: absolute;  제거 */
-  /* right: 8px;  제거 */
-  /* top: 50%;  제거 */
-  /* transform: translateY(-50%);  제거 */
   transition: color 0.15s;
 }
 

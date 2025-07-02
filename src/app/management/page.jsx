@@ -13,8 +13,6 @@ export default function ManagementPage() {
   })
 
   useEffect(() => {
-    // 건물 수
-    // 건물 수 빠르게 조회 (건물 이름만 받아오기)
     fetch("/api/building-route?type=names")
       .then((res) => res.json())
       .then((data) => {
@@ -24,7 +22,6 @@ export default function ManagementPage() {
         }))
       })
 
-    // 강의실 수
     fetch("/api/room-route")
       .then((res) => res.json())
       .then((data) => {
@@ -34,7 +31,6 @@ export default function ManagementPage() {
         }))
       })
 
-    // 사용자 수
     fetch("/api/user-route")
       .then((res) => res.json())
       .then((data) => {

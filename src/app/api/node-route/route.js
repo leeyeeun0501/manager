@@ -1,3 +1,4 @@
+// node-route
 import { NextResponse } from "next/server"
 
 // 전체 노드 데이터 조회 (GET)

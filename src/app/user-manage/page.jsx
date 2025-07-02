@@ -65,7 +65,6 @@ export default function UserManagePage() {
     if (!isoString) return ""
     const d = new Date(isoString)
     if (isNaN(d)) return ""
-    // pad 함수로 두 자리수 맞춤
     const pad = (n) => n.toString().padStart(2, "0")
     return (
       d.getFullYear() +

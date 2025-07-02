@@ -1,3 +1,4 @@
+// tower-route
 import { NextResponse } from "next/server"
 
 // 전체 데이터 조회 (GET)

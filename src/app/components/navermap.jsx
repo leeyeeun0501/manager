@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react"
+import React, { useEffect, useRef, useState } from "react"
 
 function NaverMap({ setLatLng, nodes = [] }) {
   const mapRef = useRef(null)
@@ -6,7 +6,25 @@ function NaverMap({ setLatLng, nodes = [] }) {
   const circlesRef = useRef([])
   const clickMarkerRef = useRef(null)
   const markersRef = useRef([])
+  const polylineRef = useRef([])
 
+  const [edges, setEdges] = useState([])
+
+  // 1. edges(노드 연결 정보) GET
+  useEffect(() => {
+    async function fetchEdges() {
+      try {
+        const res = await fetch("/api/node-route")
+        const json = await res.json()
+        setEdges(json.edges || [])
+      } catch (e) {
+        setEdges([])
+      }
+    }
+    fetchEdges()
+  }, [])
+
+  // 2. 지도 최초 생성 및 클릭 마커
   useEffect(() => {
     const { naver } = window
     if (!naver || !mapRef.current) return
@@ -45,6 +63,7 @@ function NaverMap({ setLatLng, nodes = [] }) {
     }
   }, [setLatLng])
 
+  // 3. 점(원) + 드래그 마커 처리 (tower-route로 PUT)
   useEffect(() => {
     const { naver } = window
     const map = mapInstance.current
@@ -55,9 +74,20 @@ function NaverMap({ setLatLng, nodes = [] }) {
     circlesRef.current = []
     markersRef.current = []
 
-    const nodeEntries = Array.isArray(nodes)
-      ? nodes.map((n, idx) => [n.id || String(idx), n])
-      : Object.entries(nodes)
+    // nodes를 항상 배열로 변환
+    let nodesArray = []
+    if (Array.isArray(nodes)) {
+      nodesArray = nodes
+    } else if (nodes && typeof nodes === "object") {
+      nodesArray = Object.entries(nodes).map(([id, value]) => ({
+        id,
+        ...value,
+      }))
+    } else {
+      nodesArray = []
+    }
+
+    const nodeEntries = nodesArray.map((n, idx) => [n.id || String(idx), n])
 
     nodeEntries.forEach(([id, { lat, lng, node_name }]) => {
       const circle = new naver.maps.Circle({
@@ -92,8 +122,8 @@ function NaverMap({ setLatLng, nodes = [] }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               node_name: node_name || id,
-              x: newLat, // 위도
-              y: newLng, // 경도
+              x: newLng, // 경도(lng)
+              y: newLat, // 위도(lat)
             }),
           })
         } catch (err) {
@@ -101,7 +131,58 @@ function NaverMap({ setLatLng, nodes = [] }) {
         }
       })
     })
-  }, [nodes])
+  }, [nodes.length]) // 의존성 배열: nodes.length
+
+  // 4. Polyline(노드 선) 표시 (edges + nodes 매핑)
+  useEffect(() => {
+    const { naver } = window
+    const map = mapInstance.current
+    if (!naver || !map) return
+
+    // nodes를 항상 배열로 변환
+    let nodesArray = []
+    if (Array.isArray(nodes)) {
+      nodesArray = nodes
+    } else if (nodes && typeof nodes === "object") {
+      nodesArray = Object.entries(nodes).map(([id, value]) => ({
+        id,
+        ...value,
+      }))
+    } else {
+      nodesArray = []
+    }
+
+    // 노드 id → 좌표 매핑
+    const nodeCoordMap = {}
+    nodesArray.forEach((n) => {
+      nodeCoordMap[n.id] = { lat: n.lat, lng: n.lng }
+    })
+
+    // 기존 선 제거
+    if (polylineRef.current && Array.isArray(polylineRef.current)) {
+      polylineRef.current.forEach((line) => line.setMap(null))
+    }
+    polylineRef.current = []
+
+    // 각 edge별로 Polyline 생성 (nodes가 2개 이상일 때만)
+    edges.forEach((edge) => {
+      const path = (edge.nodes || [])
+        .map((n) => nodeCoordMap[n.node])
+        .filter((coord) => coord)
+        .map((coord) => new naver.maps.LatLng(coord.lat, coord.lng))
+      if (path.length > 1) {
+        const polyline = new naver.maps.Polyline({
+          map,
+          path,
+          strokeColor: "#00C3FF",
+          strokeWeight: 4,
+          strokeOpacity: 0.8,
+          strokeStyle: "solid",
+        })
+        polylineRef.current.push(polyline)
+      }
+    })
+  }, [edges.length, nodes.length]) // 의존성 배열: edges.length, nodes.length
 
   return (
     <div

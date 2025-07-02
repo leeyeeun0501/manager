@@ -3,31 +3,26 @@ import { NextResponse } from "next/server"
 // 전체 노드 데이터 조회 (GET)
 export async function GET() {
   try {
-    const res = await fetch("http://13.55.76.216:3000/path/nodes", {
+    // 1. edges 데이터 가져오기
+    const edgesRes = await fetch("http://13.55.76.216:3000/path/edges", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     })
-
-    if (!res.ok) {
+    if (!edgesRes.ok) {
       return NextResponse.json(
-        { error: "노드 좌표 정보를 불러올 수 없습니다." },
-        { status: res.status }
+        { error: "노드 연결 정보를 불러올 수 없습니다." },
+        { status: edgesRes.status }
       )
     }
+    const edgesData = await edgesRes.json()
 
-    const data = await res.json()
+    // 콘솔에 edges 데이터 출력
+    console.log("서버에서 받은 edgesData:", JSON.stringify(edgesData, null, 2))
 
-    // 노드 데이터 구조에 맞게 가공 (예시: id, lat, lng)
-    const nodes = Array.isArray(data)
-      ? data.map((node) => ({
-          id: node.id,
-          lat: node.lat,
-          lng: node.lng,
-        }))
-      : []
-
-    return NextResponse.json({ nodes })
+    // 그대로 반환
+    return NextResponse.json({ edges: edgesData })
   } catch (err) {
+    console.log("서버 오류:", err)
     return NextResponse.json({ error: "서버 오류" }, { status: 500 })
   }
 }

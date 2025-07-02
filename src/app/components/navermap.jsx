@@ -43,6 +43,8 @@ function NaverMap({ setLatLng }) {
     fromNode: null, // { id, node_name }
   })
 
+  const [recentlyAddedNode, setRecentlyAddedNode] = useState(null)
+
   // 최초 nodes, edges 모두 fetch
   useEffect(() => {
     fetchNodes()
@@ -90,6 +92,7 @@ function NaverMap({ setLatLng }) {
     const map = mapInstance.current
     if (!naver || !map) return
 
+    // 기존 마커/원 초기화
     circlesRef.current.forEach((circle) => circle.setMap(null))
     markersRef.current.forEach((marker) => marker.setMap(null))
     circlesRef.current = []
@@ -172,6 +175,25 @@ function NaverMap({ setLatLng }) {
         }
       })
     })
+
+    // ★ 최근 추가된 노드 자동 팝업
+    if (recentlyAddedNode) {
+      const found = nodeEntries.find(
+        ([, n]) => n.node_name === recentlyAddedNode
+      )
+      if (found) {
+        const [id, n] = found
+        setDeletePopup({
+          open: true,
+          id,
+          node_name: n.node_name || id,
+          type: id && id.startsWith("O") ? "node" : "building",
+          x: n.x,
+          y: n.y,
+        })
+        setRecentlyAddedNode(null)
+      }
+    }
   }, [nodes])
 
   // Polyline(노드 선) 표시 (edges + nodes 매핑)
@@ -252,7 +274,6 @@ function NaverMap({ setLatLng }) {
       alert("이름과 위치를 입력하세요.")
       return
     }
-    // body 객체 생성
     const body = {
       type,
       node_name: nodeName,
@@ -262,7 +283,6 @@ function NaverMap({ setLatLng }) {
     if (type === "building") {
       body.desc = desc
     }
-    // JSON 바디로 POST
     const res = await fetch("/api/tower-route", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -271,6 +291,7 @@ function NaverMap({ setLatLng }) {
     const data = await res.json()
     if (data.success) {
       setAddPopup({ open: false, x: null, y: null })
+      setRecentlyAddedNode(nodeName) // ★ 추가: 최근 추가된 노드 이름 저장
       fetchNodes()
       fetchEdges()
       alert("추가 성공!")

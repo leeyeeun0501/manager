@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 
-function NaverMap({ setLatLng, nodes = {} }) {
+function NaverMap({ setLatLng }) {
   const mapRef = useRef(null)
   const mapInstance = useRef(null)
   const circlesRef = useRef([])
@@ -8,9 +8,21 @@ function NaverMap({ setLatLng, nodes = {} }) {
   const markersRef = useRef([])
   const polylineRef = useRef([])
 
+  const [nodes, setNodes] = useState([])
   const [edges, setEdges] = useState([])
 
-  // Function to fetch edges
+  // nodes 데이터 fetch
+  async function fetchNodes() {
+    try {
+      const res = await fetch("/api/tower-route")
+      const json = await res.json()
+      setNodes(json.nodes || [])
+    } catch (e) {
+      setNodes([])
+    }
+  }
+
+  // edges 데이터 fetch
   async function fetchEdges() {
     try {
       const res = await fetch("/api/node-route")
@@ -21,12 +33,13 @@ function NaverMap({ setLatLng, nodes = {} }) {
     }
   }
 
-  // 1. edges(노드 연결 정보) GET
+  // 최초 nodes, edges 모두 fetch
   useEffect(() => {
+    fetchNodes()
     fetchEdges()
   }, [])
 
-  // 2. 지도 최초 생성 및 클릭 마커
+  // 지도 최초 생성 및 클릭 마커
   useEffect(() => {
     const { naver } = window
     if (!naver || !mapRef.current) return
@@ -65,7 +78,7 @@ function NaverMap({ setLatLng, nodes = {} }) {
     }
   }, [setLatLng])
 
-  // 3. 점(원) + 드래그 마커 처리 (tower-route로 PUT)
+  // 점(원) + 드래그 마커 처리 (tower-route로 PUT)
   useEffect(() => {
     const { naver } = window
     const map = mapInstance.current
@@ -129,7 +142,8 @@ function NaverMap({ setLatLng, nodes = {} }) {
               y: newLng, // 경도(lng)
             }),
           })
-          // 좌표 수정 후 edges 다시 불러오기
+          // 좌표 수정 후 nodes, edges 모두 다시 불러오기!
+          fetchNodes()
           fetchEdges()
         } catch (err) {
           alert("서버에 좌표를 저장하는 데 실패했습니다.")
@@ -138,7 +152,7 @@ function NaverMap({ setLatLng, nodes = {} }) {
     })
   }, [nodes])
 
-  // 4. Polyline(노드 선) 표시 (edges + nodes 매핑)
+  // Polyline(노드 선) 표시 (edges + nodes 매핑)
   useEffect(() => {
     const { naver } = window
     const map = mapInstance.current

@@ -18,7 +18,6 @@ export default function UserManagePage() {
     try {
       const res = await fetch("/api/user-route")
       const data = await res.json()
-      console.log("서버 응답:", data)
       if (!res.ok)
         throw new Error(data.error || "사용자 목록을 불러올 수 없습니다.")
       const usersArr = Array.isArray(data.users)
@@ -26,6 +25,12 @@ export default function UserManagePage() {
         : Array.isArray(data)
         ? data
         : []
+      // 생성일 내림차순(최신이 위로)
+      usersArr.sort((a, b) => {
+        const dateA = new Date(a.CreatedAt || a.createdAt || a.datetime || 0)
+        const dateB = new Date(b.CreatedAt || b.createdAt || b.datetime || 0)
+        return dateB - dateA
+      })
       setUsers(usersArr)
     } catch (err) {
       setError(err.message)

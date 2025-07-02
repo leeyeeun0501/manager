@@ -14,12 +14,13 @@ export default function ManagementPage() {
 
   useEffect(() => {
     // 건물 수
-    fetch("/api/building-route")
+    // 건물 수 빠르게 조회 (건물 이름만 받아오기)
+    fetch("/api/building-route?type=names")
       .then((res) => res.json())
       .then((data) => {
         setSummary((prev) => ({
           ...prev,
-          building: Array.isArray(data.all) ? data.all.length : 0,
+          building: Array.isArray(data.names) ? data.names.length : 0,
         }))
       })
 

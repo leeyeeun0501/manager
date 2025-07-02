@@ -120,3 +120,42 @@ export async function POST(request) {
     )
   }
 }
+
+// 노드/건물 삭제 (DELETE)
+export async function DELETE(request) {
+  try {
+    const { type, node_name } = await request.json()
+
+    // 필수 값 체크
+    if (!type || !node_name) {
+      return NextResponse.json(
+        { success: false, error: "타입(type)과 이름(node_name)은 필수입니다." },
+        { status: 400 }
+      )
+    }
+
+    // 외부 API에 DELETE 요청
+    const res = await fetch("http://13.55.76.216:3000/path/", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, node_name }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      return NextResponse.json(
+        { success: false, error: data.error || "외부 서버 오류" },
+        { status: res.status }
+      )
+    }
+
+    return NextResponse.json({ success: true, message: "삭제 성공", data })
+  } catch (err) {
+    console.error("DELETE /api/tower-route error:", err)
+    return NextResponse.json(
+      { success: false, error: "서버 오류" },
+      { status: 500 }
+    )
+  }
+}

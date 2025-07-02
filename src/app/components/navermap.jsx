@@ -21,27 +21,20 @@ function NaverMap({ setLatLng }) {
   const [nodeName, setNodeName] = useState("")
   const [desc, setDesc] = useState("")
 
-  // nodes 데이터 fetch
-  async function fetchNodes() {
-    try {
-      const res = await fetch("/api/tower-route")
-      const json = await res.json()
-      setNodes(json.nodes || [])
-    } catch (e) {
-      setNodes([])
-    }
-  }
+  // 마커 클릭 시 노드 선택 팝업
+  const [selectedNode, setSelectedNode] = useState(null)
+  // 엣지 연결 모드: 첫 번째 노드가 선택된 상태
+  const [edgeSource, setEdgeSource] = useState(null)
 
-  // edges 데이터 fetch
-  async function fetchEdges() {
-    try {
-      const res = await fetch("/api/node-route")
-      const json = await res.json()
-      setEdges(json.edges || [])
-    } catch (e) {
-      setEdges([])
-    }
-  }
+  // 노드/건물 선택 팝업 상태 추가
+  const [deletePopup, setDeletePopup] = useState({
+    open: false,
+    id: null,
+    node_name: "",
+    type: "",
+    x: null,
+    y: null,
+  })
 
   // 최초 nodes, edges 모두 fetch
   useEffect(() => {
@@ -104,13 +97,16 @@ function NaverMap({ setLatLng }) {
     const nodeEntries = nodesArray.map((n, idx) => [n.id || String(idx), n])
 
     nodeEntries.forEach(([id, { x, y, node_name }]) => {
+      const isNode = id && id.startsWith("O") // 빨간색이면 node
+      const type = isNode ? "node" : "building"
+
       const circle = new naver.maps.Circle({
         map,
         center: new naver.maps.LatLng(x, y),
         radius: 2,
-        fillColor: id && id.startsWith("O") ? "#ff0000" : "#0066ff",
+        fillColor: isNode ? "#ff0000" : "#0066ff",
         fillOpacity: 1,
-        strokeColor: id && id.startsWith("O") ? "#ff0000" : "#0066ff",
+        strokeColor: isNode ? "#ff0000" : "#0066ff",
         strokeOpacity: 1,
         strokeWeight: 2,
       })
@@ -120,11 +116,22 @@ function NaverMap({ setLatLng }) {
         position: new naver.maps.LatLng(x, y),
         map,
         draggable: true,
-        opacity: 0,
+        opacity: 0.1,
         title: node_name || id,
         zIndex: 100,
       })
       markersRef.current.push(marker)
+
+      naver.maps.Event.addListener(marker, "click", function () {
+        setDeletePopup({
+          open: true,
+          id,
+          node_name: node_name || id,
+          type,
+          x,
+          y,
+        })
+      })
 
       naver.maps.Event.addListener(marker, "dragend", async function (e) {
         const newLat = e.coord.y
@@ -200,7 +207,29 @@ function NaverMap({ setLatLng }) {
     })
   }, [edges, nodes])
 
-  // 건물/노드 추가 팝업 저장 처리 (여기만 수정)
+  // nodes 데이터 fetch
+  async function fetchNodes() {
+    try {
+      const res = await fetch("/api/tower-route")
+      const json = await res.json()
+      setNodes(json.nodes || [])
+    } catch (e) {
+      setNodes([])
+    }
+  }
+
+  // edges 데이터 fetch
+  async function fetchEdges() {
+    try {
+      const res = await fetch("/api/node-route")
+      const json = await res.json()
+      setEdges(json.edges || [])
+    } catch (e) {
+      setEdges([])
+    }
+  }
+
+  // 건물/노드 추가 팝업 저장 처리
   async function handleAddNode(e) {
     e.preventDefault()
     if (!nodeName || addPopup.x == null || addPopup.y == null) {
@@ -234,6 +263,47 @@ function NaverMap({ setLatLng }) {
     }
   }
 
+  // 삭제 처리 함수
+  async function handleDeleteNode() {
+    if (!deletePopup.type || !deletePopup.node_name) return
+    if (!window.confirm("정말 삭제하시겠습니까?")) return
+    const res = await fetch("/api/tower-route", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: deletePopup.type,
+        node_name: deletePopup.node_name,
+      }),
+    })
+    const data = await res.json()
+    if (data.success) {
+      setDeletePopup({
+        open: false,
+        id: null,
+        node_name: "",
+        type: "",
+        x: null,
+        y: null,
+      })
+      fetchNodes()
+      fetchEdges()
+      alert("삭제 성공!")
+    } else {
+      alert(data.error || "삭제 실패")
+    }
+  }
+
+  function handleCloseDeletePopup() {
+    setDeletePopup({
+      open: false,
+      id: null,
+      node_name: "",
+      type: "",
+      x: null,
+      y: null,
+    })
+  }
+
   function handleClosePopup() {
     setAddPopup({ open: false, x: null, y: null })
   }
@@ -249,6 +319,7 @@ function NaverMap({ setLatLng }) {
           boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
         }}
       />
+
       {/* 건물/노드 추가 팝업 */}
       {addPopup.open && (
         <div
@@ -343,6 +414,58 @@ function NaverMap({ setLatLng }) {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* 건물/노드 삭제 팝업 */}
+      {deletePopup.open && (
+        <div
+          style={{
+            position: "absolute",
+            top: 100,
+            left: 40,
+            background: "#fff",
+            border: "1px solid #ddd",
+            borderRadius: 8,
+            padding: 24,
+            zIndex: 2000,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            width: 320,
+          }}
+        >
+          <h3 style={{ marginTop: 0 }}>노드/건물 삭제</h3>
+          <div style={{ marginBottom: 12 }}>
+            <strong>타입:</strong>{" "}
+            {deletePopup.type === "building" ? "건물" : "노드"}
+            <br />
+            <strong>이름:</strong> {deletePopup.node_name}
+            <br />
+            <strong>위도(x):</strong> {deletePopup.x}
+            <br />
+            <strong>경도(y):</strong> {deletePopup.y}
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <button
+              type="button"
+              onClick={handleCloseDeletePopup}
+              style={{ marginRight: 8 }}
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteNode}
+              style={{
+                background: "#ff4d4f",
+                color: "#fff",
+                border: "none",
+                borderRadius: 4,
+                padding: "6px 18px",
+              }}
+            >
+              삭제
+            </button>
+          </div>
         </div>
       )}
     </div>

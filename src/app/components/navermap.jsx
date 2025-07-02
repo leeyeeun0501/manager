@@ -63,7 +63,7 @@ function NaverMap({ setLatLng, nodes = [] }) {
       const circle = new naver.maps.Circle({
         map,
         center: new naver.maps.LatLng(lat, lng),
-        radius: 5,
+        radius: 2,
         fillColor: id && id.startsWith("O") ? "#ff0000" : "#0066ff",
         fillOpacity: 1,
         strokeColor: id && id.startsWith("O") ? "#ff0000" : "#0066ff",
@@ -83,8 +83,8 @@ function NaverMap({ setLatLng, nodes = [] }) {
       markersRef.current.push(marker)
 
       naver.maps.Event.addListener(marker, "dragend", async function (e) {
-        const newLat = e.coord.x
-        const newLng = e.coord.y
+        const newLat = e.coord.y // 위도
+        const newLng = e.coord.x // 경도
         circle.setCenter(new naver.maps.LatLng(newLat, newLng))
         try {
           await fetch("/api/tower-route", {
@@ -92,8 +92,8 @@ function NaverMap({ setLatLng, nodes = [] }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               node_name: node_name || id,
-              x: newLat, // 위도(lat)
-              y: newLng, // 경도(lng)
+              x: newLat, // 위도
+              y: newLng, // 경도
             }),
           })
         } catch (err) {

@@ -9,6 +9,7 @@ export default function TowerPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [nodes, setNodes] = useState({}) // 객체 상태로 저장
 
+  // 노드 fetch
   useEffect(() => {
     fetch("/api/tower-route")
       .then((res) => res.json())

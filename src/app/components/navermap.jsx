@@ -82,10 +82,9 @@ function NaverMap({ setLatLng, nodes = [] }) {
       })
       markersRef.current.push(marker)
 
-      // ✅ 여기만 수정!
       naver.maps.Event.addListener(marker, "dragend", async function (e) {
-        const newLng = e.coord.x // 경도
-        const newLat = e.coord.y // 위도
+        const newLat = e.coord.x
+        const newLng = e.coord.y
         circle.setCenter(new naver.maps.LatLng(newLat, newLng))
         try {
           await fetch("/api/tower-route", {

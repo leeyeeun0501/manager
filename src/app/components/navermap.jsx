@@ -1,3 +1,4 @@
+"use client"
 import React, { useEffect, useRef, useState } from "react"
 
 function NaverMap({ setLatLng }) {
@@ -21,10 +22,6 @@ function NaverMap({ setLatLng }) {
   const [nodeName, setNodeName] = useState("")
   const [desc, setDesc] = useState("")
 
-  // 마커 클릭 시 노드 선택 팝업
-  const [selectedNode, setSelectedNode] = useState(null)
-  // 엣지 연결 모드: 첫 번째 노드가 선택된 상태
-  const [edgeSource, setEdgeSource] = useState(null)
   const [edgeConnectHint, setEdgeConnectHint] = useState(false)
 
   // 노드/건물 선택 팝업 상태 추가
@@ -125,31 +122,64 @@ function NaverMap({ setLatLng }) {
       const marker = new naver.maps.Marker({
         position: new naver.maps.LatLng(x, y),
         map,
-        draggable: true,
-        opacity: 0.1,
+        draggable: !edgeConnectMode.active,
+        opacity: 0.3,
         title: node_name || id,
         zIndex: 100,
+        clickable: true,
+        cursor: "pointer",
       })
       markersRef.current.push(marker)
 
+      // --- 마커 클릭 이벤트 ---
       naver.maps.Event.addListener(marker, "click", function () {
+        // 1. 엣지 연결 모드일 때는 팝업 절대 안 뜨게!
         if (edgeConnectMode.active) {
-          // 두 번째 노드 클릭: 엣지 연결 요청
+          // 2. 같은 노드면 무시
+          if (
+            edgeConnectMode.fromNode &&
+            edgeConnectMode.fromNode.node_name === (node_name || id)
+          ) {
+            setEdgeConnectMode({ active: false, fromNode: null })
+            setEdgeConnectHint(false)
+            alert("같은 노드는 연결할 수 없습니다.")
+            return
+          }
+          // 3. 이미 연결된 엣지인지 중복 체크
+          const alreadyConnected = edges.some(
+            (edge) =>
+              (edge.id === edgeConnectMode.fromNode.node_name &&
+                edge.nodes.some((n) => n.node === (node_name || id))) ||
+              (edge.id === (node_name || id) &&
+                edge.nodes.some(
+                  (n) => n.node === edgeConnectMode.fromNode.node_name
+                ))
+          )
+          if (alreadyConnected) {
+            setEdgeConnectMode({ active: false, fromNode: null })
+            setEdgeConnectHint(false)
+            alert("이미 연결된 노드입니다.")
+            return
+          }
+          // 4. 1:1 연결만 허용 (엣지 연결)
           handleEdgeConnect(edgeConnectMode.fromNode, {
             id,
             node_name: node_name || id,
           })
-        } else {
-          // 평소처럼 삭제 팝업
-          setDeletePopup({
-            open: true,
-            id,
-            node_name: node_name || id,
-            type,
-            x,
-            y,
-          })
+          // 5. 연결 후 모드/힌트 해제
+          setEdgeConnectMode({ active: false, fromNode: null })
+          setEdgeConnectHint(false)
+          return
         }
+        // 평소처럼 삭제 팝업
+        setDeletePopup({
+          open: true,
+          id,
+          node_name: node_name || id,
+          type,
+          x,
+          y,
+        })
       })
 
       naver.maps.Event.addListener(marker, "dragend", async function (e) {
@@ -194,7 +224,7 @@ function NaverMap({ setLatLng }) {
         setRecentlyAddedNode(null)
       }
     }
-  }, [nodes])
+  }, [nodes, edgeConnectMode, edges])
 
   // Polyline(노드 선) 표시 (edges + nodes 매핑)
   useEffect(() => {
@@ -330,18 +360,28 @@ function NaverMap({ setLatLng }) {
     }
   }
 
+  // --- 엣지 연결 함수: 1:1 연결만 허용 ---
   async function handleEdgeConnect(from, to) {
     if (!from?.node_name || !to?.node_name) {
       alert("노드 정보가 올바르지 않습니다.")
-      setEdgeConnectMode({ active: false, fromNode: null })
       return
     }
     if (from.node_name === to.node_name) {
       alert("같은 노드는 연결할 수 없습니다.")
-      setEdgeConnectMode({ active: false, fromNode: null })
       return
     }
-
+    // 이미 연결된 엣지인지 중복 체크(이중 연결 방지)
+    const alreadyConnected = edges.some(
+      (edge) =>
+        (edge.id === from.node_name &&
+          edge.nodes.some((n) => n.node === to.node_name)) ||
+        (edge.id === to.node_name &&
+          edge.nodes.some((n) => n.node === from.node_name))
+    )
+    if (alreadyConnected) {
+      alert("이미 연결된 노드입니다.")
+      return
+    }
     // 서버에 POST 요청
     const res = await fetch("/api/node-route", {
       method: "POST",
@@ -358,8 +398,6 @@ function NaverMap({ setLatLng }) {
     } else {
       alert(data.error || "엣지 연결 실패")
     }
-    setEdgeConnectMode({ active: false, fromNode: null })
-    setEdgeConnectHint(false)
   }
 
   function handleCloseDeletePopup() {
@@ -391,7 +429,6 @@ function NaverMap({ setLatLng }) {
       y: null,
     })
     setEdgeConnectHint(true) // 안내 메시지 표시
-    // alert("연결할 두 번째 노드를 클릭하세요!") // 이 줄은 제거
   }
 
   return (

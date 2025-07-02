@@ -73,14 +73,14 @@
   background: none;
   border: none;
   color: #e74c3c;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   cursor: pointer;
-  padding: 0 0 0 10px;
+  padding: 0;
   vertical-align: middle;
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
+  /* position: absolute;  제거 */
+  /* right: 8px;  제거 */
+  /* top: 50%;  제거 */
+  /* transform: translateY(-50%);  제거 */
   transition: color 0.15s;
 }
 
@@ -93,4 +93,10 @@
   margin-right: auto;
   margin-top: 40px;
   width: 900px;
+}
+
+.delete-cell {
+  text-align: center;
+  padding: 8px 4px;
+  position: relative;
 }

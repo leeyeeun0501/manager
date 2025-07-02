@@ -7,31 +7,19 @@ import "./tower-manage.css"
 export default function TowerPage() {
   const [latLng, setLatLng] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [nodes, setNodes] = useState([])
+  const [nodes, setNodes] = useState({}) // 객체 상태로 저장
 
   useEffect(() => {
     fetch("/api/tower-route")
       .then((res) => res.json())
       .then((data) => {
-        console.log("서버에서 받은 원본 데이터:", data)
         if (data && data.nodes) {
-          const nodesArray = Object.entries(data.nodes).map(([id, value]) => ({
-            id,
-            lat: value.lat,
-            lng: value.lng,
-          }))
-          console.log("변환된 nodes 배열:", nodesArray)
-          setNodes(nodesArray)
-        } else {
-          console.log("data.nodes가 없음", data)
+          console.log("서버에서 받은 원본 nodes 객체:", data.nodes)
+          setNodes(data.nodes) // 변환 없이 그대로 저장
         }
       })
       .catch(console.error)
   }, [])
-
-  useEffect(() => {
-    console.log("nodes 상태값 변경됨:", nodes)
-  }, [nodes])
 
   return (
     <div className="tower-root">

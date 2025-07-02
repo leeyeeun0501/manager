@@ -56,6 +56,27 @@ export default function UserManagePage() {
     }
   }
 
+  function formatDateTime(isoString) {
+    if (!isoString) return ""
+    const d = new Date(isoString)
+    if (isNaN(d)) return ""
+    // pad 함수로 두 자리수 맞춤
+    const pad = (n) => n.toString().padStart(2, "0")
+    return (
+      d.getFullYear() +
+      "-" +
+      pad(d.getMonth() + 1) +
+      "-" +
+      pad(d.getDate()) +
+      " " +
+      pad(d.getHours()) +
+      ":" +
+      pad(d.getMinutes()) +
+      ":" +
+      pad(d.getSeconds())
+    )
+  }
+
   return (
     <div className="management-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
@@ -74,20 +95,32 @@ export default function UserManagePage() {
                 <th>이름</th>
                 <th>학번</th>
                 <th>전화번호</th>
-                <th>이메일/삭제</th>
+                <th>이메일</th>
+                <th>생성일</th>
+                <th>삭제</th>
               </tr>
             </thead>
             <tbody>
               {users.length > 0 ? (
                 users.map((user, idx) => (
-                  <tr key={user.Id || user.Email || idx}>
+                  <tr
+                    key={(user.Id || "") + "-" + (user.Email || "") + "-" + idx}
+                  >
                     <td>{user.Id || ""}</td>
                     <td>{user.Pw || ""}</td>
                     <td>{user.Name || ""}</td>
                     <td>{user.Stu_Num || ""}</td>
                     <td>{user.Phone || ""}</td>
-                    <td className="email-trash-cell">
-                      <span>{user.Email || ""}</span>
+                    <td>{user.Email || ""}</td>
+                    <td>
+                      {formatDateTime(
+                        user.CreatedAt ||
+                          user.createdAt ||
+                          user.datetime ||
+                          user.Created_At
+                      )}
+                    </td>
+                    <td>
                       <button
                         className="trash-btn"
                         onClick={() => handleDelete(user.Id)}
@@ -100,7 +133,7 @@ export default function UserManagePage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center" }}>
+                  <td colSpan={8} style={{ textAlign: "center" }}>
                     사용자 데이터가 없습니다.
                   </td>
                 </tr>

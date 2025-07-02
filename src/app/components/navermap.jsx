@@ -25,6 +25,7 @@ function NaverMap({ setLatLng }) {
   const [selectedNode, setSelectedNode] = useState(null)
   // 엣지 연결 모드: 첫 번째 노드가 선택된 상태
   const [edgeSource, setEdgeSource] = useState(null)
+  const [edgeConnectHint, setEdgeConnectHint] = useState(false)
 
   // 노드/건물 선택 팝업 상태 추가
   const [deletePopup, setDeletePopup] = useState({
@@ -34,6 +35,12 @@ function NaverMap({ setLatLng }) {
     type: "",
     x: null,
     y: null,
+  })
+
+  // 엣지 연결 모드 상태 추가
+  const [edgeConnectMode, setEdgeConnectMode] = useState({
+    active: false,
+    fromNode: null, // { id, node_name }
   })
 
   // 최초 nodes, edges 모두 fetch
@@ -123,14 +130,23 @@ function NaverMap({ setLatLng }) {
       markersRef.current.push(marker)
 
       naver.maps.Event.addListener(marker, "click", function () {
-        setDeletePopup({
-          open: true,
-          id,
-          node_name: node_name || id,
-          type,
-          x,
-          y,
-        })
+        if (edgeConnectMode.active) {
+          // 두 번째 노드 클릭: 엣지 연결 요청
+          handleEdgeConnect(edgeConnectMode.fromNode, {
+            id,
+            node_name: node_name || id,
+          })
+        } else {
+          // 평소처럼 삭제 팝업
+          setDeletePopup({
+            open: true,
+            id,
+            node_name: node_name || id,
+            type,
+            x,
+            y,
+          })
+        }
       })
 
       naver.maps.Event.addListener(marker, "dragend", async function (e) {
@@ -293,6 +309,38 @@ function NaverMap({ setLatLng }) {
     }
   }
 
+  async function handleEdgeConnect(from, to) {
+    if (!from?.node_name || !to?.node_name) {
+      alert("노드 정보가 올바르지 않습니다.")
+      setEdgeConnectMode({ active: false, fromNode: null })
+      return
+    }
+    if (from.node_name === to.node_name) {
+      alert("같은 노드는 연결할 수 없습니다.")
+      setEdgeConnectMode({ active: false, fromNode: null })
+      return
+    }
+
+    // 서버에 POST 요청
+    const res = await fetch("/api/node-route", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from_node: from.node_name,
+        to_node: to.node_name,
+      }),
+    })
+    const data = await res.json()
+    if (data.success) {
+      alert("엣지 연결 성공!")
+      fetchEdges()
+    } else {
+      alert(data.error || "엣지 연결 실패")
+    }
+    setEdgeConnectMode({ active: false, fromNode: null })
+    setEdgeConnectHint(false)
+  }
+
   function handleCloseDeletePopup() {
     setDeletePopup({
       open: false,
@@ -306,6 +354,23 @@ function NaverMap({ setLatLng }) {
 
   function handleClosePopup() {
     setAddPopup({ open: false, x: null, y: null })
+  }
+
+  function handleStartEdgeConnect(node) {
+    setEdgeConnectMode({
+      active: true,
+      fromNode: { id: node.id, node_name: node.node_name },
+    })
+    setDeletePopup({
+      open: false,
+      id: null,
+      node_name: "",
+      type: "",
+      x: null,
+      y: null,
+    })
+    setEdgeConnectHint(true) // 안내 메시지 표시
+    // alert("연결할 두 번째 노드를 클릭하세요!") // 이 줄은 제거
   }
 
   return (
@@ -465,7 +530,40 @@ function NaverMap({ setLatLng }) {
             >
               삭제
             </button>
+            <button
+              type="button"
+              onClick={() => handleStartEdgeConnect(deletePopup)}
+              style={{
+                background: "#00C3FF",
+                color: "#fff",
+                border: "none",
+                borderRadius: 4,
+                padding: "6px 18px",
+              }}
+            >
+              엣지 연결
+            </button>
           </div>
+        </div>
+      )}
+
+      {edgeConnectHint && (
+        <div
+          style={{
+            position: "absolute",
+            top: 16,
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "#00C3FF",
+            color: "#fff",
+            padding: "10px 24px",
+            borderRadius: 8,
+            fontWeight: "bold",
+            zIndex: 3000,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+          }}
+        >
+          연결할 두 번째 노드를 클릭하세요!
         </div>
       )}
     </div>

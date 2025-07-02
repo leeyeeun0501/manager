@@ -27,3 +27,39 @@ export async function GET() {
     return NextResponse.json({ error: "서버 오류" }, { status: 500 })
   }
 }
+
+// 엣지 연결 (POST)
+export async function POST(request) {
+  try {
+    const { from_node, to_node } = await request.json()
+
+    if (!from_node || !to_node) {
+      return NextResponse.json(
+        { success: false, error: "from_node, to_node는 필수입니다." },
+        { status: 400 }
+      )
+    }
+
+    const res = await fetch("http://13.55.76.216:3000/path/connect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ from_node, to_node }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      return NextResponse.json(
+        { success: false, error: data.error || "외부 서버 오류" },
+        { status: res.status }
+      )
+    }
+
+    return NextResponse.json({ success: true, edge: data })
+  } catch (err) {
+    return NextResponse.json(
+      { success: false, error: "서버 오류" },
+      { status: 500 }
+    )
+  }
+}

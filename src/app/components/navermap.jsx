@@ -142,8 +142,11 @@ function NaverMap({ setLatLng }) {
               y: newLng, // 경도(lng)
             }),
           })
-          // 좌표 수정 후 nodes, edges 모두 다시 불러오기!
-          fetchNodes()
+          // 프론트에서 해당 노드 좌표만 직접 업데이트 (빠름!)
+          setNodes((prev) =>
+            prev.map((n) => (n.id === id ? { ...n, x: newLat, y: newLng } : n))
+          )
+          // 연결 정보만 다시 fetch (edges만)
           fetchEdges()
         } catch (err) {
           alert("서버에 좌표를 저장하는 데 실패했습니다.")

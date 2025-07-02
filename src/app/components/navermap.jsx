@@ -22,6 +22,10 @@ function NaverMap({ setLatLng }) {
   const [nodeName, setNodeName] = useState("")
   const [desc, setDesc] = useState("")
 
+  // 마커 클릭 시 노드 선택 팝업
+  const [selectedNode, setSelectedNode] = useState(null)
+  // 엣지 연결 모드: 첫 번째 노드가 선택된 상태
+  const [edgeSource, setEdgeSource] = useState(null)
   const [edgeConnectHint, setEdgeConnectHint] = useState(false)
 
   // 노드/건물 선택 팝업 상태 추가
@@ -76,7 +80,6 @@ function NaverMap({ setLatLng }) {
           x: latlng.y, // 위도
           y: latlng.x, // 경도
         })
-        setType("building")
         setNodeName("")
         setDesc("")
       })
@@ -217,14 +220,13 @@ function NaverMap({ setLatLng }) {
           open: true,
           id,
           node_name: n.node_name || id,
-          type: id && id.startsWith("O") ? "node" : "building",
           x: n.x,
           y: n.y,
         })
         setRecentlyAddedNode(null)
       }
     }
-  }, [nodes, edgeConnectMode, edges])
+  }, [nodes, recentlyAddedNode])
 
   // Polyline(노드 선) 표시 (edges + nodes 매핑)
   useEffect(() => {
@@ -321,9 +323,9 @@ function NaverMap({ setLatLng }) {
     const data = await res.json()
     if (data.success) {
       setAddPopup({ open: false, x: null, y: null })
-      setRecentlyAddedNode(nodeName) // ★ 추가: 최근 추가된 노드 이름 저장
-      fetchNodes()
-      fetchEdges()
+      await fetchNodes()
+      await fetchEdges()
+      setRecentlyAddedNode(nodeName) // ← 여기서 한 번만!
       alert("추가 성공!")
     } else {
       alert(data.error || "추가 실패")
@@ -348,7 +350,6 @@ function NaverMap({ setLatLng }) {
         open: false,
         id: null,
         node_name: "",
-        type: "",
         x: null,
         y: null,
       })

@@ -16,13 +16,7 @@ export default function BuildingPage() {
   const [floorPage, setFloorPage] = useState(1)
   const pageSize = 10
 
-  // 건물/층 추가 폼 상태
-  const [showAddBuilding, setShowAddBuilding] = useState(false)
-  const [addBuildingName, setAddBuildingName] = useState("")
-  const [addBuildingX, setAddBuildingX] = useState("")
-  const [addBuildingY, setAddBuildingY] = useState("")
-  const [addBuildingDesc, setAddBuildingDesc] = useState("")
-  const [addBuildingError, setAddBuildingError] = useState("")
+  // 층 추가 폼 상태
   const [showAddFloor, setShowAddFloor] = useState(false)
   const [addFloorBuilding, setAddFloorBuilding] = useState("")
   const [addFloorNum, setAddFloorNum] = useState("")
@@ -126,57 +120,6 @@ export default function BuildingPage() {
     fetchFloors()
   }, [selectedBuilding])
 
-  // 건물 추가 핸들러
-  const handleAddBuilding = async (e) => {
-    e.preventDefault()
-    const x = Number(addBuildingX)
-    const y = Number(addBuildingY)
-    if (!addBuildingName || isNaN(x) || isNaN(y)) {
-      setAddBuildingError("모든 값을 올바르게 입력하세요.")
-      return
-    }
-    const formData = new FormData()
-    formData.append("building_name", addBuildingName)
-    formData.append("x", x)
-    formData.append("y", y)
-    formData.append("desc", addBuildingDesc)
-    if (addBuildingFile) formData.append("file", addBuildingFile)
-
-    try {
-      const res = await fetch("/api/building-route", {
-        method: "POST",
-        body: formData,
-      })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setAddBuildingError(data.error || "건물 추가 실패")
-        return
-      }
-      alert("건물 추가가 완료되었습니다!")
-      setShowAddBuilding(false)
-      setAddBuildingName("")
-      setAddBuildingX("")
-      setAddBuildingY("")
-      setAddBuildingDesc("")
-      setAddBuildingFile(null)
-      if (addBuildingFileRef.current) addBuildingFileRef.current.value = ""
-
-      // 새로고침
-      const buildingsRes = await fetch("/api/building-route")
-      const buildingsData = await buildingsRes.json()
-      const infos = (buildingsData.all || [])
-        .filter((b) => b && b.Building_Name)
-        .map((b) => ({
-          name: b.Building_Name,
-          desc: b.Description || "",
-          file: b.file || null,
-        }))
-      setBuildingInfos(infos)
-    } catch (err) {
-      setAddBuildingError("건물 추가 중 오류가 발생했습니다.")
-    }
-  }
-
   // 건물 설명 수정 핸들러
   const handleEditDesc = async () => {
     setEditDescError("")
@@ -261,27 +204,6 @@ export default function BuildingPage() {
       setPopupBuilding(null)
     } catch (err) {
       setEditError("맵 파일 수정 중 오류가 발생했습니다.")
-    }
-  }
-
-  // 건물 삭제 핸들러
-  const handleDeleteBuilding = async (buildingName) => {
-    if (!window.confirm(`정말로 ${buildingName} 건물을 삭제하시겠습니까?`))
-      return
-    try {
-      const res = await fetch(
-        `/api/building-route?building_name=${encodeURIComponent(buildingName)}`,
-        { method: "DELETE" }
-      )
-      const text = await res.text()
-      if (res.status === 200) {
-        setBuildingInfos((prev) => prev.filter((b) => b.name !== buildingName))
-        alert(text)
-      } else {
-        alert(text)
-      }
-    } catch (err) {
-      alert("건물 삭제 중 오류가 발생했습니다.")
     }
   }
 
@@ -460,98 +382,12 @@ export default function BuildingPage() {
         >
           {/* 건물 표/추가 */}
           <div className="table-col" style={{ flex: 1, maxWidth: 500 }}>
-            <button
-              className="modal-save-btn"
-              style={{ marginBottom: 8, width: "100%" }}
-              onClick={() => setShowAddBuilding((v) => !v)}
-            >
-              {showAddBuilding ? "건물 추가 취소" : "건물 추가"}
-            </button>
-            {showAddBuilding && (
-              <form
-                className="inline-add-building-form"
-                onSubmit={handleAddBuilding}
-                style={{
-                  marginBottom: 12,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 8,
-                  background: "#f8f8f8",
-                  padding: 12,
-                  borderRadius: 8,
-                  maxWidth: 480,
-                }}
-              >
-                <input
-                  type="text"
-                  value={addBuildingName}
-                  onChange={(e) => setAddBuildingName(e.target.value)}
-                  placeholder="건물명"
-                  required
-                  style={{ width: "100%" }}
-                />
-                <input
-                  type="number"
-                  value={addBuildingX}
-                  onChange={(e) => setAddBuildingX(e.target.value)}
-                  step="any"
-                  placeholder="경도"
-                  required
-                  style={{ width: "100%" }}
-                />
-                <input
-                  type="number"
-                  value={addBuildingY}
-                  onChange={(e) => setAddBuildingY(e.target.value)}
-                  step="any"
-                  placeholder="위도"
-                  required
-                  style={{ width: "100%" }}
-                />
-                <input
-                  type="text"
-                  value={addBuildingDesc}
-                  onChange={(e) => setAddBuildingDesc(e.target.value)}
-                  placeholder="설명"
-                  required
-                  style={{ width: "100%" }}
-                />
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref={addBuildingFileRef}
-                  onChange={(e) => setAddBuildingFile(e.target.files[0])}
-                  style={{ width: "100%" }}
-                />
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    type="submit"
-                    className="modal-save-btn"
-                    style={{ flex: 1 }}
-                  >
-                    저장
-                  </button>
-                  <button
-                    type="button"
-                    className="modal-cancel-btn"
-                    onClick={() => setShowAddBuilding(false)}
-                    style={{ flex: 1 }}
-                  >
-                    취소
-                  </button>
-                </div>
-                {addBuildingError && (
-                  <div className="modal-error">{addBuildingError}</div>
-                )}
-              </form>
-            )}
             <table className="building-table">
               <thead>
                 <tr>
                   <th style={{ minWidth: 100 }}>건물명</th>
                   <th style={{ minWidth: 200 }}>건물 설명</th>
                   <th style={{ minWidth: 150 }}>맵 파일</th>
-                  <th>삭제</th>
                 </tr>
               </thead>
               <tbody>
@@ -635,21 +471,6 @@ export default function BuildingPage() {
                             <MdEditSquare size={18} color="#007bff" />
                           </button>
                         )}
-                      </td>
-                      <td>
-                        <button
-                          className="building-delete-btn"
-                          onClick={() => handleDeleteBuilding(b.name)}
-                          title="삭제"
-                          style={{
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            padding: 0,
-                          }}
-                        >
-                          <MdDelete size={20} color="#e74c3c" />
-                        </button>
                       </td>
                     </tr>
                   ))

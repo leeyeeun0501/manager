@@ -22,6 +22,10 @@ function NaverMap({ setLatLng }) {
   const [nodeName, setNodeName] = useState("")
   const [desc, setDesc] = useState("")
 
+  // 마커 클릭 시 노드 선택 팝업
+  const [selectedNode, setSelectedNode] = useState(null)
+  // 엣지 연결 모드: 첫 번째 노드가 선택된 상태
+  const [edgeSource, setEdgeSource] = useState(null)
   const [edgeConnectHint, setEdgeConnectHint] = useState(false)
 
   // 노드/건물 선택 팝업 상태 추가
@@ -76,7 +80,6 @@ function NaverMap({ setLatLng }) {
           x: latlng.y,
           y: latlng.x,
         })
-        setType("building")
         setNodeName("")
         setDesc("")
       })
@@ -208,14 +211,13 @@ function NaverMap({ setLatLng }) {
           open: true,
           id,
           node_name: n.node_name || id,
-          type: id && id.startsWith("O") ? "node" : "building",
           x: n.x,
           y: n.y,
         })
         setRecentlyAddedNode(null)
       }
     }
-  }, [nodes, edgeConnectMode, edges])
+  }, [nodes, recentlyAddedNode])
 
   // Polyline(노드 선) 표시 (edges + nodes 매핑)
   useEffect(() => {
@@ -339,7 +341,6 @@ function NaverMap({ setLatLng }) {
         open: false,
         id: null,
         node_name: "",
-        type: "",
         x: null,
         y: null,
       })

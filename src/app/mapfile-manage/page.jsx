@@ -133,13 +133,18 @@ export default function MapfileManagePage() {
     setLoading(false)
   }
 
-  // 이미지 클릭 시 좌표 얻기
+  // 이미지 클릭 시 좌표 얻기 (비율로)
   const handleImageClick = (e) => {
     if (!imgRef.current) return
     const rect = imgRef.current.getBoundingClientRect()
-    const x = Math.round(e.clientX - rect.left)
-    const y = Math.round(e.clientY - rect.top)
-    setPopup({ x, y })
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const imgWidth = imgRef.current.clientWidth
+    const imgHeight = imgRef.current.clientHeight
+    // 0~1 사이 비율로 변환
+    const ratioX = x / imgWidth
+    const ratioY = y / imgHeight
+    setPopup({ x: ratioX, y: ratioY }) // 비율로 저장
     setSelectedCategory("")
     setSubmitMsg("")
   }
@@ -152,7 +157,7 @@ export default function MapfileManagePage() {
       setSubmitMsg("카테고리를 선택하세요.")
       return
     }
-
+    // 비율 좌표 그대로 전송
     const res = await fetch("/api/mapfile-image-route", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -160,16 +165,15 @@ export default function MapfileManagePage() {
         building: selectedBuilding,
         floor: selectedFloor,
         category: selectedCategory,
-        x: popup.x,
-        y: popup.y,
+        x: popup.x, // 비율 좌표
+        y: popup.y, // 비율 좌표
       }),
     })
-
     const data = await res.json()
     if (data.success) {
       setSubmitMsg("저장 완료!")
       setPopup(null)
-      await fetchCategoryList() // ← 추가: 목록 즉시 갱신
+      await fetchCategoryList()
     } else {
       setSubmitMsg(data.error || "저장 실패")
     }
@@ -290,8 +294,12 @@ export default function MapfileManagePage() {
                 className="category-marker"
                 style={{
                   position: "absolute",
-                  left: cat.Category_Location.x,
-                  top: cat.Category_Location.y,
+                  left: imgRef.current
+                    ? cat.Category_Location.x * imgRef.current.clientWidth
+                    : 0,
+                  top: imgRef.current
+                    ? cat.Category_Location.y * imgRef.current.clientHeight
+                    : 0,
                   width: 36,
                   height: 36,
                   background: "#3b82f6",
@@ -306,7 +314,7 @@ export default function MapfileManagePage() {
                   border: "2px solid #fff",
                   zIndex: 5,
                   transform: "translate(-50%, -50%)",
-                  pointerEvents: "auto", // 클릭 가능하게
+                  pointerEvents: "auto",
                   cursor: "pointer",
                 }}
                 title={cat.Category_Name}
@@ -325,13 +333,13 @@ export default function MapfileManagePage() {
             <div
               className="mapfile-popup"
               style={{
-                left: popup.x,
-                top: popup.y,
+                left: imgRef.current ? popup.x * imgRef.current.clientWidth : 0,
+                top: imgRef.current ? popup.y * imgRef.current.clientHeight : 0,
               }}
             >
               <form onSubmit={handleSubmit}>
                 <div>
-                  <b>좌표:</b> ({popup.x}, {popup.y})
+                  <b>좌표:</b> ({popup.x.toFixed(3)}, {popup.y.toFixed(3)})
                 </div>
                 <select
                   className="category-select"

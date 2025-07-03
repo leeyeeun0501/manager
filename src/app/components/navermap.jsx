@@ -22,10 +22,6 @@ function NaverMap({ setLatLng }) {
   const [nodeName, setNodeName] = useState("")
   const [desc, setDesc] = useState("")
 
-  // 마커 클릭 시 노드 선택 팝업
-  const [selectedNode, setSelectedNode] = useState(null)
-  // 엣지 연결 모드: 첫 번째 노드가 선택된 상태
-  const [edgeSource, setEdgeSource] = useState(null)
   const [edgeConnectHint, setEdgeConnectHint] = useState(false)
 
   // 노드/건물 선택 팝업 상태 추가

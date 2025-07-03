@@ -64,25 +64,26 @@ export async function POST(request) {
 // 엣지 연결 해제 (DELETE)
 export async function DELETE(request) {
   try {
-    // Next.js 13+에서는 DELETE도 request.json() 지원
+    // body 파싱
     const { from_node, to_node } = await request.json()
 
+    // body가 비어있을 때 로그 확인
     if (!from_node || !to_node) {
+      console.log("DELETE body 파싱 실패. request body:", await request.text())
       return NextResponse.json(
         { success: false, error: "from_node, to_node는 필수입니다." },
         { status: 400 }
       )
     }
 
+    // 외부 서버로 DELETE 요청 (body 포함)
     const res = await fetch("http://13.55.76.216:3000/path/disconnect", {
-      method: "DELETE", // 외부 서버도 DELETE로!
+      method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ from_node, to_node }),
     })
 
     const data = await res.json()
-    console.log("DELETE body:", await request.text())
-
     if (!res.ok) {
       return NextResponse.json(
         { success: false, error: data.error || "외부 서버 오류" },
@@ -92,6 +93,7 @@ export async function DELETE(request) {
 
     return NextResponse.json({ success: true, edge: data })
   } catch (err) {
+    console.log("DELETE 서버 오류:", err)
     return NextResponse.json(
       { success: false, error: "서버 오류" },
       { status: 500 }

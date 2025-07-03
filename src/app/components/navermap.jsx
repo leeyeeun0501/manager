@@ -286,16 +286,33 @@ function NaverMap({ setLatLng }) {
     }
   }
 
+  function getNextONodeName() {
+    // nodes 상태에서 O로 시작하는 id만 추출
+    const oNumbers = nodes
+      .map((n) => n.id || n.node_name)
+      .filter((id) => typeof id === "string" && id.startsWith("O"))
+      .map((id) => parseInt(id.slice(1), 10))
+      .filter((num) => !isNaN(num))
+    const maxO = oNumbers.length > 0 ? Math.max(...oNumbers) : 0
+    return "O" + (maxO + 1)
+  }
+
   // 건물/노드 추가 팝업 저장 처리
   async function handleAddNode(e) {
     e.preventDefault()
-    if (!nodeName || addPopup.x == null || addPopup.y == null) {
-      alert("이름과 위치를 입력하세요.")
+    if (addPopup.x == null || addPopup.y == null) {
+      alert("위치를 선택하세요.")
       return
     }
+
+    let finalNodeName = nodeName
+    if (type === "node") {
+      finalNodeName = getNextONodeName()
+    }
+
     const body = {
       type,
-      node_name: nodeName,
+      node_name: finalNodeName,
       x: addPopup.x,
       y: addPopup.y,
     }
@@ -310,7 +327,7 @@ function NaverMap({ setLatLng }) {
     const data = await res.json()
     if (data.success) {
       setAddPopup({ open: false, x: null, y: null })
-      setRecentlyAddedNode(nodeName)
+      setRecentlyAddedNode(finalNodeName)
       fetchNodes()
       fetchEdges()
       alert("추가 성공!")
@@ -510,19 +527,26 @@ function NaverMap({ setLatLng }) {
                 노드
               </label>
             </div>
-            <div style={{ marginBottom: 12 }}>
-              <label>
-                이름
-                <br />
-                <input
-                  type="text"
-                  value={nodeName}
-                  onChange={(e) => setNodeName(e.target.value)}
-                  style={{ width: "100%" }}
-                  required
-                />
-              </label>
-            </div>
+            {type === "building" && (
+              <div style={{ marginBottom: 12 }}>
+                <label>
+                  이름
+                  <br />
+                  <input
+                    type="text"
+                    value={nodeName}
+                    onChange={(e) => setNodeName(e.target.value)}
+                    style={{ width: "100%" }}
+                    required
+                  />
+                </label>
+              </div>
+            )}
+            {type === "node" && (
+              <div style={{ marginBottom: 12 }}>
+                <strong>자동 생성 노드명:</strong> {getNextONodeName()}
+              </div>
+            )}
             {type === "building" && (
               <div style={{ marginBottom: 12 }}>
                 <label>

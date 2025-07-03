@@ -121,7 +121,7 @@ export async function POST(request) {
   }
 }
 
-// 노드/건물 삭제 (DELETE)
+// 건물/노드 삭제 (DELETE)
 export async function DELETE(request) {
   try {
     const { type, node_name } = await request.json()

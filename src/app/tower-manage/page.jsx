@@ -16,7 +16,6 @@ export default function TowerPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data && data.nodes) {
-          console.log("서버에서 받은 원본 nodes 객체:", data.nodes)
           setNodes(data.nodes)
         }
       })

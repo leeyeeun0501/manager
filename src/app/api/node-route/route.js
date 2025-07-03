@@ -17,9 +17,6 @@ export async function GET() {
     }
     const edgesData = await edgesRes.json()
 
-    // 콘솔에 edges 데이터 출력
-    console.log("서버에서 받은 edgesData:", JSON.stringify(edgesData, null, 2))
-
     // 그대로 반환
     return NextResponse.json({ edges: edgesData })
   } catch (err) {
@@ -47,6 +44,44 @@ export async function POST(request) {
     })
 
     const data = await res.json()
+
+    if (!res.ok) {
+      return NextResponse.json(
+        { success: false, error: data.error || "외부 서버 오류" },
+        { status: res.status }
+      )
+    }
+
+    return NextResponse.json({ success: true, edge: data })
+  } catch (err) {
+    return NextResponse.json(
+      { success: false, error: "서버 오류" },
+      { status: 500 }
+    )
+  }
+}
+
+// 엣지 연결 해제 (DELETE)
+export async function DELETE(request) {
+  try {
+    // Next.js 13+에서는 DELETE도 request.json() 지원
+    const { from_node, to_node } = await request.json()
+
+    if (!from_node || !to_node) {
+      return NextResponse.json(
+        { success: false, error: "from_node, to_node는 필수입니다." },
+        { status: 400 }
+      )
+    }
+
+    const res = await fetch("http://13.55.76.216:3000/path/disconnect", {
+      method: "DELETE", // 외부 서버도 DELETE로!
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ from_node, to_node }),
+    })
+
+    const data = await res.json()
+    console.log("DELETE body:", await request.text())
 
     if (!res.ok) {
       return NextResponse.json(

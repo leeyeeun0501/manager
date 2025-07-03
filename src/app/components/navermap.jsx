@@ -55,7 +55,7 @@ function NaverMap({ setLatLng }) {
 
     if (!mapInstance.current) {
       const map = new naver.maps.Map(mapRef.current, {
-        center: new naver.maps.LatLng(36.3360143, 127.4453897), // 우송대 중심
+        center: new naver.maps.LatLng(36.3360143, 127.4453897),
         zoom: 18,
       })
       mapInstance.current = map
@@ -73,8 +73,8 @@ function NaverMap({ setLatLng }) {
         }
         setAddPopup({
           open: true,
-          x: latlng.y, // 위도
-          y: latlng.x, // 경도
+          x: latlng.y,
+          y: latlng.x,
         })
         setType("building")
         setNodeName("")
@@ -89,9 +89,8 @@ function NaverMap({ setLatLng }) {
     const map = mapInstance.current
     if (!naver || !map) return
 
-    // 기존 마커/원 초기화
-    circlesRef.current.forEach((circle) => circle.setMap(null))
-    markersRef.current.forEach((marker) => marker.setMap(null))
+    circlesRef.current.forEach((circle) => circle?.setMap(null))
+    markersRef.current.forEach((marker) => marker?.setMap(null))
     circlesRef.current = []
     markersRef.current = []
 
@@ -104,7 +103,7 @@ function NaverMap({ setLatLng }) {
     const nodeEntries = nodesArray.map((n, idx) => [n.id || String(idx), n])
 
     nodeEntries.forEach(([id, { x, y, node_name }]) => {
-      const isNode = id && id.startsWith("O") // 빨간색이면 node
+      const isNode = id && id.startsWith("O")
       const type = isNode ? "node" : "building"
 
       const circle = new naver.maps.Circle({
@@ -131,11 +130,8 @@ function NaverMap({ setLatLng }) {
       })
       markersRef.current.push(marker)
 
-      // --- 마커 클릭 이벤트 ---
       naver.maps.Event.addListener(marker, "click", function () {
-        // 1. 엣지 연결 모드일 때는 팝업 절대 안 뜨게!
         if (edgeConnectMode.active) {
-          // 2. 같은 노드면 무시
           if (
             edgeConnectMode.fromNode &&
             edgeConnectMode.fromNode.node_name === (node_name || id)
@@ -145,7 +141,6 @@ function NaverMap({ setLatLng }) {
             alert("같은 노드는 연결할 수 없습니다.")
             return
           }
-          // 3. 이미 연결된 엣지인지 중복 체크
           const alreadyConnected = edges.some(
             (edge) =>
               (edge.id === edgeConnectMode.fromNode.node_name &&
@@ -161,17 +156,14 @@ function NaverMap({ setLatLng }) {
             alert("이미 연결된 노드입니다.")
             return
           }
-          // 4. 1:1 연결만 허용 (엣지 연결)
           handleEdgeConnect(edgeConnectMode.fromNode, {
             id,
             node_name: node_name || id,
           })
-          // 5. 연결 후 모드/힌트 해제
           setEdgeConnectMode({ active: false, fromNode: null })
           setEdgeConnectHint(false)
           return
         }
-        // 평소처럼 삭제 팝업
         setDeletePopup({
           open: true,
           id,
@@ -206,7 +198,6 @@ function NaverMap({ setLatLng }) {
       })
     })
 
-    // ★ 최근 추가된 노드 자동 팝업
     if (recentlyAddedNode) {
       const found = nodeEntries.find(
         ([, n]) => n.node_name === recentlyAddedNode
@@ -321,7 +312,7 @@ function NaverMap({ setLatLng }) {
     const data = await res.json()
     if (data.success) {
       setAddPopup({ open: false, x: null, y: null })
-      setRecentlyAddedNode(nodeName) // ★ 추가: 최근 추가된 노드 이름 저장
+      setRecentlyAddedNode(nodeName)
       fetchNodes()
       fetchEdges()
       alert("추가 성공!")
@@ -370,7 +361,6 @@ function NaverMap({ setLatLng }) {
       alert("같은 노드는 연결할 수 없습니다.")
       return
     }
-    // 이미 연결된 엣지인지 중복 체크(이중 연결 방지)
     const alreadyConnected = edges.some(
       (edge) =>
         (edge.id === from.node_name &&
@@ -382,7 +372,6 @@ function NaverMap({ setLatLng }) {
       alert("이미 연결된 노드입니다.")
       return
     }
-    // 서버에 POST 요청
     const res = await fetch("/api/node-route", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -397,6 +386,32 @@ function NaverMap({ setLatLng }) {
       fetchEdges()
     } else {
       alert(data.error || "엣지 연결 실패")
+    }
+  }
+
+  // --- 엣지 연결 해제 함수 ---
+  async function handleEdgeDisconnect(from_node, to_node) {
+    console.log("엣지 해제 시도:", from_node, to_node) // ← 이 로그가 찍히는지 확인
+    if (!from_node || !to_node) {
+      alert("노드 정보가 올바르지 않습니다.")
+      return
+    }
+    if (!window.confirm("정말 연결을 해제하시겠습니까?")) return
+
+    const res = await fetch("/api/node-route", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from_node,
+        to_node,
+      }),
+    })
+    const data = await res.json()
+    if (data.success) {
+      alert("엣지 연결 해제 성공!")
+      fetchEdges()
+    } else {
+      alert(data.error || "엣지 연결 해제 실패")
     }
   }
 
@@ -428,7 +443,22 @@ function NaverMap({ setLatLng }) {
       x: null,
       y: null,
     })
-    setEdgeConnectHint(true) // 안내 메시지 표시
+    setEdgeConnectHint(true)
+  }
+
+  // 현재 노드와 연결된 노드 리스트 구하기 (팝업에서 해제 버튼에 사용)
+  function getConnectedNodes(nodeId) {
+    const connected = []
+    edges.forEach((edge) => {
+      if (edge.id === nodeId) {
+        ;(edge.nodes || []).forEach((n) => connected.push(n.node))
+      }
+      ;(edge.nodes || []).forEach((n) => {
+        if (n.node === nodeId) connected.push(edge.id)
+      })
+    })
+    // 중복 제거
+    return Array.from(new Set(connected))
   }
 
   return (
@@ -540,7 +570,7 @@ function NaverMap({ setLatLng }) {
         </div>
       )}
 
-      {/* 건물/노드 삭제 팝업 */}
+      {/* 건물/노드 삭제/엣지 팝업 */}
       {deletePopup.open && (
         <div
           style={{
@@ -558,14 +588,45 @@ function NaverMap({ setLatLng }) {
         >
           <h3 style={{ marginTop: 0 }}>노드/건물 삭제</h3>
           <div style={{ marginBottom: 12 }}>
-            <strong>타입:</strong>{" "}
-            {deletePopup.type === "building" ? "건물" : "노드"}
-            <br />
             <strong>이름:</strong> {deletePopup.node_name}
             <br />
             <strong>위도(x):</strong> {deletePopup.x}
             <br />
             <strong>경도(y):</strong> {deletePopup.y}
+          </div>
+          {/* 엣지 해제 버튼 목록 */}
+          <div style={{ marginBottom: 12 }}>
+            <strong>엣지 연결 해제:</strong>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "6px 8px",
+                marginTop: 6,
+              }}
+            >
+              {getConnectedNodes(deletePopup.id).length === 0 && (
+                <span style={{ color: "#888" }}>연결된 노드 없음</span>
+              )}
+              {getConnectedNodes(deletePopup.id).map((otherId) => (
+                <button
+                  key={otherId}
+                  type="button"
+                  style={{
+                    background: "#ffb300",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 4,
+                    padding: "4px 12px",
+                    fontSize: "0.95em",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => handleEdgeDisconnect(deletePopup.id, otherId)}
+                >
+                  {otherId} 엣지 연결 해제
+                </button>
+              ))}
+            </div>
           </div>
           <div style={{ textAlign: "right" }}>
             <button
@@ -597,6 +658,7 @@ function NaverMap({ setLatLng }) {
                 border: "none",
                 borderRadius: 4,
                 padding: "6px 18px",
+                marginLeft: 8,
               }}
             >
               엣지 연결

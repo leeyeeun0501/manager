@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
 import "./building-manage.css"
-import { MdEditSquare, MdDelete } from "react-icons/md"
+import { MdEditSquare } from "react-icons/md"
 import { FaTrashAlt } from "react-icons/fa"
 
 export default function BuildingPage() {

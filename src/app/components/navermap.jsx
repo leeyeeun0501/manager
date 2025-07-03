@@ -12,7 +12,6 @@ function NaverMap({ setLatLng }) {
   const [nodes, setNodes] = useState([])
   const [edges, setEdges] = useState([])
 
-  // 건물/노드 추가 팝업 상태
   const [addPopup, setAddPopup] = useState({
     open: false,
     x: null,
@@ -23,8 +22,6 @@ function NaverMap({ setLatLng }) {
   const [desc, setDesc] = useState("")
 
   const [edgeConnectHint, setEdgeConnectHint] = useState(false)
-
-  // 노드/건물 선택 팝업 상태 추가
   const [deletePopup, setDeletePopup] = useState({
     open: false,
     id: null,
@@ -33,13 +30,10 @@ function NaverMap({ setLatLng }) {
     x: null,
     y: null,
   })
-
-  // 엣지 연결 모드 상태 추가
   const [edgeConnectMode, setEdgeConnectMode] = useState({
     active: false,
-    fromNode: null, // { id, node_name }
+    fromNode: null,
   })
-
   const [recentlyAddedNode, setRecentlyAddedNode] = useState(null)
 
   // 최초 nodes, edges 모두 fetch
@@ -54,11 +48,27 @@ function NaverMap({ setLatLng }) {
     if (!naver || !mapRef.current) return
 
     if (!mapInstance.current) {
+      // 복원할 위치/줌 읽기
+      let center = new naver.maps.LatLng(36.3360143, 127.4453897)
+      let zoom = 18
+      try {
+        const saved = JSON.parse(localStorage.getItem("naverMapCenter"))
+        if (saved && saved.lat && saved.lng) {
+          center = new naver.maps.LatLng(saved.lat, saved.lng)
+        }
+        const savedZoom = parseInt(localStorage.getItem("naverMapZoom"), 10)
+        if (!isNaN(savedZoom)) zoom = savedZoom
+      } catch (e) {}
+
       const map = new naver.maps.Map(mapRef.current, {
-        center: new naver.maps.LatLng(36.3360143, 127.4453897),
-        zoom: 18,
+        center,
+        zoom,
       })
       mapInstance.current = map
+
+      // ★ 여기서 바로 삭제!
+      localStorage.removeItem("naverMapCenter")
+      localStorage.removeItem("naverMapZoom")
 
       naver.maps.Event.addListener(map, "click", function (e) {
         const latlng = e.coord
@@ -82,12 +92,13 @@ function NaverMap({ setLatLng }) {
     }
   }, [setLatLng])
 
-  // 점(원) + 드래그 마커 처리 (tower-route로 PUT)
+  // 마커/원/이벤트 등록 (nodes, edges, recentlyAddedNode가 바뀔 때마다)
   useEffect(() => {
     const { naver } = window
     const map = mapInstance.current
     if (!naver || !map) return
 
+    // 1. 기존 마커/원 완전 초기화
     circlesRef.current.forEach((circle) => circle?.setMap(null))
     markersRef.current.forEach((marker) => marker?.setMap(null))
     circlesRef.current = []
@@ -105,6 +116,7 @@ function NaverMap({ setLatLng }) {
       const isNode = id && id.startsWith("O")
       const type = isNode ? "node" : "building"
 
+      // 원(circle) 생성 및 클릭 이벤트
       const circle = new naver.maps.Circle({
         map,
         center: new naver.maps.LatLng(x, y),
@@ -117,6 +129,7 @@ function NaverMap({ setLatLng }) {
       })
       circlesRef.current.push(circle)
 
+      // 마커 생성 및 클릭 이벤트
       const marker = new naver.maps.Marker({
         position: new naver.maps.LatLng(x, y),
         map,
@@ -129,7 +142,9 @@ function NaverMap({ setLatLng }) {
       })
       markersRef.current.push(marker)
 
+      // 마커 클릭 이벤트
       naver.maps.Event.addListener(marker, "click", function () {
+        console.log("마커 클릭됨", id, node_name)
         if (edgeConnectMode.active) {
           if (
             edgeConnectMode.fromNode &&
@@ -173,6 +188,18 @@ function NaverMap({ setLatLng }) {
         })
       })
 
+      // 원 클릭 이벤트도 동일하게 등록 (혹시 원 위에 마커가 겹쳐서 클릭 안 되는 경우 대비)
+      naver.maps.Event.addListener(circle, "click", function () {
+        setDeletePopup({
+          open: true,
+          id,
+          node_name: node_name || id,
+          type,
+          x,
+          y,
+        })
+      })
+
       naver.maps.Event.addListener(marker, "dragend", async function (e) {
         const newLat = e.coord.y
         const newLng = e.coord.x
@@ -197,6 +224,7 @@ function NaverMap({ setLatLng }) {
       })
     })
 
+    // 마커/이벤트 등록이 끝난 뒤에 팝업 띄우기 (추가된 노드)
     if (recentlyAddedNode) {
       const found = nodeEntries.find(
         ([, n]) => n.node_name === recentlyAddedNode
@@ -213,7 +241,7 @@ function NaverMap({ setLatLng }) {
         setRecentlyAddedNode(null)
       }
     }
-  }, [nodes, recentlyAddedNode])
+  }, [nodes, edges, edgeConnectMode, recentlyAddedNode])
 
   // Polyline(노드 선) 표시 (edges + nodes 매핑)
   useEffect(() => {
@@ -287,7 +315,6 @@ function NaverMap({ setLatLng }) {
   }
 
   function getNextONodeName() {
-    // nodes 상태에서 O로 시작하는 id만 추출
     const oNumbers = nodes
       .map((n) => n.id || n.node_name)
       .filter((id) => typeof id === "string" && id.startsWith("O"))
@@ -327,10 +354,26 @@ function NaverMap({ setLatLng }) {
     const data = await res.json()
     if (data.success) {
       setAddPopup({ open: false, x: null, y: null })
+
+      // fetchNodes와 fetchEdges를 반드시 await로 순차 실행!
+      await fetchNodes()
+      await fetchEdges()
+
+      // 지도 위치/줌 저장
+      const map = mapInstance.current
+      if (map) {
+        const center = map.getCenter()
+        const zoom = map.getZoom()
+        localStorage.setItem(
+          "naverMapCenter",
+          JSON.stringify({ lat: center.y, lng: center.x })
+        )
+        localStorage.setItem("naverMapZoom", zoom)
+      }
+
       setRecentlyAddedNode(finalNodeName)
-      fetchNodes()
-      fetchEdges()
       alert("추가 성공!")
+      window.location.reload()
     } else {
       alert(data.error || "추가 실패")
     }
@@ -405,7 +448,6 @@ function NaverMap({ setLatLng }) {
 
   // --- 엣지 연결 해제 함수 ---
   async function handleEdgeDisconnect(from_node, to_node) {
-    console.log("엣지 해제 시도:", from_node, to_node) // ← 이 로그가 찍히는지 확인
     if (!from_node || !to_node) {
       alert("노드 정보가 올바르지 않습니다.")
       return
@@ -460,7 +502,6 @@ function NaverMap({ setLatLng }) {
     setEdgeConnectHint(true)
   }
 
-  // 현재 노드와 연결된 노드 리스트 구하기 (팝업에서 해제 버튼에 사용)
   function getConnectedNodes(nodeId) {
     const connected = []
     edges.forEach((edge) => {
@@ -471,7 +512,6 @@ function NaverMap({ setLatLng }) {
         if (n.node === nodeId) connected.push(edge.id)
       })
     })
-    // 중복 제거
     return Array.from(new Set(connected))
   }
 

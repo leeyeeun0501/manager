@@ -565,20 +565,16 @@ function NaverMap({ setLatLng, isLoggedIn }) {
         }}
       />
 
-      {/* 통합 모달 팝업 */}
+      {/* 왼쪽 고정 통합 모달 팝업 */}
       {(addPopup.open || deletePopup.open) && (
         <div
           style={{
             position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.08)",
+            top: 80, // 햄버거 메뉴(상단바)와 겹치지 않게 여백
+            left: 32, // 왼쪽 여백
             zIndex: 3000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            // 중앙 오버레이 배경이 필요하면 아래 주석 해제
+            // background: "rgba(0,0,0,0.08)",
           }}
         >
           <div
@@ -593,6 +589,8 @@ function NaverMap({ setLatLng, isLoggedIn }) {
               display: "flex",
               flexDirection: "column",
               alignItems: "stretch",
+              maxHeight: "80vh",
+              overflowY: "auto",
             }}
           >
             {/* 탭 */}
@@ -774,7 +772,6 @@ function NaverMap({ setLatLng, isLoggedIn }) {
                   <strong>경도(y):</strong> {deletePopup.y}
                 </div>
                 <div style={{ fontSize: 15, color: "#555" }}>
-                  <strong>엣지 연결 해제:</strong>
                   <div
                     style={{
                       display: "flex",
@@ -879,15 +876,14 @@ function NaverMap({ setLatLng, isLoggedIn }) {
         <div
           style={{
             position: "fixed",
-            top: 16,
-            left: "50%",
-            transform: "translateX(-50%)",
+            top: 32,
+            left: 410, // 패널(360px) + 여백(32px) + 여유(18px)
+            zIndex: 3500,
             background: "#00C3FF",
             color: "#fff",
             padding: "10px 24px",
             borderRadius: 8,
             fontWeight: "bold",
-            zIndex: 3500,
             boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
           }}
         >

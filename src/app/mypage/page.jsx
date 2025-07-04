@@ -1,8 +1,7 @@
-// mypage
 "use client"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
-import "./mypage.css"
+import styles from "./mypage.module.css"
 
 export default function MyPage() {
   const [user, setUser] = useState({
@@ -17,8 +16,9 @@ export default function MyPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [deleteMsg, setDeleteMsg] = useState("")
   const [deleting, setDeleting] = useState(false)
+  const [showPopup, setShowPopup] = useState(false)
 
-  // 마이 페이지 정보 받아옴
+  // 마이 페이지 정보
   useEffect(() => {
     const id = typeof window !== "undefined" ? localStorage.getItem("id") : ""
     setUser((u) => ({ ...u, id: id || "" }))
@@ -26,7 +26,6 @@ export default function MyPage() {
     fetch(`/api/mypage-route?id=${encodeURIComponent(id)}`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("마이페이지 fetch 결과:", data)
         if (
           data.success &&
           data.user &&
@@ -41,13 +40,9 @@ export default function MyPage() {
             phone: userData.Phone || "",
             email: userData.Email || "",
           }))
-        } else {
-          console.error("마이페이지 fetch 실패 또는 데이터 없음:", data.error)
         }
       })
-      .catch((err) => {
-        console.error("마이페이지 fetch 중 에러:", err)
-      })
+      .catch(() => {})
   }, [])
 
   // 수정 핸들러
@@ -68,7 +63,8 @@ export default function MyPage() {
       })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.success) {
-        setEditMsg(data.message || "회원정보가 수정되었습니다.")
+        setShowPopup(true)
+        setTimeout(() => setShowPopup(false), 2000)
         setPw("")
       } else {
         setEditMsg(data.error || "수정 실패")
@@ -89,7 +85,7 @@ export default function MyPage() {
     fetch("/api/logout-route", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }), // ← id를 body에 담아 보냄
+      body: JSON.stringify({ id }),
     })
     window.location.href = "/login"
   }
@@ -100,7 +96,6 @@ export default function MyPage() {
     if (!window.confirm("정말로 계정을 삭제하시겠습니까?")) return
     setDeleting(true)
     try {
-      // user.id를 body에 담아 DELETE 요청
       const res = await fetch("/api/user-route", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -108,7 +103,6 @@ export default function MyPage() {
       })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.success) {
-        // 성공 시 localStorage 정리 및 로그아웃
         if (typeof window !== "undefined") {
           localStorage.removeItem("id")
           localStorage.removeItem("name")
@@ -126,129 +120,83 @@ export default function MyPage() {
   }
 
   return (
-    <div className="page-root">
-      <aside className="sidebar">
-        <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      </aside>
-      <main className="page-content">
-        <div className="mypage-card">
-          <h2 style={{ marginBottom: 24 }}>마이페이지</h2>
-          <form onSubmit={handleEdit}>
-            <div style={{ marginBottom: 16 }}>
-              <label>아이디</label>
-              <input
-                value={user.id}
-                disabled
-                style={{ width: "100%", padding: 8, background: "#eee" }}
-              />
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <label>이름</label>
-              <input
-                value={user.name}
-                disabled
-                style={{ width: "100%", padding: 8, background: "#eee" }}
-              />
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <label>전화번호</label>
-              <input
-                value={user.phone || ""}
-                onChange={(e) =>
-                  setUser((u) => ({ ...u, phone: e.target.value }))
-                }
-                style={{ width: "100%", padding: 8 }}
-                placeholder="전화번호"
-              />
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <label>이메일</label>
-              <input
-                value={user.email || ""}
-                onChange={(e) =>
-                  setUser((u) => ({ ...u, email: e.target.value }))
-                }
-                style={{ width: "100%", padding: 8 }}
-                placeholder="이메일"
-              />
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <label>비밀번호 변경</label>
-              <input
-                type="password"
-                value={pw}
-                onChange={(e) => setPw(e.target.value)}
-                style={{ width: "100%", padding: 8 }}
-                placeholder="새 비밀번호(변경시만 입력)"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: "100%",
-                padding: 12,
-                background: "#007bff",
-                color: "#fff",
-                border: "none",
-                borderRadius: 6,
-              }}
-            >
-              {loading ? "저장 중..." : "회원정보 수정"}
-            </button>
-          </form>
-          {editMsg && (
-            <div
-              style={{
-                marginTop: 16,
-                color: editMsg.includes("수정") ? "green" : "red",
-              }}
-            >
-              {editMsg}
-            </div>
-          )}
-
-          {/* 로그아웃 버튼 */}
+    <div className={styles["mypage-container"]}>
+      {/* 팝업 메시지 */}
+      {showPopup && (
+        <div className={styles["mypage-popup"]}>회원정보가 수정되었습니다.</div>
+      )}
+      <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+      <div className={styles["mypage-box"]}>
+        <div className={styles["mypage-title"]}>마이페이지</div>
+        <form onSubmit={handleEdit} className={styles["mypage-form"]}>
+          <input
+            className={styles["mypage-input"]}
+            value={user.id}
+            disabled
+            placeholder="아이디"
+          />
+          <input
+            className={styles["mypage-input"]}
+            value={user.name}
+            disabled
+            placeholder="이름"
+          />
+          <input
+            className={styles["mypage-input"]}
+            value={user.phone || ""}
+            onChange={(e) => setUser((u) => ({ ...u, phone: e.target.value }))}
+            placeholder="전화번호"
+          />
+          <input
+            className={styles["mypage-input"]}
+            value={user.email || ""}
+            onChange={(e) => setUser((u) => ({ ...u, email: e.target.value }))}
+            placeholder="이메일"
+          />
+          <input
+            className={styles["mypage-input"]}
+            type="password"
+            value={pw}
+            onChange={(e) => setPw(e.target.value)}
+            placeholder="새 비밀번호"
+          />
           <button
-            onClick={handleLogout}
-            style={{
-              marginTop: 32,
-              width: "100%",
-              padding: 12,
-              background: "#bbb",
-              color: "#333",
-              border: "none",
-              borderRadius: 6,
-            }}
+            type="submit"
+            disabled={loading}
+            className={styles["mypage-btn-main"]}
           >
-            로그아웃
+            {loading ? "저장 중..." : "회원정보 수정"}
           </button>
+        </form>
+        {editMsg && (
+          <div
+            className={
+              styles["mypage-message"] +
+              " " +
+              (editMsg.includes("수정") ? styles.success : styles.error)
+            }
+          >
+            {editMsg}
+          </div>
+        )}
 
-          {/* 계정 삭제 버튼 */}
-          <button
-            onClick={handleDeleteAccount}
-            disabled={deleting}
-            style={{
-              marginTop: 16,
-              width: "100%",
-              padding: 12,
-              background: "#ff4444",
-              color: "#fff",
-              border: "none",
-              borderRadius: 6,
-              fontWeight: "bold",
-            }}
-          >
-            {deleting ? "계정 삭제 중..." : "계정 삭제"}
-          </button>
-          {deleteMsg && (
-            <div style={{ marginTop: 12, color: "red" }}>{deleteMsg}</div>
-          )}
-          {deleteMsg && (
-            <div style={{ marginTop: 12, color: "red" }}>{deleteMsg}</div>
-          )}
-        </div>
-      </main>
+        <button onClick={handleLogout} className={styles["mypage-btn-sub"]}>
+          로그아웃
+        </button>
+
+        <button
+          onClick={handleDeleteAccount}
+          disabled={deleting}
+          className={styles["mypage-btn-danger"]}
+        >
+          {deleting ? "계정 삭제 중..." : "계정 삭제"}
+        </button>
+        {deleteMsg && (
+          <div className={styles["mypage-message"] + " " + styles.error}>
+            {deleteMsg}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

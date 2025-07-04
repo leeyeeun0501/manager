@@ -2,14 +2,25 @@
 "use client"
 import { slide as Menu } from "react-burger-menu"
 import Image from "next/image"
-import { FaBars } from "react-icons/fa"
+import {
+  FaBars,
+  FaHome,
+  FaMapMarkedAlt,
+  FaBuilding,
+  FaDoorOpen,
+  FaLayerGroup,
+  FaUser,
+  FaSignOutAlt,
+} from "react-icons/fa"
 import Link from "next/link"
 import React, { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import styles from "./menu.module.css"
+import { FaUserCircle } from "react-icons/fa"
 
 export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
   const router = useRouter()
+  const pathname = usePathname()
   const [userName, setUserName] = useState("")
 
   useEffect(() => {
@@ -40,80 +51,62 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
     }
   }
 
+  const menuItems = [
+    { label: "Home 화면", icon: <FaHome />, path: "/management" },
+    { label: "Map 관리", icon: <FaMapMarkedAlt />, path: "/tower-manage" },
+    { label: "Floor 관리", icon: <FaBuilding />, path: "/building-manage" },
+    { label: "Room 관리", icon: <FaDoorOpen />, path: "/room-manage" },
+    { label: "Category 관리", icon: <FaLayerGroup />, path: "/mapfile-manage" },
+    { label: "User 관리", icon: <FaUser />, path: "/user-manage" },
+  ]
+
   return (
     <>
-      <div
-        onClick={() => setMenuOpen(true)}
-        className={styles.bmBurgerButton}
-        style={{ cursor: "pointer" }}
-      >
-        <FaBars size={32} />
-      </div>
+      {/* 햄버거 아이콘 */}
+      {!menuOpen && (
+        <div
+          onClick={() => setMenuOpen(true)}
+          className={styles.bmBurgerButton}
+          style={{ cursor: "pointer" }}
+        >
+          <FaBars size={32} />
+        </div>
+      )}
       <Menu
         isOpen={menuOpen}
         onClose={() => setMenuOpen(false)}
         customBurgerIcon={false}
-        width={300}
+        width={260}
         className={styles.bmMenuWrap}
         overlayClassName={styles.bmOverlay}
         menuClassName={styles.bmMenu}
-        itemListClassName={styles.bmItemList}
+        itemListClassName={styles.menuList}
       >
         <div className={styles.menuProfile}>
-          <Image
-            src="/default-profile.png"
-            width={80}
-            height={80}
-            alt="프로필"
+          <FaUserCircle
+            size={64}
+            color="#b0b0b0"
             className={styles.profileImg}
           />
-          <div className={styles.profileName}>
-            {userName || "로그인 사용자"}
-          </div>
+          <div className={styles.profileName}>{userName}</div>
+          <div className={styles.profileRole}>관리자</div>
         </div>
-        <Link
-          href="/management"
-          className={styles.menuLink}
-          onClick={() => setMenuOpen(false)}
-        >
-          Home 화면
-        </Link>
-        <Link
-          href="/tower-manage"
-          className={styles.menuLink}
-          onClick={() => setMenuOpen(false)}
-        >
-          Map 관리
-        </Link>
-        <Link
-          href="/building-manage"
-          className={styles.menuLink}
-          onClick={() => setMenuOpen(false)}
-        >
-          Floor 관리
-        </Link>
-        <Link
-          href="/room-manage"
-          className={styles.menuLink}
-          onClick={() => setMenuOpen(false)}
-        >
-          Room 관리
-        </Link>
-        <Link
-          href="/mapfile-manage"
-          className={styles.menuLink}
-          onClick={() => setMenuOpen(false)}
-        >
-          Category 관리
-        </Link>
-        <Link
-          href="/user-manage"
-          className={styles.menuLink}
-          onClick={() => setMenuOpen(false)}
-        >
-          User 관리
-        </Link>
-        <button onClick={handleLogout} className={styles.menuLink}>
+        {menuItems.map((item) => (
+          <Link
+            key={item.label}
+            href={item.path}
+            className={`${styles.menuLink} ${
+              pathname === item.path ? styles.active : ""
+            }`}
+            onClick={() => setMenuOpen(false)}
+            tabIndex={0}
+          >
+            <span className={styles.menuIcon}>{item.icon}</span>
+            {item.label}
+          </Link>
+        ))}
+        <button className={styles.logoutBtn} onClick={handleLogout}>
+          <FaSignOutAlt style={{ marginRight: 12, fontSize: "1.1em" }} />
           로그아웃
         </button>
       </Menu>

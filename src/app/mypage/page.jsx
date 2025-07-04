@@ -121,11 +121,12 @@ export default function MyPage() {
 
   return (
     <div className={styles["mypage-container"]}>
+      {/* 메뉴바: 항상 최상단에 위치 */}
+      <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       {/* 팝업 메시지 */}
       {showPopup && (
         <div className={styles["mypage-popup"]}>회원정보가 수정되었습니다.</div>
       )}
-      <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className={styles["mypage-box"]}>
         <div className={styles["mypage-title"]}>마이페이지</div>
         <form onSubmit={handleEdit} className={styles["mypage-form"]}>
@@ -158,7 +159,7 @@ export default function MyPage() {
             type="password"
             value={pw}
             onChange={(e) => setPw(e.target.value)}
-            placeholder="새 비밀번호"
+            placeholder="새 비밀번호(변경시만 입력)"
           />
           <button
             type="submit"

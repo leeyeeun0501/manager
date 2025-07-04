@@ -1,67 +1,138 @@
 /* menu.module.css */
-.menuProfile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 32px;
-}
-.profileImg {
-  border-radius: 50%;
-  background: #ddd;
-  margin-bottom: 8px;
-  object-fit: cover;
-}
-.profileName {
-  font-weight: bold;
-  font-size: 1.1rem;
-  margin-bottom: 2px;
-}
 .bmBurgerButton {
   position: fixed;
   width: 32px;
   height: 32px;
   left: 24px;
   top: 24px;
-  z-index: 1001;
+  z-index: 2001;
 }
+
+.bmBurgerBars {
+  background: #222;
+  border-radius: 2px;
+}
+
 .bmMenuWrap {
   top: 0;
   left: 0;
   height: 100vh;
-  width: 300px;
+  width: 260px !important;
 }
+
 .bmMenu {
   background: #fff;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  padding: 20px 0 0 0;
+  padding: 0;
   font-size: 16px;
-}
-.bmItemList {
-  color: #222;
-  padding: 0 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  min-height: 100vh;
 }
-.bmOverlay {
-  background: rgba(0, 0, 0, 0.5);
-}
-.menuLink {
-  color: #222;
-  text-decoration: none;
-  font-size: 1.08rem;
-  font-weight: 500;
-  padding: 10px 0;
-  border-radius: 6px;
-  transition: background 0.13s, color 0.13s;
-  display: block;
+
+.menuProfile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 180px;
+  padding: 0;
+  border-bottom: 1px solid #f0f0f0;
   width: 100%;
-  text-align: left;
+}
+
+.profileImg {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  object-fit: cover;
+  margin-bottom: 12px;
+}
+
+.profileName {
+  font-weight: 700;
+  font-size: 1.08rem;
+  color: #222;
+  margin-bottom: 2px;
+}
+
+.profileRole {
+  font-size: 13px;
+  color: #888;
+}
+
+.menuList {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0 0 0;
+  gap: 2px;
+}
+
+.menuLink {
+  display: flex;
+  align-items: center;
+  padding: 12px 32px;
+  color: #222;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-left: 4px solid transparent;
+  transition: background 0.13s, color 0.13s, border-color 0.13s;
+  background: none;
+  outline: none;
+  text-decoration: none;
+}
+
+.menuLink:hover,
+.menuLink.active {
+  background: #f0f8ff;
+  color: #0070f3;
+  border-left: 4px solid #0070f3;
+}
+
+.menuIcon {
+  margin-right: 14px;
+  font-size: 1.25em;
+  color: #b0b0b0;
+  transition: color 0.13s;
+}
+
+.menuLink:hover .menuIcon,
+.menuLink.active .menuIcon {
+  color: #0070f3;
+}
+
+.logoutBtn {
+  margin: 32px 0 16px 0;
+  padding: 12px 32px;
+  color: #e74c3c;
   background: none;
   border: none;
+  font-size: 1.05rem;
+  font-weight: 500;
   cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.13s, color 0.13s;
 }
-.menuLink:hover {
-  background: #f2eafd;
-  color: #4b2993;
+
+.logoutBtn:hover {
+  background: #fff0f0;
+  color: #c0392b;
+}
+
+.bmMenuWrap {
+  z-index: 3000 !important;
+}
+
+.bmOverlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(180, 180, 180, 0.18) !important;
+  z-index: 2999 !important;
 }

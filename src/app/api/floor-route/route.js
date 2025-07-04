@@ -138,7 +138,7 @@ export async function PUT(request) {
 
 // 층 삭제 (DELETE)
 export async function DELETE(request) {
-  const { searchParams } = new URL(request.url)
+  const { searchParams } = request.nextUrl // ← 수정!
   const building = searchParams.get("building")
   const floor = searchParams.get("floor")
 

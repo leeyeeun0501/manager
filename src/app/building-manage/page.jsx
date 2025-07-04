@@ -219,7 +219,6 @@ export default function BuildingPage() {
     formData.append("building_name", addFloorBuilding)
     formData.append("floor_number", addFloorNum)
     formData.append("file", addFloorFile)
-
     try {
       const res = await fetch("/api/floor-route", {
         method: "POST",

@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useRef, useState } from "react"
 
-function NaverMap({ setLatLng }) {
+function NaverMap({ setLatLng, isLoggedIn }) {
   const mapRef = useRef(null)
   const mapInstance = useRef(null)
   const circlesRef = useRef([])
@@ -90,7 +90,7 @@ function NaverMap({ setLatLng }) {
         setDesc("")
       })
     }
-  }, [setLatLng])
+  }, [isLoggedIn])
 
   // 마커/원/이벤트 등록 (nodes, edges, recentlyAddedNode가 바뀔 때마다)
   useEffect(() => {

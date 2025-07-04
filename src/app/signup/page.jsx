@@ -2,7 +2,7 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import "./signup.module.css"
+import styles from "./signup.module.css" // <-- CSS Module로 변경
 
 export default function SignupPage() {
   const [form, setForm] = useState({
@@ -15,6 +15,7 @@ export default function SignupPage() {
   const [error, setError] = useState("")
   const router = useRouter()
 
+  // 핸들러 함수
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
@@ -47,10 +48,10 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="signup-container">
-      <div className="signup-box">
-        <h2 className="signup-title">회원가입</h2>
-        <form onSubmit={handleSubmit}>
+    <div className={styles["signup-container"]}>
+      <div className={styles["signup-box"]}>
+        <h2 className={styles["signup-title"]}>회원가입</h2>
+        <form onSubmit={handleSubmit} className={styles["signup-form"]}>
           <input
             name="id"
             type="text"
@@ -58,7 +59,7 @@ export default function SignupPage() {
             value={form.id}
             onChange={handleChange}
             required
-            className="signup-input"
+            className={styles["signup-input"]}
           />
           <input
             name="pw"
@@ -67,7 +68,7 @@ export default function SignupPage() {
             value={form.pw}
             onChange={handleChange}
             required
-            className="signup-input"
+            className={styles["signup-input"]}
           />
           <input
             name="name"
@@ -76,7 +77,7 @@ export default function SignupPage() {
             value={form.name}
             onChange={handleChange}
             required
-            className="signup-input"
+            className={styles["signup-input"]}
           />
           <input
             name="phone"
@@ -85,7 +86,7 @@ export default function SignupPage() {
             value={form.phone}
             onChange={handleChange}
             required
-            className="signup-input"
+            className={styles["signup-input"]}
           />
           <input
             name="email"
@@ -94,16 +95,21 @@ export default function SignupPage() {
             value={form.email}
             onChange={handleChange}
             required
-            className="signup-input"
+            className={styles["signup-input"]}
           />
-          <button type="submit" className="signup-btn">
+          <button type="submit" className={styles["signup-btn"]}>
             회원가입
           </button>
-          {error && <div className="signup-error">{error}</div>}
+          {error && <div className={styles["signup-error"]}>{error}</div>}
         </form>
-        <div className="signup-link-box">
+        <div className={styles["signup-link-box"]}>
           이미 계정이 있으신가요?{" "}
-          <a href="/login" onClick={goToLogin} className="signup-link">
+          <a
+            href="/login"
+            onClick={goToLogin}
+            className={styles["signup-link"]}
+            style={{ cursor: "pointer" }}
+          >
             로그인
           </a>
         </div>

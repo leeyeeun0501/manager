@@ -36,6 +36,8 @@ function NaverMap({ setLatLng, isLoggedIn }) {
   })
   const [recentlyAddedNode, setRecentlyAddedNode] = useState(null)
 
+  const [selectedMarker, setSelectedMarker] = useState(null)
+
   // 최초 nodes, edges 모두 fetch
   useEffect(() => {
     fetchNodes()
@@ -44,26 +46,22 @@ function NaverMap({ setLatLng, isLoggedIn }) {
 
   // 지도 최초 생성 및 클릭 마커 + 추가 팝업
   useEffect(() => {
-    const { naver } = window
-    if (!naver || !mapRef.current) return
+    if (typeof window === "undefined" || !window.naver || !mapRef.current)
+      return
 
     if (!mapInstance.current) {
-      // 복원할 위치/줌 읽기
-      let center = new naver.maps.LatLng(36.3360143, 127.4453897)
+      let center = new window.naver.maps.LatLng(36.3360143, 127.4453897)
       let zoom = 18
       try {
         const saved = JSON.parse(localStorage.getItem("naverMapCenter"))
         if (saved && saved.lat && saved.lng) {
-          center = new naver.maps.LatLng(saved.lat, saved.lng)
+          center = new window.naver.maps.LatLng(saved.lat, saved.lng)
         }
         const savedZoom = parseInt(localStorage.getItem("naverMapZoom"), 10)
         if (!isNaN(savedZoom)) zoom = savedZoom
       } catch (e) {}
 
-      const map = new naver.maps.Map(mapRef.current, {
-        center,
-        zoom,
-      })
+      const map = new window.naver.maps.Map(mapRef.current, { center, zoom })
       mapInstance.current = map
 
       // ★ 여기서 바로 삭제!
@@ -94,7 +92,7 @@ function NaverMap({ setLatLng, isLoggedIn }) {
 
   // 마커/원/이벤트 등록 (nodes, edges, recentlyAddedNode가 바뀔 때마다)
   useEffect(() => {
-    const { naver } = window
+    const naver = window.naver
     const map = mapInstance.current
     if (!naver || !map) return
 
@@ -198,6 +196,14 @@ function NaverMap({ setLatLng, isLoggedIn }) {
           setEdgeConnectHint(false)
           return
         }
+        setSelectedMarker({
+          id,
+          node_name: node_name || id,
+          x,
+          y,
+          desc, // 필요시
+          // profileImg: ... // 프로필 이미지가 있다면 추가
+        })
         setDeletePopup({
           open: true,
           id,
@@ -265,7 +271,7 @@ function NaverMap({ setLatLng, isLoggedIn }) {
 
   // Polyline(노드 선) 표시 (edges + nodes 매핑)
   useEffect(() => {
-    const { naver } = window
+    const naver = window.naver
     const map = mapInstance.current
     if (!naver || !map) return
 
@@ -546,7 +552,6 @@ function NaverMap({ setLatLng, isLoggedIn }) {
           boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
         }}
       />
-
       {/* 건물/노드 추가 팝업 */}
       {addPopup.open && (
         <div

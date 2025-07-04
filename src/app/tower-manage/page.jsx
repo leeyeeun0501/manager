@@ -1,7 +1,7 @@
 // tower-manage
 "use client"
 import React, { useState, useEffect } from "react"
-import NaverMap from "../components/navermap"
+import NaverMap from "./navermap"
 import Menu from "../components/menu"
 import "./tower-manage.css"
 
@@ -26,7 +26,7 @@ export default function TowerPage() {
     <div className="tower-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className="tower-centerbox">
-        <h2 className="tower-header">경로/건물 위치 관리</h2>
+        <h2 className="tower-header">건물/경로 위치 관리</h2>
         <div className="tower-map-wrapper">
           <NaverMap setLatLng={setLatLng} nodes={nodes} />
         </div>

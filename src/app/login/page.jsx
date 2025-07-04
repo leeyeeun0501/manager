@@ -90,23 +90,6 @@ export default function LoginPage() {
           </button>
           {error && <div className={styles["login-error"]}>{error}</div>}
         </form>
-        <div className={styles["login-link-box"]}>
-          <span
-            className={styles["login-link"]}
-            style={{ cursor: "pointer" }}
-            onClick={goToFindId}
-          >
-            아이디 찾기
-          </span>
-          <span style={{ color: "#bbb", margin: "0 8px" }}>|</span>
-          <span
-            className={styles["login-link"]}
-            style={{ cursor: "pointer" }}
-            onClick={goToFindPw}
-          >
-            비밀번호 찾기
-          </span>
-        </div>
         <div
           style={{
             marginTop: "16px",

@@ -99,6 +99,13 @@ function NaverMap({ setLatLng, isLoggedIn }) {
     if (!naver || !map) return
 
     // 1. 기존 마커/원 완전 초기화
+    if (Array.isArray(circlesRef.current)) {
+      circlesRef.current.forEach((circle) => {
+        if (circle && typeof circle.setMap === "function") {
+          circle.setMap(null)
+        }
+      })
+    }
     circlesRef.current.forEach((circle) => circle?.setMap(null))
     markersRef.current.forEach((marker) => marker?.setMap(null))
     circlesRef.current = []

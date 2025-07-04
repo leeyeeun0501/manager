@@ -6,7 +6,7 @@ import { FaBars } from "react-icons/fa"
 import Link from "next/link"
 import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import "./menu.css"
+import styles from "./menu.module.css"
 
 export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
   const router = useRouter()
@@ -18,7 +18,6 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
     }
   }, [menuOpen])
 
-  // 로그아웃 핸들러
   const handleLogout = async () => {
     const id = localStorage.getItem("id")
     try {
@@ -43,89 +42,78 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
 
   return (
     <>
-      {/* 햄버거 아이콘 */}
-      <FaBars
-        size={28}
+      <div
         onClick={() => setMenuOpen(true)}
-        className="bm-burger-button"
+        className={styles.bmBurgerButton}
         style={{ cursor: "pointer" }}
-      />
+      >
+        <FaBars size={32} />
+      </div>
       <Menu
         isOpen={menuOpen}
         onClose={() => setMenuOpen(false)}
         customBurgerIcon={false}
         width={300}
-        className="bm-menu-wrap"
-        overlayClassName="bm-overlay"
-        menuClassName="bm-menu"
-        itemListClassName="bm-item-list"
+        className={styles.bmMenuWrap}
+        overlayClassName={styles.bmOverlay}
+        menuClassName={styles.bmMenu}
+        itemListClassName={styles.bmItemList}
       >
-        <div className="menu-profile">
+        <div className={styles.menuProfile}>
           <Image
-            src="/profile.png"
-            alt="프로필"
+            src="/default-profile.png"
             width={80}
             height={80}
-            className="profile-img"
-            priority
+            alt="프로필"
+            className={styles.profileImg}
           />
-          <div className="profile-name">{userName || "로그인 사용자"}</div>
+          <div className={styles.profileName}>
+            {userName || "로그인 사용자"}
+          </div>
         </div>
         <Link
           href="/management"
-          className="menu-link"
+          className={styles.menuLink}
           onClick={() => setMenuOpen(false)}
         >
-          홈 화면
+          Home 화면
         </Link>
         <Link
           href="/tower-manage"
-          className="menu-link"
+          className={styles.menuLink}
           onClick={() => setMenuOpen(false)}
         >
-          건물 관리
+          Map 관리
         </Link>
         <Link
           href="/building-manage"
-          className="menu-link"
+          className={styles.menuLink}
           onClick={() => setMenuOpen(false)}
         >
-          층 관리
+          Floor 관리
         </Link>
         <Link
           href="/room-manage"
-          className="menu-link"
+          className={styles.menuLink}
           onClick={() => setMenuOpen(false)}
         >
-          강의실 관리
+          Room 관리
         </Link>
         <Link
           href="/mapfile-manage"
-          className="menu-link"
+          className={styles.menuLink}
           onClick={() => setMenuOpen(false)}
         >
-          카테고리 관리
+          Category 관리
         </Link>
         <Link
           href="/user-manage"
-          className="menu-link"
+          className={styles.menuLink}
           onClick={() => setMenuOpen(false)}
         >
-          사용자 관리
+          User 관리
         </Link>
-        <button
-          className="menu-link"
-          onClick={handleLogout}
-          style={{
-            background: "none",
-            border: "none",
-            textAlign: "left",
-            width: "100%",
-            cursor: "pointer",
-            padding: 0,
-            marginTop: 16,
-          }}
-        >
+        <button onClick={handleLogout} className={styles.menuLink}>
           로그아웃
         </button>
       </Menu>

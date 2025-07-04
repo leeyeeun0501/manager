@@ -1,25 +1,22 @@
-/* menu.css */
-.menu-profile {
+/* menu.module.css */
+.menuProfile {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-bottom: 32px;
 }
-
-.profile-img {
+.profileImg {
   border-radius: 50%;
   background: #ddd;
   margin-bottom: 8px;
   object-fit: cover;
 }
-
-.profile-name {
+.profileName {
   font-weight: bold;
   font-size: 1.1rem;
   margin-bottom: 2px;
 }
-
-.bm-burger-button {
+.bmBurgerButton {
   position: fixed;
   width: 32px;
   height: 32px;
@@ -27,49 +24,44 @@
   top: 24px;
   z-index: 1001;
 }
-
-.bm-burger-bars {
-  background: #222;
-  border-radius: 2px;
-}
-
-.bm-menu-wrap {
+.bmMenuWrap {
   top: 0;
   left: 0;
   height: 100vh;
   width: 300px;
 }
-
-.bm-menu {
+.bmMenu {
   background: #fff;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   padding: 20px 0 0 0;
   font-size: 16px;
 }
-
-.bm-item-list {
+.bmItemList {
   color: #222;
   padding: 0 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
-
-.bm-overlay {
+.bmOverlay {
   background: rgba(0, 0, 0, 0.5);
 }
-
-.menu-link {
+.menuLink {
   color: #222;
   text-decoration: none;
   font-size: 1.08rem;
   font-weight: 500;
   padding: 10px 0;
   border-radius: 6px;
-  transition: background 0.13s;
+  transition: background 0.13s, color 0.13s;
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
-
-.menu-link:hover {
+.menuLink:hover {
   background: #f2eafd;
   color: #4b2993;
 }

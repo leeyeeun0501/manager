@@ -110,19 +110,6 @@
   background: #f0f8ff;
 }
 
-.login-link-box {
-  margin-top: 16px;
-  font-size: 14px;
-  color: #888;
-}
-
-.login-link {
-  color: #0070f3;
-  text-decoration: underline;
-  cursor: pointer;
-  font-weight: 500;
-}
-
 .login-error {
   color: #e00;
   margin-top: 10px;

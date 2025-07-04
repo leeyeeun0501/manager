@@ -11,7 +11,7 @@ export default function ProfileButton() {
       onClick={() => router.push("/mypage")}
       aria-label="마이페이지로 이동"
       style={{
-        background: "none",
+        background: "transparent",
         border: "none",
         padding: 0,
         margin: 0,
@@ -22,7 +22,7 @@ export default function ProfileButton() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+        boxShadow: "none",
         transition: "box-shadow 0.2s",
       }}
     >

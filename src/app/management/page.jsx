@@ -2,7 +2,7 @@
 "use client"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
-import "./management.css"
+import styles from "./management.module.css" // css module로 변경
 
 export default function ManagementPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -42,21 +42,21 @@ export default function ManagementPage() {
   }, [])
 
   return (
-    <div className="management-root">
+    <div className={styles["management-root"]}>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <div className="management-content">
-        <div className="dashboard-summary-row">
-          <div className="dashboard-summary-box">
-            <div className="summary-label">총 건물 수</div>
-            <div className="summary-value">{summary.building}</div>
+      <div className={styles["management-content"]}>
+        <div className={styles["dashboard-summary-row"]}>
+          <div className={styles["dashboard-summary-box"]}>
+            <div className={styles["summary-label"]}>총 건물 수</div>
+            <div className={styles["summary-value"]}>{summary.building}</div>
           </div>
-          <div className="dashboard-summary-box">
-            <div className="summary-label">총 강의실 수</div>
-            <div className="summary-value">{summary.classroom}</div>
+          <div className={styles["dashboard-summary-box"]}>
+            <div className={styles["summary-label"]}>총 강의실 수</div>
+            <div className={styles["summary-value"]}>{summary.classroom}</div>
           </div>
-          <div className="dashboard-summary-box">
-            <div className="summary-label">등록 사용자</div>
-            <div className="summary-value">{summary.user}</div>
+          <div className={styles["dashboard-summary-box"]}>
+            <div className={styles["summary-label"]}>등록 사용자</div>
+            <div className={styles["summary-value"]}>{summary.user}</div>
           </div>
         </div>
       </div>

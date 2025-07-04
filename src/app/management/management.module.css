@@ -1,4 +1,4 @@
-/* management.css */
+/* management.module.css */
 .management-root {
   min-height: 100vh;
   background: #f7f7f7;
@@ -88,7 +88,7 @@
 .summary-value {
   font-size: 2.5rem;
   font-weight: 800;
-  color: #4b2993;
+  color: #0070f3;
 }
 
 .dashboard-section {
@@ -161,11 +161,7 @@
 }
 
 .menu-link {
-  align-self: flex-start;
-  width: 100%;
-  padding-left: 24px;
-  margin-bottom: 6px;
-  color: #4b2993;
+  color: #0070f3;
   font-weight: 600;
   text-decoration: underline;
   font-size: 1.08rem;
@@ -174,5 +170,5 @@
 }
 
 .menu-link:hover {
-  color: #2d125c;
+  color: #005bb5;
 }

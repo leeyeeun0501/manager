@@ -98,17 +98,26 @@ function NaverMap({ setLatLng, isLoggedIn }) {
     const map = mapInstance.current
     if (!naver || !map) return
 
-    // 1. 기존 마커/원 완전 초기화
+    // 1. 기존 마커/원 완전 초기화 (안전하게!)
     if (Array.isArray(circlesRef.current)) {
       circlesRef.current.forEach((circle) => {
-        if (
-          circle &&
-          typeof circle.setMap === "function" &&
-          // 네이버 지도 객체가 정상적으로 생성된 경우만
-          circle.map !== null &&
-          circle.map !== undefined
-        ) {
-          circle.setMap(null)
+        if (circle && typeof circle.setMap === "function") {
+          try {
+            circle.setMap(null)
+          } catch (e) {
+            // 이미 해제된 객체라면 오류 무시
+          }
+        }
+      })
+    }
+    if (Array.isArray(markersRef.current)) {
+      markersRef.current.forEach((marker) => {
+        if (marker && typeof marker.setMap === "function") {
+          try {
+            marker.setMap(null)
+          } catch (e) {
+            // 이미 해제된 객체라면 오류 무시
+          }
         }
       })
     }

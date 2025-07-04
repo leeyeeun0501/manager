@@ -159,7 +159,7 @@ export default function MyPage() {
             type="password"
             value={pw}
             onChange={(e) => setPw(e.target.value)}
-            placeholder="새 비밀번호(변경시만 입력)"
+            placeholder="새 비밀번호"
           />
           <button
             type="submit"

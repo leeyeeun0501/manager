@@ -1,7 +1,6 @@
 // menu components
 "use client"
 import { slide as Menu } from "react-burger-menu"
-import Image from "next/image"
 import {
   FaBars,
   FaHome,

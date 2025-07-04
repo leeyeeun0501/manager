@@ -21,13 +21,13 @@
 }
 
 .bmMenu {
-  background: #fff;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  padding: 0;
-  font-size: 16px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center; /* 세로 중앙! */
   min-height: 100vh;
+  padding: 0;
+  background: #fff;
 }
 
 .menuProfile {
@@ -35,15 +35,19 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 180px;
+  width: 100%;
+  min-height: 200px;
+  margin-top: 0;
+  margin-bottom: 0;
   padding: 0;
   border-bottom: 1px solid #f0f0f0;
-  width: 100%;
+  box-sizing: border-box;
+  margin-left: 60px;
 }
 
 .profileImg {
-  width: 64px;
-  height: 64px;
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
   background: #e5e7eb;
   object-fit: cover;
@@ -52,14 +56,16 @@
 
 .profileName {
   font-weight: 700;
-  font-size: 1.08rem;
+  font-size: 1.2rem;
   color: #222;
   margin-bottom: 2px;
+  margin-left: 25px;
 }
 
 .profileRole {
   font-size: 13px;
   color: #888;
+  margin-left: 30px;
 }
 
 .menuList {

@@ -542,221 +542,343 @@ function NaverMap({ setLatLng, isLoggedIn }) {
   }
 
   return (
-    <div style={{ position: "relative" }}>
+    <div
+      style={{
+        position: "relative",
+        width: "100vw",
+        height: "100vh",
+        overflow: "hidden",
+      }}
+    >
       <div
         ref={mapRef}
         style={{
-          width: "1000px",
-          height: "600px",
-          borderRadius: "12px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+          width: "100vw",
+          height: "100vh",
+          borderRadius: 0,
+          boxShadow: "none",
+          position: "absolute",
+          left: 0,
+          top: 0,
+          zIndex: 1,
+          background: "#f5f6fa",
         }}
       />
-      {/* 건물/노드 추가 팝업 */}
-      {addPopup.open && (
-        <div
-          style={{
-            position: "absolute",
-            top: 40,
-            left: 40,
-            background: "#fff",
-            border: "1px solid #ddd",
-            borderRadius: 8,
-            padding: 24,
-            zIndex: 2000,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-            width: 320,
-          }}
-        >
-          <h3 style={{ marginTop: 0 }}>노드/건물 추가</h3>
-          <form onSubmit={handleAddNode}>
-            <div style={{ marginBottom: 12 }}>
-              <label>
-                <input
-                  type="radio"
-                  name="type"
-                  value="building"
-                  checked={type === "building"}
-                  onChange={() => setType("building")}
-                />{" "}
-                건물
-              </label>
-              <label style={{ marginLeft: 16 }}>
-                <input
-                  type="radio"
-                  name="type"
-                  value="node"
-                  checked={type === "node"}
-                  onChange={() => setType("node")}
-                />{" "}
-                노드
-              </label>
-            </div>
-            {type === "building" && (
-              <div style={{ marginBottom: 12 }}>
-                <label>
-                  이름
-                  <br />
-                  <input
-                    type="text"
-                    value={nodeName}
-                    onChange={(e) => setNodeName(e.target.value)}
-                    style={{ width: "100%" }}
-                    required
-                  />
-                </label>
-              </div>
-            )}
-            {type === "node" && (
-              <div style={{ marginBottom: 12 }}>
-                <strong>자동 생성 노드명:</strong> {getNextONodeName()}
-              </div>
-            )}
-            {type === "building" && (
-              <div style={{ marginBottom: 12 }}>
-                <label>
-                  설명
-                  <br />
-                  <textarea
-                    value={desc}
-                    onChange={(e) => setDesc(e.target.value)}
-                    style={{ width: "100%" }}
-                    rows={3}
-                  />
-                </label>
-              </div>
-            )}
-            <div style={{ marginBottom: 12 }}>
-              <strong>위도(x):</strong> {addPopup.x}
-              <br />
-              <strong>경도(y):</strong> {addPopup.y}
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <button
-                type="button"
-                onClick={handleClosePopup}
-                style={{ marginRight: 8 }}
-              >
-                취소
-              </button>
-              <button
-                type="submit"
-                style={{
-                  background: "#00C3FF",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 4,
-                  padding: "6px 18px",
-                }}
-              >
-                저장
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
 
-      {/* 건물/노드 삭제/엣지 팝업 */}
-      {deletePopup.open && (
+      {/* 통합 모달 팝업 */}
+      {(addPopup.open || deletePopup.open) && (
         <div
           style={{
-            position: "absolute",
-            top: 100,
-            left: 40,
-            background: "#fff",
-            border: "1px solid #ddd",
-            borderRadius: 8,
-            padding: 24,
-            zIndex: 2000,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-            width: 320,
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.08)",
+            zIndex: 3000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          <h3 style={{ marginTop: 0 }}>노드/건물 삭제</h3>
-          <div style={{ marginBottom: 12 }}>
-            <strong>이름:</strong> {deletePopup.node_name}
-            <br />
-            <strong>위도(x):</strong> {deletePopup.x}
-            <br />
-            <strong>경도(y):</strong> {deletePopup.y}
-          </div>
-          {/* 엣지 해제 버튼 목록 */}
-          <div style={{ marginBottom: 12 }}>
-            <strong>엣지 연결 해제:</strong>
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 24,
+              padding: "36px 32px 28px 32px",
+              boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
+              minWidth: 340,
+              maxWidth: "95vw",
+              width: 360,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "stretch",
+            }}
+          >
+            {/* 탭 */}
             <div
               style={{
                 display: "flex",
-                flexWrap: "wrap",
-                gap: "6px 8px",
-                marginTop: 6,
+                justifyContent: "center",
+                marginBottom: 24,
+                gap: 8,
               }}
             >
-              {getConnectedNodes(deletePopup.id).length === 0 && (
-                <span style={{ color: "#888" }}>연결된 노드 없음</span>
-              )}
-              {getConnectedNodes(deletePopup.id).map((otherId) => (
-                <button
-                  key={otherId}
-                  type="button"
-                  style={{
-                    background: "#ffb300",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    padding: "4px 12px",
-                    fontSize: "0.95em",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => handleEdgeDisconnect(deletePopup.id, otherId)}
-                >
-                  {otherId} 엣지 연결 해제
-                </button>
-              ))}
+              <button
+                className={`modal-tab-btn${addPopup.open ? " active" : ""}`}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: 17,
+                  fontWeight: 600,
+                  color: addPopup.open ? "#0070f3" : "#888",
+                  padding: "8px 16px",
+                  borderBottom: addPopup.open
+                    ? "2.5px solid #0070f3"
+                    : "2.5px solid transparent",
+                  cursor: "pointer",
+                  transition: "color 0.2s, border-bottom 0.2s",
+                }}
+                onClick={() => {
+                  setAddPopup({ ...addPopup, open: true })
+                  setDeletePopup({ ...deletePopup, open: false })
+                }}
+              >
+                노드/건물 추가
+              </button>
+              <button
+                className={`modal-tab-btn${deletePopup.open ? " active" : ""}`}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: 17,
+                  fontWeight: 600,
+                  color: deletePopup.open ? "#0070f3" : "#888",
+                  padding: "8px 16px",
+                  borderBottom: deletePopup.open
+                    ? "2.5px solid #0070f3"
+                    : "2.5px solid transparent",
+                  cursor: "pointer",
+                  transition: "color 0.2s, border-bottom 0.2s",
+                }}
+                onClick={() => {
+                  setAddPopup({ ...addPopup, open: false })
+                  setDeletePopup({ ...deletePopup, open: true })
+                }}
+              >
+                노드/건물 관리
+              </button>
             </div>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <button
-              type="button"
-              onClick={handleCloseDeletePopup}
-              style={{ marginRight: 8 }}
-            >
-              취소
-            </button>
-            <button
-              type="button"
-              onClick={handleDeleteNode}
-              style={{
-                background: "#ff4d4f",
-                color: "#fff",
-                border: "none",
-                borderRadius: 4,
-                padding: "6px 18px",
-              }}
-            >
-              삭제
-            </button>
-            <button
-              type="button"
-              onClick={() => handleStartEdgeConnect(deletePopup)}
-              style={{
-                background: "#00C3FF",
-                color: "#fff",
-                border: "none",
-                borderRadius: 4,
-                padding: "6px 18px",
-                marginLeft: 8,
-              }}
-            >
-              엣지 연결
-            </button>
+
+            {/* 추가 폼 */}
+            {addPopup.open && (
+              <form
+                style={{ display: "flex", flexDirection: "column", gap: 14 }}
+                onSubmit={handleAddNode}
+              >
+                <div style={{ display: "flex", gap: 18, marginBottom: 8 }}>
+                  <label>
+                    <input
+                      type="radio"
+                      name="type"
+                      value="building"
+                      checked={type === "building"}
+                      onChange={() => setType("building")}
+                    />{" "}
+                    건물
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="type"
+                      value="node"
+                      checked={type === "node"}
+                      onChange={() => setType("node")}
+                    />{" "}
+                    노드
+                  </label>
+                </div>
+                {type === "building" && (
+                  <>
+                    <input
+                      style={{
+                        width: "100%",
+                        padding: 12,
+                        borderRadius: 18,
+                        border: "1px solid #bbb",
+                        fontSize: 16,
+                        marginBottom: 0,
+                      }}
+                      type="text"
+                      value={nodeName}
+                      onChange={(e) => setNodeName(e.target.value)}
+                      placeholder="이름"
+                      required
+                    />
+                    <textarea
+                      style={{
+                        width: "100%",
+                        padding: 12,
+                        borderRadius: 18,
+                        border: "1px solid #bbb",
+                        fontSize: 16,
+                        marginBottom: 0,
+                      }}
+                      value={desc}
+                      onChange={(e) => setDesc(e.target.value)}
+                      placeholder="설명"
+                      rows={3}
+                    />
+                  </>
+                )}
+                {type === "node" && (
+                  <div style={{ fontSize: 15, color: "#555" }}>
+                    <strong>자동 생성 노드명:</strong> {getNextONodeName()}
+                  </div>
+                )}
+                <div style={{ fontSize: 15, color: "#555" }}>
+                  <strong>위도(x):</strong> {addPopup.x} <br />
+                  <strong>경도(y):</strong> {addPopup.y}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    gap: 8,
+                    marginTop: 10,
+                  }}
+                >
+                  <button
+                    type="button"
+                    style={{
+                      padding: "10px 22px",
+                      borderRadius: 24,
+                      border: "none",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      background: "#eee",
+                      color: "#333",
+                      cursor: "pointer",
+                    }}
+                    onClick={handleClosePopup}
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="submit"
+                    style={{
+                      padding: "10px 22px",
+                      borderRadius: 24,
+                      border: "none",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      background: "#0070f3",
+                      color: "#fff",
+                      cursor: "pointer",
+                    }}
+                  >
+                    저장
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* 삭제/엣지 관리 */}
+            {deletePopup.open && (
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 14 }}
+              >
+                <div style={{ fontSize: 15, color: "#555" }}>
+                  <strong>이름:</strong> {deletePopup.node_name} <br />
+                  <strong>위도(x):</strong> {deletePopup.x} <br />
+                  <strong>경도(y):</strong> {deletePopup.y}
+                </div>
+                <div style={{ fontSize: 15, color: "#555" }}>
+                  <strong>엣지 연결 해제:</strong>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "6px 8px",
+                      marginTop: 6,
+                    }}
+                  >
+                    {getConnectedNodes(deletePopup.id).length === 0 && (
+                      <span style={{ color: "#aaa", fontSize: 14 }}>
+                        연결된 노드 없음
+                      </span>
+                    )}
+                    {getConnectedNodes(deletePopup.id).map((otherId) => (
+                      <button
+                        key={otherId}
+                        type="button"
+                        style={{
+                          background: "#ffb300",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 16,
+                          padding: "7px 14px",
+                          fontSize: 14,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                        onClick={() =>
+                          handleEdgeDisconnect(deletePopup.id, otherId)
+                        }
+                      >
+                        {otherId} 엣지 해제
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    gap: 8,
+                    marginTop: 10,
+                  }}
+                >
+                  <button
+                    type="button"
+                    style={{
+                      padding: "10px 22px",
+                      borderRadius: 24,
+                      border: "none",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      background: "#eee",
+                      color: "#333",
+                      cursor: "pointer",
+                    }}
+                    onClick={handleCloseDeletePopup}
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="button"
+                    style={{
+                      padding: "10px 22px",
+                      borderRadius: 24,
+                      border: "none",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      background: "#ff4d4f",
+                      color: "#fff",
+                      cursor: "pointer",
+                    }}
+                    onClick={handleDeleteNode}
+                  >
+                    삭제
+                  </button>
+                  <button
+                    type="button"
+                    style={{
+                      padding: "10px 22px",
+                      borderRadius: 24,
+                      border: "none",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      background: "#0070f3",
+                      color: "#fff",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => handleStartEdgeConnect(deletePopup)}
+                  >
+                    엣지 연결
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
 
+      {/* 엣지 연결 안내 */}
       {edgeConnectHint && (
         <div
           style={{
-            position: "absolute",
+            position: "fixed",
             top: 16,
             left: "50%",
             transform: "translateX(-50%)",
@@ -765,7 +887,7 @@ function NaverMap({ setLatLng, isLoggedIn }) {
             padding: "10px 24px",
             borderRadius: 8,
             fontWeight: "bold",
-            zIndex: 3000,
+            zIndex: 3500,
             boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
           }}
         >

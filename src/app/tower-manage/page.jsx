@@ -25,17 +25,12 @@ export default function TowerPage() {
   return (
     <div className="tower-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <div className="tower-centerbox">
-        <h2 className="tower-header">건물/경로 위치 관리</h2>
-        <div className="tower-map-wrapper">
-          <NaverMap setLatLng={setLatLng} nodes={nodes} />
+      <NaverMap setLatLng={setLatLng} nodes={nodes} />
+      {latLng && (
+        <div className="latlng-display">
+          <b>선택 좌표:</b> 위도 {latLng.lat}, 경도 {latLng.lng}
         </div>
-        {latLng && (
-          <div className="latlng-display">
-            <b>선택 좌표:</b> 위도 {latLng.lat}, 경도 {latLng.lng}
-          </div>
-        )}
-      </div>
+      )}
     </div>
   )
 }

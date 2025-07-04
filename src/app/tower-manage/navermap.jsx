@@ -70,15 +70,14 @@ function NaverMap({ setLatLng, isLoggedIn }) {
 
       naver.maps.Event.addListener(map, "click", function (e) {
         const latlng = e.coord
-        if (!clickMarkerRef.current) {
-          clickMarkerRef.current = new naver.maps.Marker({
-            position: latlng,
-            map,
-            zIndex: 999,
-          })
-        } else {
-          clickMarkerRef.current.setPosition(latlng)
-        }
+        setDeletePopup({
+          open: false,
+          id: null,
+          node_name: "",
+          type: "",
+          x: null,
+          y: null,
+        })
         setAddPopup({
           open: true,
           x: latlng.y,
@@ -89,6 +88,22 @@ function NaverMap({ setLatLng, isLoggedIn }) {
       })
     }
   }, [isLoggedIn])
+
+  useEffect(() => {
+    if (!window.naver || !mapInstance.current) return
+    if (!nodes || nodes.length === 0) return
+
+    // 모든 노드의 x, y 평균값 계산
+    const xs = nodes.map((n) => n.x).filter((x) => typeof x === "number")
+    const ys = nodes.map((n) => n.y).filter((y) => typeof y === "number")
+    if (xs.length === 0 || ys.length === 0) return
+
+    const avgX = xs.reduce((a, b) => a + b, 0) / xs.length
+    const avgY = ys.reduce((a, b) => a + b, 0) / ys.length
+
+    // 지도 중심 이동
+    mapInstance.current.setCenter(new window.naver.maps.LatLng(avgX, avgY))
+  }, [nodes])
 
   // 마커/원/이벤트 등록 (nodes, edges, recentlyAddedNode가 바뀔 때마다)
   useEffect(() => {
@@ -162,48 +177,9 @@ function NaverMap({ setLatLng, isLoggedIn }) {
 
       // 마커 클릭 이벤트
       naver.maps.Event.addListener(marker, "click", function () {
-        console.log("마커 클릭됨", id, node_name)
-        if (edgeConnectMode.active) {
-          if (
-            edgeConnectMode.fromNode &&
-            edgeConnectMode.fromNode.node_name === (node_name || id)
-          ) {
-            setEdgeConnectMode({ active: false, fromNode: null })
-            setEdgeConnectHint(false)
-            alert("같은 노드는 연결할 수 없습니다.")
-            return
-          }
-          const alreadyConnected = edges.some(
-            (edge) =>
-              (edge.id === edgeConnectMode.fromNode.node_name &&
-                edge.nodes.some((n) => n.node === (node_name || id))) ||
-              (edge.id === (node_name || id) &&
-                edge.nodes.some(
-                  (n) => n.node === edgeConnectMode.fromNode.node_name
-                ))
-          )
-          if (alreadyConnected) {
-            setEdgeConnectMode({ active: false, fromNode: null })
-            setEdgeConnectHint(false)
-            alert("이미 연결된 노드입니다.")
-            return
-          }
-          handleEdgeConnect(edgeConnectMode.fromNode, {
-            id,
-            node_name: node_name || id,
-          })
-          setEdgeConnectMode({ active: false, fromNode: null })
-          setEdgeConnectHint(false)
-          return
-        }
-        setSelectedMarker({
-          id,
-          node_name: node_name || id,
-          x,
-          y,
-          desc, // 필요시
-          // profileImg: ... // 프로필 이미지가 있다면 추가
-        })
+        if (edgeConnectMode.active) return
+        // 팝업 상태를 확실히 하나만!
+        setAddPopup({ open: false, x: null, y: null })
         setDeletePopup({
           open: true,
           id,
@@ -216,6 +192,7 @@ function NaverMap({ setLatLng, isLoggedIn }) {
 
       // 원 클릭 이벤트도 동일하게 등록 (혹시 원 위에 마커가 겹쳐서 클릭 안 되는 경우 대비)
       naver.maps.Event.addListener(circle, "click", function () {
+        setAddPopup({ open: false, x: null, y: null })
         setDeletePopup({
           open: true,
           id,

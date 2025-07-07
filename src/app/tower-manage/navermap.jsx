@@ -5,7 +5,6 @@ function NaverMap({ setLatLng, isLoggedIn }) {
   const mapRef = useRef(null)
   const mapInstance = useRef(null)
   const circlesRef = useRef([])
-  const clickMarkerRef = useRef(null)
   const markersRef = useRef([])
   const polylineRef = useRef([])
 
@@ -36,8 +35,6 @@ function NaverMap({ setLatLng, isLoggedIn }) {
   })
   const [recentlyAddedNode, setRecentlyAddedNode] = useState(null)
 
-  const [selectedMarker, setSelectedMarker] = useState(null)
-
   const tempMarkerRef = useRef(null)
 
   // 최초 nodes, edges 모두 fetch
@@ -52,7 +49,7 @@ function NaverMap({ setLatLng, isLoggedIn }) {
       return
 
     if (!mapInstance.current) {
-      let center = new window.naver.maps.LatLng(36.3360143, 127.4453897)
+      let center = new window.naver.maps.LatLng(36.3377622, 127.4460928)
       let zoom = 17
       try {
         const saved = JSON.parse(localStorage.getItem("naverMapCenter"))
@@ -556,6 +553,24 @@ function NaverMap({ setLatLng, isLoggedIn }) {
       })
     })
     return Array.from(new Set(connected))
+  }
+
+  // 팝업 닫기 함수
+  function closeAllPopups() {
+    setAddPopup({ open: false, x: null, y: null })
+    setDeletePopup({
+      open: false,
+      id: null,
+      node_name: "",
+      type: "",
+      x: null,
+      y: null,
+    })
+    // 임시 마커도 제거
+    if (tempMarkerRef.current) {
+      tempMarkerRef.current.setMap(null)
+      tempMarkerRef.current = null
+    }
   }
 
   return (

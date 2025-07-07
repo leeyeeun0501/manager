@@ -88,7 +88,6 @@ function NaverMap({ setLatLng, isLoggedIn }) {
           tempMarkerRef.current.setMap(null)
           tempMarkerRef.current = null
         }
-        // 네이버 기본 마커 생성 (icon 옵션 없이)
         tempMarkerRef.current = new window.naver.maps.Marker({
           position: new window.naver.maps.LatLng(e.coord.y, e.coord.x),
           map,
@@ -360,6 +359,19 @@ function NaverMap({ setLatLng, isLoggedIn }) {
       return
     }
 
+    // === 지도 위치/줌 저장 (여기서 반드시 먼저 저장!) ===
+    const map = mapInstance.current
+    if (map) {
+      const center = map.getCenter()
+      const zoom = map.getZoom()
+      localStorage.setItem(
+        "naverMapCenter",
+        JSON.stringify({ lat: center.y, lng: center.x })
+      )
+      localStorage.setItem("naverMapZoom", zoom)
+    }
+
+    // 이하 기존 코드
     let finalNodeName = nodeName
     if (type === "node") {
       finalNodeName = getNextONodeName()
@@ -382,23 +394,8 @@ function NaverMap({ setLatLng, isLoggedIn }) {
     const data = await res.json()
     if (data.success) {
       setAddPopup({ open: false, x: null, y: null })
-
-      // fetchNodes와 fetchEdges를 반드시 await로 순차 실행!
       await fetchNodes()
       await fetchEdges()
-
-      // 지도 위치/줌 저장
-      const map = mapInstance.current
-      if (map) {
-        const center = map.getCenter()
-        const zoom = map.getZoom()
-        localStorage.setItem(
-          "naverMapCenter",
-          JSON.stringify({ lat: center.y, lng: center.x })
-        )
-        localStorage.setItem("naverMapZoom", zoom)
-      }
-
       setRecentlyAddedNode(finalNodeName)
       alert("추가 성공!")
       window.location.reload()
@@ -411,6 +408,19 @@ function NaverMap({ setLatLng, isLoggedIn }) {
   async function handleDeleteNode() {
     if (!deletePopup.type || !deletePopup.node_name) return
     if (!window.confirm("정말 삭제하시겠습니까?")) return
+
+    // === 지도 위치/줌 저장 (여기서 반드시 먼저 저장!) ===
+    const map = mapInstance.current
+    if (map) {
+      const center = map.getCenter()
+      const zoom = map.getZoom()
+      localStorage.setItem(
+        "naverMapCenter",
+        JSON.stringify({ lat: center.y, lng: center.x })
+      )
+      localStorage.setItem("naverMapZoom", zoom)
+    }
+
     const res = await fetch("/api/tower-route", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -431,6 +441,7 @@ function NaverMap({ setLatLng, isLoggedIn }) {
       fetchNodes()
       fetchEdges()
       alert("삭제 성공!")
+      window.location.reload()
     } else {
       alert(data.error || "삭제 실패")
     }

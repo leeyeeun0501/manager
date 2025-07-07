@@ -37,6 +37,10 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
   const tempMarkerRef = useRef(null)
 
+  // 건물 설명 수정 관련 state
+  const [buildingDesc, setBuildingDesc] = useState("")
+  const [buildingDescLoading, setBuildingDescLoading] = useState(false)
+
   useEffect(() => {
     if (menuOpen) {
       closeAllPopups()
@@ -48,6 +52,86 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     fetchNodes()
     fetchEdges()
   }, [])
+
+  // 건물 관리 팝업이 열릴 때마다 전체 건물 데이터 받아와서 설명만 추출
+  useEffect(() => {
+    async function fetchBuildingDesc() {
+      if (
+        deletePopup.open &&
+        deletePopup.type === "building" &&
+        deletePopup.node_name
+      ) {
+        try {
+          // 전체 건물 리스트 받아오기
+          const res = await fetch("/api/building-route")
+          const json = await res.json()
+          // 해당 건물 찾기 (이름이 node_name과 일치)
+          let found = null
+          if (json.all && Array.isArray(json.all)) {
+            found = json.all.find(
+              (b) =>
+                b.Building_Name === deletePopup.node_name ||
+                b.name === deletePopup.node_name
+            )
+          }
+          // 설명만 추출 (필드명 여러 개 커버)
+          setBuildingDesc(
+            (found &&
+              (found.Desc ||
+                found.Description ||
+                found.desc ||
+                found.description ||
+                "")) ||
+              ""
+          )
+        } catch {
+          setBuildingDesc("")
+        }
+      } else {
+        setBuildingDesc("")
+      }
+    }
+    fetchBuildingDesc()
+  }, [deletePopup])
+
+  // 건물 설명 수정 버튼 클릭 시 서버로 PUT
+  async function handleUpdateBuildingDesc(e) {
+    e.preventDefault()
+    if (!deletePopup.node_name) {
+      alert("건물 이름이 없습니다.")
+      return
+    }
+    setBuildingDescLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append("desc", buildingDesc)
+      const res = await fetch(
+        `/api/building-route?building=${encodeURIComponent(
+          deletePopup.node_name
+        )}`,
+        { method: "PUT", body: formData }
+      )
+      const data = await res.json()
+      if (data && !data.error) {
+        alert("설명 수정 완료!")
+        // 최신 설명 다시 반영 (선택)
+        const res2 = await fetch(
+          `/api/building-route?building=${encodeURIComponent(
+            deletePopup.node_name
+          )}`
+        )
+        const json2 = await res2.json()
+        if (json2.all && json2.all.length > 0) {
+          setBuildingDesc(json2.all[0].Desc || "")
+        }
+      } else {
+        alert(data.error || "설명 수정 실패")
+      }
+    } catch {
+      alert("서버 오류")
+    }
+    setBuildingDescLoading(false)
+  }
 
   // 지도 최초 생성 및 클릭 마커 + 추가 팝업
   useEffect(() => {
@@ -344,16 +428,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     }
   }
 
-  function getNextONodeName() {
-    const oNumbers = nodes
-      .map((n) => n.id || n.node_name)
-      .filter((id) => typeof id === "string" && id.startsWith("O"))
-      .map((id) => parseInt(id.slice(1), 10))
-      .filter((num) => !isNaN(num))
-    const maxO = oNumbers.length > 0 ? Math.max(...oNumbers) : 0
-    return "O" + (maxO + 1)
-  }
-
   // 건물/노드 추가 팝업 저장 처리
   async function handleAddNode(e) {
     e.preventDefault()
@@ -511,6 +585,45 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     } else {
       alert(data.error || "엣지 연결 해제 실패")
     }
+  }
+
+  // 건물 설명 수정 버튼 클릭 시 서버로 PUT
+  async function handleUpdateBuildingDesc(e) {
+    e.preventDefault()
+    if (!deletePopup.node_name) {
+      alert("건물 이름이 없습니다.")
+      return
+    }
+    setBuildingDescLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append("desc", buildingDesc)
+      const res = await fetch(
+        `/api/building-route?building=${encodeURIComponent(
+          deletePopup.node_name
+        )}`,
+        { method: "PUT", body: formData }
+      )
+      const data = await res.json()
+      if (data && !data.error) {
+        alert("설명 수정 완료!")
+      } else {
+        alert(data.error || "설명 수정 실패")
+      }
+    } catch {
+      alert("서버 오류")
+    }
+    setBuildingDescLoading(false)
+  }
+
+  function getNextONodeName() {
+    const oNumbers = nodes
+      .map((n) => n.id || n.node_name)
+      .filter((id) => typeof id === "string" && id.startsWith("O"))
+      .map((id) => parseInt(id.slice(1), 10))
+      .filter((num) => !isNaN(num))
+    const maxO = oNumbers.length > 0 ? Math.max(...oNumbers) : 0
+    return "O" + (maxO + 1)
   }
 
   function handleCloseDeletePopup() {
@@ -996,55 +1109,41 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                     <strong>위도(x):</strong> {deletePopup.x} <br />
                     <strong>경도(y):</strong> {deletePopup.y}
                   </div>
-                  <div style={{ fontSize: 15, color: "#555" }}>
-                    <div
+                  {/* 👇 건물일 때만 설명 입력란 + 수정 버튼 추가 */}
+                  {deletePopup.type === "building" && (
+                    <textarea
                       style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: "6px 8px",
-                        marginTop: 6,
+                        width: "90%",
+                        minHeight: 80,
+                        maxHeight: 180,
+                        padding: 12,
+                        borderRadius: 14,
+                        border: "1px solid #bbb",
+                        fontSize: 16,
+                        fontFamily: "inherit",
+                        resize: "none",
+                        margin: "0 0 8px 0",
+                        display: "block",
                       }}
-                    >
-                      {getConnectedNodes(deletePopup.id).length === 0 && (
-                        <span style={{ color: "#aaa", fontSize: 14 }}>
-                          연결된 노드 없음
-                        </span>
-                      )}
-                      {getConnectedNodes(deletePopup.id).map((otherId) => (
-                        <button
-                          key={otherId}
-                          type="button"
-                          style={{
-                            background: "#ffb300",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: 16,
-                            padding: "7px 14px",
-                            fontSize: 14,
-                            fontWeight: 600,
-                            cursor: "pointer",
-                          }}
-                          onClick={() =>
-                            handleEdgeDisconnect(deletePopup.id, otherId)
-                          }
-                        >
-                          {otherId} 엣지 해제
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                      value={buildingDesc}
+                      onChange={(e) => setBuildingDesc(e.target.value)}
+                      placeholder="설명"
+                    />
+                  )}
                   <div
                     style={{
                       display: "flex",
                       justifyContent: "flex-end",
-                      gap: 8,
+                      gap: 12,
                       marginTop: 10,
+                      width: "100%",
                     }}
                   >
                     <button
                       type="button"
                       style={{
-                        padding: "10px 22px",
+                        flex: 1,
+                        padding: "10px 0",
                         borderRadius: 24,
                         border: "none",
                         fontSize: 15,
@@ -1052,6 +1151,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                         background: "#eee",
                         color: "#333",
                         cursor: "pointer",
+                        minWidth: 0,
+                        maxWidth: "none",
                       }}
                       onClick={handleCloseDeletePopup}
                     >
@@ -1060,7 +1161,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                     <button
                       type="button"
                       style={{
-                        padding: "10px 22px",
+                        flex: 1,
+                        padding: "10px 0",
                         borderRadius: 24,
                         border: "none",
                         fontSize: 15,
@@ -1068,6 +1170,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                         background: "#ff4d4f",
                         color: "#fff",
                         cursor: "pointer",
+                        minWidth: 0,
+                        maxWidth: "none",
                       }}
                       onClick={handleDeleteNode}
                     >
@@ -1076,7 +1180,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                     <button
                       type="button"
                       style={{
-                        padding: "10px 22px",
+                        flex: 1,
+                        padding: "10px 0",
                         borderRadius: 24,
                         border: "none",
                         fontSize: 15,
@@ -1084,12 +1189,37 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                         background: "#0070f3",
                         color: "#fff",
                         cursor: "pointer",
+                        minWidth: 0,
+                        maxWidth: "none",
                       }}
                       onClick={() => handleStartEdgeConnect(deletePopup)}
                     >
                       엣지 연결
                     </button>
-                  </div>
+                    {/* 설명 수정 버튼: 건물일 때만, 엣지 연결과 동일 스타일 */}
+                    {deletePopup.type === "building" && (
+                      <button
+                        type="button"
+                        disabled={buildingDescLoading}
+                        style={{
+                          flex: 1,
+                          padding: "10px 0",
+                          borderRadius: 24,
+                          border: "none",
+                          fontSize: 15,
+                          fontWeight: 600,
+                          background: "#0070f3",
+                          color: "#fff",
+                          cursor: "pointer",
+                          minWidth: 0,
+                          maxWidth: "none",
+                        }}
+                        onClick={handleUpdateBuildingDesc}
+                      >
+                        {buildingDescLoading ? "수정 중..." : "설명 수정"}
+                      </button>
+                    )}
+                  </div>{" "}
                 </div>
               </div>
             )}

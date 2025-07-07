@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useRef, useState } from "react"
 
-function NaverMap({ setLatLng, isLoggedIn }) {
+function NaverMap({ isLoggedIn, menuOpen }) {
   const mapRef = useRef(null)
   const mapInstance = useRef(null)
   const circlesRef = useRef([])
@@ -36,6 +36,12 @@ function NaverMap({ setLatLng, isLoggedIn }) {
   const [recentlyAddedNode, setRecentlyAddedNode] = useState(null)
 
   const tempMarkerRef = useRef(null)
+
+  useEffect(() => {
+    if (menuOpen) {
+      closeAllPopups()
+    }
+  }, [menuOpen])
 
   // 최초 nodes, edges 모두 fetch
   useEffect(() => {

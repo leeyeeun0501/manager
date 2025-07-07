@@ -25,7 +25,7 @@ export default function TowerPage() {
   return (
     <div className="tower-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <NaverMap setLatLng={setLatLng} nodes={nodes} />
+      <NaverMap setLatLng={setLatLng} nodes={nodes} menuOpen={menuOpen} />
       {latLng && (
         <div className="latlng-display">
           <b>선택 좌표:</b> 위도 {latLng.lat}, 경도 {latLng.lng}

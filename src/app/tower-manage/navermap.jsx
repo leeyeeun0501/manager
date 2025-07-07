@@ -135,7 +135,12 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
   // 지도 최초 생성 및 클릭 마커 + 추가 팝업
   useEffect(() => {
-    if (typeof window === "undefined" || !window.naver || !mapRef.current)
+    if (
+      typeof window === "undefined" ||
+      !window.naver ||
+      !window.naver.maps ||
+      !mapRef.current
+    )
       return
 
     if (!mapInstance.current) {

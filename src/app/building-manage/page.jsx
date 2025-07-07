@@ -14,6 +14,10 @@ export default function BuildingPage() {
   const [floorPage, setFloorPage] = useState(1)
   const pageSize = 10
 
+  // 건물 설명 관련 state
+  const [buildingDesc, setBuildingDesc] = useState("")
+  const [buildingDescLoading, setBuildingDescLoading] = useState(false)
+
   // 층 추가 폼 상태
   const [showAddFloor, setShowAddFloor] = useState(false)
   const [addFloorBuilding, setAddFloorBuilding] = useState("")
@@ -68,6 +72,64 @@ export default function BuildingPage() {
     }
     fetchBuildings()
   }, [])
+
+  // 건물 설명 fetch (건물 선택 시마다)
+  useEffect(() => {
+    async function fetchDesc() {
+      if (!selectedBuilding) {
+        setBuildingDesc("")
+        return
+      }
+      try {
+        const res = await fetch(
+          `/api/building-route?building=${encodeURIComponent(selectedBuilding)}`
+        )
+        const data = await res.json()
+        if (data.all && data.all.length > 0) {
+          setBuildingDesc(data.all[0].Desc || "")
+        } else {
+          setBuildingDesc("")
+        }
+      } catch {
+        setBuildingDesc("")
+      }
+    }
+    fetchDesc()
+  }, [selectedBuilding])
+
+  // 건물 설명 수정 버튼 클릭 시 서버로 PUT
+  async function handleUpdateBuildingDesc() {
+    if (!selectedBuilding) {
+      alert("건물을 선택하세요.")
+      return
+    }
+    setBuildingDescLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append("desc", buildingDesc)
+      const res = await fetch(
+        `/api/building-route?building=${encodeURIComponent(selectedBuilding)}`,
+        { method: "PUT", body: formData }
+      )
+      const data = await res.json()
+      if (data && !data.error) {
+        alert("설명 수정 완료!")
+        // 최신 설명 다시 반영
+        const res2 = await fetch(
+          `/api/building-route?building=${encodeURIComponent(selectedBuilding)}`
+        )
+        const json2 = await res2.json()
+        if (json2.all && json2.all.length > 0) {
+          setBuildingDesc(json2.all[0].Desc || "")
+        }
+      } else {
+        alert(data.error || "설명 수정 실패")
+      }
+    } catch {
+      alert("서버 오류")
+    }
+    setBuildingDescLoading(false)
+  }
 
   // 건물 선택 시 해당 건물의 층 fetch
   useEffect(() => {
@@ -263,6 +325,87 @@ export default function BuildingPage() {
             )}
           </select>
         </div>
+
+        {/* --- 건물 설명 입력란 + 버튼 가로 배치 --- */}
+        {selectedBuilding && (
+          <div
+            style={{
+              margin: "18px auto 16px auto",
+              maxWidth: 700,
+              width: "100%",
+              background: "#f8f8fa",
+              borderRadius: 8,
+              padding: "18px 18px 12px 18px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
+            <label
+              htmlFor="desc-edit"
+              style={{
+                fontWeight: 600,
+                fontSize: 15,
+                color: "#1976d2",
+                marginBottom: 6,
+                marginLeft: 2,
+              }}
+            >
+              건물 설명
+            </label>
+            <textarea
+              id="desc-edit"
+              style={{
+                width: "100%",
+                minHeight: 70,
+                maxHeight: 180,
+                padding: 12,
+                borderRadius: 14,
+                border: "1px solid #bbb",
+                fontSize: 16,
+                fontFamily: "inherit",
+                resize: "vertical",
+                marginBottom: 0,
+                background: "#fff",
+              }}
+              value={buildingDesc}
+              onChange={(e) => setBuildingDesc(e.target.value)}
+              placeholder="설명을 입력하세요"
+            />
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 12,
+                marginTop: 0,
+                width: "100%",
+              }}
+            >
+              <button
+                type="button"
+                disabled={buildingDescLoading}
+                style={{
+                  flex: 1,
+                  padding: "10px 0",
+                  borderRadius: 24,
+                  border: "none",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  background: "#0070f3",
+                  color: "#fff",
+                  cursor: "pointer",
+                  minWidth: 0,
+                  maxWidth: "none",
+                }}
+                onClick={handleUpdateBuildingDesc}
+              >
+                {buildingDescLoading ? "수정 중..." : "설명 수정"}
+              </button>
+            </div>
+          </div>
+        )}
+
         <div
           className="table-row"
           style={{ display: "flex", justifyContent: "center" }}

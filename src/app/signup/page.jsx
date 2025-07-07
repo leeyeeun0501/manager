@@ -2,7 +2,7 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import styles from "./signup.module.css" // <-- CSS Module로 변경
+import styles from "./signup.module.css"
 
 export default function SignupPage() {
   const [form, setForm] = useState({

@@ -3,7 +3,6 @@
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
 import "./building-manage.css"
-import { MdEditSquare } from "react-icons/md"
 import { FaTrashAlt } from "react-icons/fa"
 
 export default function BuildingPage() {
@@ -12,7 +11,6 @@ export default function BuildingPage() {
   const [selectedBuilding, setSelectedBuilding] = useState("")
   const [floors, setFloors] = useState([])
   const [selectedFloor, setSelectedFloor] = useState("")
-  const [buildingPage, setBuildingPage] = useState(1)
   const [floorPage, setFloorPage] = useState(1)
   const pageSize = 10
 
@@ -24,39 +22,19 @@ export default function BuildingPage() {
   const [addFloorError, setAddFloorError] = useState("")
   const addFloorFileRef = useRef(null)
 
-  // 이미지 팝업 및 수정 상태
+  // 이미지 팝업 및 수정 상태 (층 맵 파일만)
   const [popupImg, setPopupImg] = useState(null)
   const [popupFloor, setPopupFloor] = useState(null)
   const [popupBuilding, setPopupBuilding] = useState(null)
   const [editFile, setEditFile] = useState(null)
   const [editError, setEditError] = useState("")
   const editFileRef = useRef(null)
-  const [isBuildingMap, setIsBuildingMap] = useState(false)
-
-  const [hoveredBuilding, setHoveredBuilding] = useState("")
-  const [showEditDescModal, setShowEditDescModal] = useState(false)
-  const [editDescBuilding, setEditDescBuilding] = useState("")
-  const [editDescValue, setEditDescValue] = useState("")
-  const [editDescError, setEditDescError] = useState("")
-
-  const [addBuildingFile, setAddBuildingFile] = useState(null)
-  const addBuildingFileRef = useRef(null)
 
   // 건물/층 옵션
   const buildingOptions = buildingInfos.map((b) => b.name)
   const floorOptions = Array.from(
     new Set(floors.map((f) => String(f.floor)))
   ).sort((a, b) => Number(a) - Number(b))
-
-  // 건물 표 페이지네이션
-  const buildingTotalPages = Math.max(
-    1,
-    Math.ceil((buildingInfos.length || 0) / pageSize)
-  )
-  const buildingPaged = buildingInfos.slice(
-    (buildingPage - 1) * pageSize,
-    buildingPage * pageSize
-  )
 
   // 층 표 필터 및 페이지네이션
   const floorFiltered = selectedFloor
@@ -82,8 +60,6 @@ export default function BuildingPage() {
           .filter((b) => b && b.Building_Name)
           .map((b) => ({
             name: b.Building_Name,
-            desc: b.Description || "",
-            file: b.File || null,
           }))
         setBuildingInfos(infos)
       } catch (err) {
@@ -119,93 +95,6 @@ export default function BuildingPage() {
     }
     fetchFloors()
   }, [selectedBuilding])
-
-  // 건물 설명 수정 핸들러
-  const handleEditDesc = async () => {
-    setEditDescError("")
-    if (!editDescBuilding) {
-      setEditDescError("수정할 건물을 선택하세요.")
-      return
-    }
-    try {
-      const formData = new FormData()
-      formData.append("desc", editDescValue)
-      const res = await fetch(
-        `/api/building-route?building=${encodeURIComponent(editDescBuilding)}`,
-        {
-          method: "PUT",
-          body: formData,
-        }
-      )
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setEditDescError(data.error || "설명 수정 실패")
-        return
-      }
-
-      // 새로고침
-      const buildingsRes = await fetch("/api/building-route")
-      const buildingsData = await buildingsRes.json()
-      setBuildingInfos(
-        (buildingsData.all || []).map((b) => ({
-          name: b.Building_Name,
-          desc: b.Description || "",
-        }))
-      )
-      setShowEditDescModal(false)
-      setEditDescBuilding("")
-      setEditDescValue("")
-    } catch (err) {
-      setEditDescError("설명 수정 중 오류가 발생했습니다.")
-    }
-  }
-
-  // 건물 맵 파일 수정 핸들러
-  const handleEditBuildingMap = async () => {
-    setEditError("")
-    if (!popupBuilding || !editFile) {
-      setEditError("파일을 선택하세요.")
-      return
-    }
-    const formData = new FormData()
-    formData.append("file", editFile)
-
-    try {
-      const res = await fetch(
-        `/api/building-route?building=${encodeURIComponent(popupBuilding)}`,
-        {
-          method: "PUT",
-          body: formData,
-        }
-      )
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setEditError(data.error || "맵 파일 수정 실패")
-        return
-      }
-      // 새로고침
-      const buildingsRes = await fetch("/api/building-route")
-      const buildingsData = await buildingsRes.json()
-      const infos = (buildingsData.all || [])
-        .filter((b) => b && b.Building_Name)
-        .map((b) => ({
-          name: b.Building_Name,
-          desc: b.Description || "",
-          file: b.file || b.File || null,
-        }))
-      setBuildingInfos(infos)
-
-      alert("맵 파일이 수정되었습니다!")
-      setPopupImg(null)
-      setEditFile(null)
-      setEditError("")
-      setIsBuildingMap(false)
-      if (editFileRef.current) editFileRef.current.value = ""
-      setPopupBuilding(null)
-    } catch (err) {
-      setEditError("맵 파일 수정 중 오류가 발생했습니다.")
-    }
-  }
 
   // 층 추가 핸들러
   const handleAddFloor = async (e) => {
@@ -341,7 +230,6 @@ export default function BuildingPage() {
             value={selectedBuilding}
             onChange={(e) => {
               setSelectedBuilding(e.target.value)
-              setBuildingPage(1)
               setFloorPage(1)
             }}
           >
@@ -377,137 +265,8 @@ export default function BuildingPage() {
         </div>
         <div
           className="table-row"
-          style={{ display: "flex", gap: 40, alignItems: "flex-start" }}
+          style={{ display: "flex", justifyContent: "center" }}
         >
-          {/* 건물 표/추가 */}
-          <div className="table-col" style={{ flex: 1, maxWidth: 500 }}>
-            <table className="building-table">
-              <thead>
-                <tr>
-                  <th style={{ minWidth: 100 }}>건물명</th>
-                  <th style={{ minWidth: 200 }}>건물 설명</th>
-                  <th style={{ minWidth: 150 }}>맵 파일</th>
-                </tr>
-              </thead>
-              <tbody>
-                {buildingPaged.length > 0 ? (
-                  buildingPaged.map((b, idx) => (
-                    <tr key={b.name || idx}>
-                      <td>{b.name}</td>
-                      <td
-                        style={{ position: "relative" }}
-                        onMouseEnter={() => setHoveredBuilding(b.name)}
-                        onMouseLeave={() => setHoveredBuilding("")}
-                      >
-                        {b.desc}
-                        {hoveredBuilding === b.name && (
-                          <button
-                            style={{
-                              position: "absolute",
-                              right: 4,
-                              top: "50%",
-                              transform: "translateY(-50%)",
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: 0,
-                              marginLeft: 8,
-                              fontSize: 16,
-                              opacity: 0.7,
-                            }}
-                            aria-label="설명 수정"
-                            onClick={() => {
-                              setEditDescBuilding(b.name)
-                              setEditDescValue(b.desc)
-                              setShowEditDescModal(true)
-                              setEditDescError("")
-                            }}
-                            tabIndex={0}
-                          >
-                            <MdEditSquare size={18} color="#007bff" />
-                          </button>
-                        )}
-                      </td>
-                      <td>
-                        {b.file ? (
-                          <button
-                            onClick={() => {
-                              setPopupImg(b.file)
-                              setPopupBuilding(b.name)
-                              setPopupFloor(null)
-                              setIsBuildingMap(true)
-                              setEditFile(null)
-                              setEditError("")
-                              if (editFileRef.current)
-                                editFileRef.current.value = ""
-                            }}
-                          >
-                            이미지 불러오기
-                          </button>
-                        ) : (
-                          // 맵 파일 없을 때 연필 아이콘
-                          <button
-                            style={{
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                              color: "#888",
-                              fontSize: 18,
-                              padding: 0,
-                            }}
-                            aria-label="맵 파일 추가"
-                            onClick={() => {
-                              setPopupImg(null)
-                              setPopupBuilding(b.name)
-                              setPopupFloor(null)
-                              setIsBuildingMap(true)
-                              setEditFile(null)
-                              setEditError("")
-                              if (editFileRef.current)
-                                editFileRef.current.value = ""
-                            }}
-                          >
-                            <MdEditSquare size={18} color="#007bff" />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={3}
-                      style={{ textAlign: "center", color: "#aaa" }}
-                    >
-                      건물 데이터가 없습니다.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-            <div className="building-pagination-row">
-              <button
-                className="building-pagination-btn"
-                onClick={() => setBuildingPage((p) => Math.max(1, p - 1))}
-                disabled={buildingPage === 1}
-              >
-                이전
-              </button>
-              <span className="building-pagination-info">
-                {buildingPage} / {buildingTotalPages}
-              </span>
-              <button
-                className="building-pagination-btn"
-                onClick={() =>
-                  setBuildingPage((p) => Math.min(buildingTotalPages, p + 1))
-                }
-                disabled={buildingPage === buildingTotalPages}
-              >
-                다음
-              </button>
-            </div>
-          </div>
-
           {/* 층 표/추가 */}
           <div className="table-col" style={{ flex: 1, maxWidth: 700 }}>
             <button
@@ -606,7 +365,6 @@ export default function BuildingPage() {
                               setPopupImg(row.file)
                               setPopupBuilding(row.building)
                               setPopupFloor(row.floor)
-                              setIsBuildingMap(false)
                               setEditFile(null)
                               setEditError("")
                               if (editFileRef.current)
@@ -641,7 +399,7 @@ export default function BuildingPage() {
                 ) : (
                   <tr>
                     <td
-                      colSpan={3}
+                      colSpan={4}
                       style={{ textAlign: "center", color: "#aaa" }}
                     >
                       데이터가 없습니다.
@@ -675,63 +433,8 @@ export default function BuildingPage() {
         </div>
       </div>
 
-      {/* 건물 설명 수정 팝업 */}
-      {showEditDescModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.4)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-          }}
-          onClick={() => setShowEditDescModal(false)}
-        >
-          <div
-            style={{
-              background: "#fff",
-              padding: 24,
-              borderRadius: 8,
-              minWidth: 320,
-              boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 style={{ marginBottom: 12 }}>건물 설명 수정</h3>
-            <div style={{ marginBottom: 12 }}>
-              <input
-                type="text"
-                value={editDescValue}
-                onChange={(e) => setEditDescValue(e.target.value)}
-                style={{ width: "100%", padding: 8, fontSize: 16 }}
-                placeholder="설명을 입력하세요"
-              />
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button className="modal-save-btn" onClick={handleEditDesc}>
-                수정
-              </button>
-              <button
-                className="modal-cancel-btn"
-                onClick={() => setShowEditDescModal(false)}
-              >
-                취소
-              </button>
-            </div>
-            {editDescError && (
-              <div style={{ color: "red", marginTop: 8 }}>{editDescError}</div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 팝업: 이미지+수정 */}
-      {(popupImg !== null || (isBuildingMap && popupBuilding)) && (
+      {/* 팝업: 층 이미지+수정 */}
+      {(popupImg !== null || (popupBuilding && popupFloor)) && (
         <div
           style={{
             position: "fixed",
@@ -749,7 +452,6 @@ export default function BuildingPage() {
             setPopupImg(null)
             setEditFile(null)
             setEditError("")
-            setIsBuildingMap(false)
             if (editFileRef.current) editFileRef.current.value = ""
           }}
         >
@@ -783,12 +485,7 @@ export default function BuildingPage() {
                 ref={editFileRef}
                 onChange={(e) => setEditFile(e.target.files[0])}
               />
-              <button
-                style={{ marginLeft: 8 }}
-                onClick={
-                  isBuildingMap ? handleEditBuildingMap : handleEditFloorMap
-                }
-              >
+              <button style={{ marginLeft: 8 }} onClick={handleEditFloorMap}>
                 수정
               </button>
               <button
@@ -797,7 +494,6 @@ export default function BuildingPage() {
                   setPopupImg(null)
                   setEditFile(null)
                   setEditError("")
-                  setIsBuildingMap(false)
                   if (editFileRef.current) editFileRef.current.value = ""
                 }}
               >

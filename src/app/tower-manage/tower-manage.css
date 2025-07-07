@@ -12,11 +12,11 @@ h2 {
 
 .naver-map {
   width: 100vw;
-  height: 100vh;
+  height: 100%;
   min-height: 600px;
   border-radius: 0;
   box-shadow: none;
-  position: fixed; /* absolute → fixed로 바꾸면 스크롤에도 항상 고정 */
+  position: absolute;
   left: 0;
   top: 0;
   z-index: 1;
@@ -49,22 +49,14 @@ h2 {
 
 .tower-map-wrapper {
   width: 100vw;
-  height: 100vh;
-  max-width: none;
-  max-height: none;
-  margin: 0;
-  border-radius: 0;
-  box-shadow: none;
-  background: transparent;
-  overflow: visible;
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 1;
+  height: calc(100vh - 72px); /* 헤더 높이만큼 빼기 */
+  position: relative;
+  flex: 1 1 0;
 }
 
 .tower-root {
   display: flex;
+  flex-direction: column; /* 세로로 쌓기 */
   min-height: 100vh;
   background: #f5f6fa;
 }
@@ -79,11 +71,19 @@ h2 {
 }
 
 .tower-header {
-  margin-bottom: 24px;
-  font-size: 24px;
+  width: 100vw;
+  height: 72px; /* 헤더 높이 */
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* 왼쪽 정렬 */
+  font-size: 2rem;
   font-weight: bold;
-  color: #333;
-  text-align: center;
+  color: #000000; /* 검은색 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  position: relative;
+  z-index: 10;
+  padding-left: 100px; /* 왼쪽 여백 추가 (원하는 만큼 조절) */
 }
 
 .marker-info-panel {

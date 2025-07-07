@@ -589,6 +589,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       }}
     >
       <div
+        className="naver-map"
         ref={mapRef}
         style={{
           width: "100vw",

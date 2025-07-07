@@ -10,7 +10,6 @@ export default function TowerPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [nodes, setNodes] = useState({})
 
-  // 노드 fetch
   useEffect(() => {
     fetch("/api/tower-route")
       .then((res) => res.json())
@@ -24,8 +23,11 @@ export default function TowerPage() {
 
   return (
     <div className="tower-root">
+      <div className="tower-header">맵 관리 페이지</div>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <NaverMap setLatLng={setLatLng} nodes={nodes} menuOpen={menuOpen} />
+      <div className="tower-map-wrapper">
+        <NaverMap setLatLng={setLatLng} nodes={nodes} menuOpen={menuOpen} />
+      </div>
       {latLng && (
         <div className="latlng-display">
           <b>선택 좌표:</b> 위도 {latLng.lat}, 경도 {latLng.lng}

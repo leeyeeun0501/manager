@@ -1106,8 +1106,10 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                 >
                   <div style={{ fontSize: 15, color: "#555" }}>
                     <strong>이름:</strong> {deletePopup.node_name} <br />
-                    <strong>위도(x):</strong> {deletePopup.x} <br />
-                    <strong>경도(y):</strong> {deletePopup.y}
+                    <span>
+                      <strong>위도(x):</strong> {deletePopup.x}&nbsp;&nbsp;
+                      <strong>경도(y):</strong> {deletePopup.y}
+                    </span>
                   </div>
                   {/* 👇 건물일 때만 설명 입력란 + 수정 버튼 추가 */}
                   {deletePopup.type === "building" && (

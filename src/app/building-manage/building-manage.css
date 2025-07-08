@@ -7,10 +7,12 @@
 }
 
 .building-content {
-  max-width: 1100px;
-  margin: 0 auto;
+  /* max-width: 1100px;  ← 이 부분 삭제 또는 주석 */
+  margin: 0; /* 중앙 정렬 제거 */
   padding: 40px 0 0 0;
   background: #fafafa;
+  width: 100vw; /* 추가: 전체 너비 사용 */
+  min-height: 100vh;
 }
 
 .building-filter-row {
@@ -39,10 +41,14 @@
   padding: 0;
   margin-bottom: 24px;
   margin-top: 10px;
+  width: 100%; /* 전체 너비로 확장 */
+  min-width: 0;
+  overflow-x: auto;
 }
 
 .building-table {
-  width: 100%;
+  width: 100vw; /* 화면 전체 너비 */
+  min-width: 900px; /* 컬럼이 많을 때 가로 스크롤 */
   border-collapse: collapse;
   background: #fff;
   margin-bottom: 0;
@@ -198,10 +204,21 @@
 
 .table-col {
   flex: 1 1 0;
-  max-width: 500px;
+  max-width: none; /* 기존 500px → none */
+  width: 100%;
 }
 
 .floor-delete-btn:hover {
   background: #ffeaea;
   border-radius: 4px;
+}
+
+@media (max-width: 900px) {
+  .building-content {
+    padding: 16px 0 0 0;
+  }
+  .building-table {
+    min-width: 600px;
+    font-size: 0.95rem;
+  }
 }

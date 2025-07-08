@@ -14,10 +14,6 @@ export default function BuildingPage() {
   const [floorPage, setFloorPage] = useState(1)
   const pageSize = 10
 
-  // 건물 설명 관련 state
-  const [buildingDesc, setBuildingDesc] = useState("")
-  const [buildingDescLoading, setBuildingDescLoading] = useState(false)
-
   // 층 추가 폼 상태
   const [showAddFloor, setShowAddFloor] = useState(false)
   const [addFloorBuilding, setAddFloorBuilding] = useState("")
@@ -72,64 +68,6 @@ export default function BuildingPage() {
     }
     fetchBuildings()
   }, [])
-
-  // 건물 설명 fetch (건물 선택 시마다)
-  useEffect(() => {
-    async function fetchDesc() {
-      if (!selectedBuilding) {
-        setBuildingDesc("")
-        return
-      }
-      try {
-        const res = await fetch(
-          `/api/building-route?building=${encodeURIComponent(selectedBuilding)}`
-        )
-        const data = await res.json()
-        if (data.all && data.all.length > 0) {
-          setBuildingDesc(data.all[0].Desc || "")
-        } else {
-          setBuildingDesc("")
-        }
-      } catch {
-        setBuildingDesc("")
-      }
-    }
-    fetchDesc()
-  }, [selectedBuilding])
-
-  // 건물 설명 수정 버튼 클릭 시 서버로 PUT
-  async function handleUpdateBuildingDesc() {
-    if (!selectedBuilding) {
-      alert("건물을 선택하세요.")
-      return
-    }
-    setBuildingDescLoading(true)
-    try {
-      const formData = new FormData()
-      formData.append("desc", buildingDesc)
-      const res = await fetch(
-        `/api/building-route?building=${encodeURIComponent(selectedBuilding)}`,
-        { method: "PUT", body: formData }
-      )
-      const data = await res.json()
-      if (data && !data.error) {
-        alert("설명 수정 완료!")
-        // 최신 설명 다시 반영
-        const res2 = await fetch(
-          `/api/building-route?building=${encodeURIComponent(selectedBuilding)}`
-        )
-        const json2 = await res2.json()
-        if (json2.all && json2.all.length > 0) {
-          setBuildingDesc(json2.all[0].Desc || "")
-        }
-      } else {
-        alert(data.error || "설명 수정 실패")
-      }
-    } catch {
-      alert("서버 오류")
-    }
-    setBuildingDescLoading(false)
-  }
 
   // 건물 선택 시 해당 건물의 층 fetch
   useEffect(() => {
@@ -326,92 +264,8 @@ export default function BuildingPage() {
           </select>
         </div>
 
-        {/* --- 건물 설명 입력란 + 버튼 가로 배치 --- */}
-        {selectedBuilding && (
-          <div
-            style={{
-              margin: "18px auto 16px auto",
-              maxWidth: 700,
-              width: "100%",
-              background: "#f8f8fa",
-              borderRadius: 8,
-              padding: "18px 18px 12px 18px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-            }}
-          >
-            <label
-              htmlFor="desc-edit"
-              style={{
-                fontWeight: 600,
-                fontSize: 15,
-                color: "#1976d2",
-                marginBottom: 6,
-                marginLeft: 2,
-              }}
-            >
-              건물 설명
-            </label>
-            <textarea
-              id="desc-edit"
-              style={{
-                width: "100%",
-                minHeight: 70,
-                maxHeight: 180,
-                padding: 12,
-                borderRadius: 14,
-                border: "1px solid #bbb",
-                fontSize: 16,
-                fontFamily: "inherit",
-                resize: "vertical",
-                marginBottom: 0,
-                background: "#fff",
-              }}
-              value={buildingDesc}
-              onChange={(e) => setBuildingDesc(e.target.value)}
-              placeholder="설명을 입력하세요"
-            />
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 12,
-                marginTop: 0,
-                width: "100%",
-              }}
-            >
-              <button
-                type="button"
-                disabled={buildingDescLoading}
-                style={{
-                  flex: 1,
-                  padding: "10px 0",
-                  borderRadius: 24,
-                  border: "none",
-                  fontSize: 15,
-                  fontWeight: 600,
-                  background: "#0070f3",
-                  color: "#fff",
-                  cursor: "pointer",
-                  minWidth: 0,
-                  maxWidth: "none",
-                }}
-                onClick={handleUpdateBuildingDesc}
-              >
-                {buildingDescLoading ? "수정 중..." : "설명 수정"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div
-          className="table-row"
-          style={{ display: "flex", justifyContent: "center" }}
-        >
-          {/* 층 표/추가 */}
-          <div className="table-col" style={{ flex: 1, maxWidth: 700 }}>
+        <div className="table-row">
+          <div className="table-col">
             <button
               className="modal-save-btn"
               style={{ marginBottom: 8, width: "100%" }}
@@ -420,25 +274,11 @@ export default function BuildingPage() {
               {showAddFloor ? "층 추가 취소" : "층 추가"}
             </button>
             {showAddFloor && (
-              <form
-                className="inline-add-floor-form"
-                onSubmit={handleAddFloor}
-                style={{
-                  marginBottom: 12,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 8,
-                  background: "#f8f8f8",
-                  padding: 12,
-                  borderRadius: 8,
-                  maxWidth: 680,
-                }}
-              >
+              <form className="inline-add-floor-form" onSubmit={handleAddFloor}>
                 <select
                   value={addFloorBuilding}
                   onChange={(e) => setAddFloorBuilding(e.target.value)}
                   required
-                  style={{ width: "100%" }}
                 >
                   <option value="">건물 선택</option>
                   {buildingOptions.map((b) => (
@@ -454,7 +294,6 @@ export default function BuildingPage() {
                   min={1}
                   placeholder="층수"
                   required
-                  style={{ width: "100%" }}
                 />
                 <input
                   type="file"
@@ -462,95 +301,83 @@ export default function BuildingPage() {
                   ref={addFloorFileRef}
                   onChange={(e) => setAddFloorFile(e.target.files[0])}
                   required
-                  style={{ width: "100%" }}
                 />
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    type="submit"
-                    className="modal-save-btn"
-                    style={{ flex: 1 }}
-                  >
-                    저장
-                  </button>
-                  <button
-                    type="button"
-                    className="modal-cancel-btn"
-                    onClick={() => setShowAddFloor(false)}
-                    style={{ flex: 1 }}
-                  >
-                    취소
-                  </button>
-                </div>
+                <button type="submit" className="modal-save-btn">
+                  저장
+                </button>
+                <button
+                  type="button"
+                  className="modal-cancel-btn"
+                  onClick={() => setShowAddFloor(false)}
+                >
+                  취소
+                </button>
                 {addFloorError && (
                   <div className="modal-error">{addFloorError}</div>
                 )}
               </form>
             )}
-            <table className="building-table">
-              <thead>
-                <tr>
-                  <th style={{ minWidth: 100 }}>건물명</th>
-                  <th style={{ minWidth: 60 }}>층</th>
-                  <th style={{ minWidth: 150 }}>맵 파일</th>
-                  <th>삭제</th>
-                </tr>
-              </thead>
-              <tbody>
-                {floorPaged.length > 0 ? (
-                  floorPaged.map((row, idx) => (
-                    <tr key={row.building + "-" + row.floor + "-" + idx}>
-                      <td>{row.building}</td>
-                      <td>{row.floor}</td>
-                      <td>
-                        {row.file ? (
+            <div className="building-table-wrap">
+              <table className="building-table">
+                <thead>
+                  <tr>
+                    <th style={{ minWidth: 100 }}>건물명</th>
+                    <th style={{ minWidth: 60 }}>층</th>
+                    <th style={{ minWidth: 150 }}>맵 파일</th>
+                    <th>삭제</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {floorPaged.length > 0 ? (
+                    floorPaged.map((row, idx) => (
+                      <tr key={row.building + "-" + row.floor + "-" + idx}>
+                        <td>{row.building}</td>
+                        <td>{row.floor}</td>
+                        <td>
+                          {row.file ? (
+                            <button
+                              onClick={() => {
+                                setPopupImg(row.file)
+                                setPopupBuilding(row.building)
+                                setPopupFloor(row.floor)
+                                setEditFile(null)
+                                setEditError("")
+                                if (editFileRef.current)
+                                  editFileRef.current.value = ""
+                              }}
+                            >
+                              이미지 불러오기
+                            </button>
+                          ) : (
+                            <span style={{ color: "#aaa" }}>없음</span>
+                          )}
+                        </td>
+                        <td>
                           <button
-                            onClick={() => {
-                              setPopupImg(row.file)
-                              setPopupBuilding(row.building)
-                              setPopupFloor(row.floor)
-                              setEditFile(null)
-                              setEditError("")
-                              if (editFileRef.current)
-                                editFileRef.current.value = ""
-                            }}
+                            className="floor-delete-btn"
+                            onClick={() =>
+                              handleDeleteFloor(row.building, row.floor)
+                            }
+                            title="삭제"
                           >
-                            이미지 불러오기
+                            <FaTrashAlt size={18} color="#e74c3c" />
                           </button>
-                        ) : (
-                          <span style={{ color: "#aaa" }}>없음</span>
-                        )}
-                      </td>
-                      <td>
-                        <button
-                          className="floor-delete-btn"
-                          onClick={() =>
-                            handleDeleteFloor(row.building, row.floor)
-                          }
-                          title="삭제"
-                          style={{
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            padding: 0,
-                          }}
-                        >
-                          <FaTrashAlt size={18} color="#e74c3c" />
-                        </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        style={{ textAlign: "center", color: "#aaa" }}
+                      >
+                        데이터가 없습니다.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      style={{ textAlign: "center", color: "#aaa" }}
-                    >
-                      데이터가 없습니다.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
             <div className="building-pagination-row">
               <button
                 className="building-pagination-btn"

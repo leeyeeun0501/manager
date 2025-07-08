@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
 import "./building-manage.css"
-import { FaTrashAlt, FaUpload, FaPaperclip } from "react-icons/fa"
+import { FaTrashAlt, FaPaperclip } from "react-icons/fa"
 
 export default function BuildingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -181,44 +181,62 @@ export default function BuildingPage() {
     const fileInputRef = useRef(null)
 
     return (
-      <>
-        {/* 파일명(좌), 클립아이콘(우)만 배치 */}
-        <span
+      <div
+        style={{
+          width: "100%",
+          height: 48,
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        {/* 실제 입력란: 클릭 불가, 파일명 표시 */}
+        <input
+          type="text"
+          readOnly
+          value={fileName || ""}
+          placeholder="SVG 파일"
           style={{
-            flex: 1,
-            paddingLeft: 14,
-            fontSize: 15,
+            width: "100%",
+            height: "100%",
+            padding: "0 44px 0 12px", // 오른쪽에 아이콘 공간 확보
+            border: "none",
+            outline: "none",
+            borderRadius: 14,
+            fontSize: 16,
+            background: "transparent",
             color: fileName ? "#222" : "#aaa",
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-            textOverflow: "ellipsis",
+            fontFamily: "inherit",
+            boxSizing: "border-box",
             cursor: "pointer",
           }}
           onClick={() => fileInputRef.current && fileInputRef.current.click()}
-        >
-          {fileName || "SVG 파일"}
-        </span>
+        />
+        {/* 클립 아이콘 버튼: 입력란 오른쪽에 겹치게 */}
         <button
           type="button"
           onClick={() => fileInputRef.current && fileInputRef.current.click()}
           style={{
+            position: "absolute",
+            top: "50%",
+            right: 10,
+            transform: "translateY(-50%)",
             background: "none",
             border: "none",
-            borderRadius: "50%",
-            width: 34,
-            height: 34,
+            padding: 0,
+            margin: 0,
+            cursor: "pointer",
+            color: "#2574f5",
+            fontSize: 22,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            cursor: "pointer",
-            color: "#2574f5",
-            fontSize: 20,
-            marginRight: 6,
           }}
           aria-label="SVG 파일 업로드"
         >
-          <FaPaperclip size={20} />
+          <FaPaperclip size={22} />
         </button>
+        {/* 숨겨진 실제 파일 인풋 */}
         <input
           ref={fileInputRef}
           type="file"
@@ -226,7 +244,7 @@ export default function BuildingPage() {
           style={{ display: "none" }}
           onChange={onFileChange}
         />
-      </>
+      </div>
     )
   }
 
@@ -442,13 +460,18 @@ export default function BuildingPage() {
                   required
                   style={{
                     width: "90%",
-                    padding: 12,
+                    height: 48,
+                    padding: "0 12px",
                     borderRadius: 14,
                     border: "1.5px solid #b3d1fa",
                     fontSize: 16,
                     background: "#fff",
-                    display: "block",
+                    color: "#222",
+                    fontFamily: "inherit",
+                    outline: "none",
+                    boxSizing: "border-box",
                     margin: "0 auto",
+                    display: "block",
                   }}
                 />
                 <input
@@ -459,13 +482,18 @@ export default function BuildingPage() {
                   required
                   style={{
                     width: "90%",
-                    padding: 12,
+                    height: 48,
+                    padding: "0 12px",
                     borderRadius: 14,
                     border: "1.5px solid #b3d1fa",
                     fontSize: 16,
                     background: "#fff",
-                    display: "block",
+                    color: "#222",
+                    fontFamily: "inherit",
+                    outline: "none",
+                    boxSizing: "border-box",
                     margin: "0 auto",
+                    display: "block",
                   }}
                 />
                 {/* 파일 선택 아이콘 버튼 */}
@@ -473,14 +501,14 @@ export default function BuildingPage() {
                   style={{
                     width: "90%",
                     margin: "0 auto",
-                    display: "flex",
-                    alignItems: "center",
                     background: "#fff",
                     borderRadius: 14,
                     border: "1.5px solid #b3d1fa",
                     height: 48,
                     boxSizing: "border-box",
-                    padding: "0 8px 0 0",
+                    display: "flex",
+                    alignItems: "center",
+                    padding: 0,
                   }}
                 >
                   <ClipFileInput

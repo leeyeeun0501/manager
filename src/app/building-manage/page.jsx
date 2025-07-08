@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
 import "./building-manage.css"
-import { FaTrashAlt, FaPaperclip } from "react-icons/fa"
+import { FaTrashAlt, FaUpload, FaPaperclip } from "react-icons/fa"
 
 export default function BuildingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -19,6 +19,7 @@ export default function BuildingPage() {
   const [addFloorNum, setAddFloorNum] = useState("")
   const [addFloorFile, setAddFloorFile] = useState(null)
   const [addFloorError, setAddFloorError] = useState("")
+  const addFloorFileRef = useRef(null)
   const [floorNames, setFloorNames] = useState([])
 
   // 건물/층 옵션
@@ -126,6 +127,7 @@ export default function BuildingPage() {
       setAddFloorBuilding("")
       setAddFloorNum("")
       setAddFloorFile(null)
+      if (addFloorFileRef.current) addFloorFileRef.current.value = ""
       // 데이터 새로고침
       if (selectedBuilding === addFloorBuilding) {
         const floorsRes = await fetch(
@@ -174,62 +176,48 @@ export default function BuildingPage() {
     }
   }
 
-  // 파일 선택 인풋 (입력란 스타일과 동일, 오른쪽에 클립 아이콘)
+  // 파일 선택 아이콘 버튼 컴포넌트
   function ClipFileInput({ onFileChange, fileName }) {
     const fileInputRef = useRef(null)
+
     return (
-      <div
-        style={{
-          width: "90%",
-          margin: "0 auto",
-          position: "relative",
-          display: "block",
-        }}
-      >
-        <input
-          type="text"
-          readOnly
-          value={fileName || ""}
-          placeholder="SVG 파일만 업로드"
+      <>
+        {/* 파일명(좌), 클립아이콘(우)만 배치 */}
+        <span
           style={{
-            width: "100%",
-            height: 48,
-            padding: "12px 44px 12px 12px",
-            borderRadius: 14,
-            border: "1.5px solid #b3d1fa",
-            fontSize: 16,
-            background: "#fff",
+            flex: 1,
+            paddingLeft: 14,
+            fontSize: 15,
             color: fileName ? "#222" : "#aaa",
-            fontFamily: "inherit",
-            outline: "none",
-            boxSizing: "border-box",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
             cursor: "pointer",
-            transition: "border 0.13s",
           }}
           onClick={() => fileInputRef.current && fileInputRef.current.click()}
-        />
+        >
+          {fileName || "SVG 파일"}
+        </span>
         <button
           type="button"
           onClick={() => fileInputRef.current && fileInputRef.current.click()}
           style={{
-            position: "absolute",
-            top: "50%",
-            right: 10,
-            transform: "translateY(-50%)",
             background: "none",
             border: "none",
-            padding: 0,
-            margin: 0,
-            cursor: "pointer",
-            color: "#2574f5",
-            fontSize: 22,
+            borderRadius: "50%",
+            width: 34,
+            height: 34,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            cursor: "pointer",
+            color: "#2574f5",
+            fontSize: 20,
+            marginRight: 6,
           }}
           aria-label="SVG 파일 업로드"
         >
-          <FaPaperclip size={22} />
+          <FaPaperclip size={20} />
         </button>
         <input
           ref={fileInputRef}
@@ -238,7 +226,7 @@ export default function BuildingPage() {
           style={{ display: "none" }}
           onChange={onFileChange}
         />
-      </div>
+      </>
     )
   }
 
@@ -246,64 +234,60 @@ export default function BuildingPage() {
     <div className="building-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className="building-content">
-        {/* 건물/층 선택 콤보박스 */}
+        {/* 건물/층 선택 콤보박스: flex + gap으로 간격 부여 */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             gap: 18,
             marginBottom: 18,
+            justifyContent: "space-between",
           }}
         >
-          <select
-            className="building-select"
-            value={selectedBuilding}
-            onChange={(e) => {
-              setSelectedBuilding(e.target.value)
-              setSelectedFloor("")
-              setFloorPage(1)
-            }}
-            style={{ minWidth: 150 }}
-          >
-            <option value="">건물 선택</option>
-            {buildingOptions.map((b, idx) => (
-              <option key={b || idx} value={b}>
-                {b}
-              </option>
-            ))}
-          </select>
-          <select
-            className="floor-select"
-            value={selectedFloor}
-            onChange={(e) => {
-              setSelectedFloor(e.target.value)
-              setFloorPage(1)
-            }}
-            disabled={!selectedBuilding}
-            style={{ minWidth: 120 }}
-          >
-            <option value="">전체 층</option>
-            {floorNames.length > 0 ? (
-              floorNames.map((f, idx) => (
-                <option key={f || idx} value={f}>
-                  {f}
+          {/* 왼쪽: 콤보박스 2개 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+            <select
+              className="building-select"
+              value={selectedBuilding}
+              onChange={(e) => {
+                setSelectedBuilding(e.target.value)
+                setSelectedFloor("")
+                setFloorPage(1)
+              }}
+              style={{ minWidth: 150 }}
+            >
+              <option value="">건물 선택</option>
+              {buildingOptions.map((b, idx) => (
+                <option key={b || idx} value={b}>
+                  {b}
                 </option>
-              ))
-            ) : (
-              <option value="" disabled>
-                없음
-              </option>
-            )}
-          </select>
-        </div>
-        {/* 표 상단 오른쪽에 층 추가 버튼 */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            marginBottom: 18,
-          }}
-        >
+              ))}
+            </select>
+            <select
+              className="floor-select"
+              value={selectedFloor}
+              onChange={(e) => {
+                setSelectedFloor(e.target.value)
+                setFloorPage(1)
+              }}
+              disabled={!selectedBuilding}
+              style={{ minWidth: 120 }}
+            >
+              <option value="">전체 층</option>
+              {floorNames.length > 0 ? (
+                floorNames.map((f, idx) => (
+                  <option key={f || idx} value={f}>
+                    {f}
+                  </option>
+                ))
+              ) : (
+                <option value="" disabled>
+                  없음
+                </option>
+              )}
+            </select>
+          </div>
+          {/* 오른쪽: 층 추가 버튼 */}
           <button
             className="add-floor-btn"
             onClick={() => setShowAddFloor(true)}
@@ -312,7 +296,8 @@ export default function BuildingPage() {
             층 추가
           </button>
         </div>
-        {/* 표 */}
+
+        {/* 표: 사용자 관리 스타일 */}
         <div className="building-table-wrap">
           <table className="custom-table">
             <thead>
@@ -370,6 +355,7 @@ export default function BuildingPage() {
             </tbody>
           </table>
         </div>
+
         {/* 페이지네이션 */}
         <div className="building-pagination-row">
           <button
@@ -392,7 +378,8 @@ export default function BuildingPage() {
             다음
           </button>
         </div>
-        {/* 층 추가 팝업 */}
+
+        {/* 층 추가 팝업: 첫 번째 이미지 스타일 + 파일 선택 아이콘 버튼 */}
         {showAddFloor && (
           <div
             style={{
@@ -455,16 +442,13 @@ export default function BuildingPage() {
                   required
                   style={{
                     width: "90%",
-                    height: 48,
-                    padding: "12px",
+                    padding: 12,
                     borderRadius: 14,
                     border: "1.5px solid #b3d1fa",
                     fontSize: 16,
                     background: "#fff",
-                    color: "#222",
-                    fontFamily: "inherit",
-                    outline: "none",
-                    boxSizing: "border-box",
+                    display: "block",
+                    margin: "0 auto",
                   }}
                 />
                 <input
@@ -475,23 +459,35 @@ export default function BuildingPage() {
                   required
                   style={{
                     width: "90%",
-                    height: 48,
-                    padding: "12px",
+                    padding: 12,
                     borderRadius: 14,
                     border: "1.5px solid #b3d1fa",
                     fontSize: 16,
                     background: "#fff",
-                    color: "#222",
-                    fontFamily: "inherit",
-                    outline: "none",
-                    boxSizing: "border-box",
+                    display: "block",
+                    margin: "0 auto",
                   }}
                 />
-                {/* 파일 선택 인풋 */}
-                <ClipFileInput
-                  onFileChange={(e) => setAddFloorFile(e.target.files[0])}
-                  fileName={addFloorFile ? addFloorFile.name : ""}
-                />
+                {/* 파일 선택 아이콘 버튼 */}
+                <div
+                  style={{
+                    width: "90%",
+                    margin: "0 auto",
+                    display: "flex",
+                    alignItems: "center",
+                    background: "#fff",
+                    borderRadius: 14,
+                    border: "1.5px solid #b3d1fa",
+                    height: 48,
+                    boxSizing: "border-box",
+                    padding: "0 8px 0 0",
+                  }}
+                >
+                  <ClipFileInput
+                    onFileChange={(e) => setAddFloorFile(e.target.files[0])}
+                    fileName={addFloorFile ? addFloorFile.name : ""}
+                  />
+                </div>
                 {addFloorError && (
                   <div
                     style={{ color: "#e74c3c", fontSize: 15, margin: "4px 0" }}

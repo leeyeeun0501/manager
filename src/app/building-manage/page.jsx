@@ -148,7 +148,47 @@ export default function BuildingPage() {
         `정말로 ${buildingName}의 ${floorNum}층을 삭제하시겠습니까?`
       )
     )
-      return
+      return // 층 추가 핸들러
+    const handleAddFloor = async (e) => {
+      e.preventDefault()
+      setAddFloorError("")
+      if (!addFloorBuilding || !addFloorNum || !addFloorFile) {
+        setAddFloorError("모든 항목을 입력하세요.")
+        return
+      }
+      const formData = new FormData()
+      formData.append("building_name", addFloorBuilding)
+      formData.append("floor_number", addFloorNum)
+      formData.append("file", addFloorFile)
+      try {
+        const res = await fetch("/api/floor-route", {
+          method: "POST",
+          body: formData,
+        })
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          setAddFloorError(data.error || "층 추가 실패")
+          return
+        }
+        alert("층 추가가 완료되었습니다!")
+        setShowAddFloor(false)
+        setAddFloorBuilding("")
+        setAddFloorNum("")
+        setAddFloorFile(null)
+        if (addFloorFileRef.current) addFloorFileRef.current.value = ""
+        // 데이터 새로고침
+        if (selectedBuilding === addFloorBuilding) {
+          const floorsRes = await fetch(
+            `/api/floor-route?building=${encodeURIComponent(addFloorBuilding)}`
+          )
+          const floorsData = await floorsRes.json()
+          setFloors(floorsData.floors || [])
+        }
+      } catch (err) {
+        setAddFloorError("층 추가 중 오류가 발생했습니다.")
+      }
+    }
+
     try {
       const res = await fetch(
         `/api/floor-route?building=${encodeURIComponent(
@@ -452,11 +492,9 @@ export default function BuildingPage() {
                   gap: 16,
                 }}
               >
-                <input
-                  type="text"
+                <select
                   value={addFloorBuilding}
                   onChange={(e) => setAddFloorBuilding(e.target.value)}
-                  placeholder="건물명"
                   required
                   style={{
                     width: "90%",
@@ -466,14 +504,22 @@ export default function BuildingPage() {
                     border: "1.5px solid #b3d1fa",
                     fontSize: 16,
                     background: "#fff",
-                    color: "#222",
+                    color: addFloorBuilding ? "#222" : "#aaa",
                     fontFamily: "inherit",
                     outline: "none",
                     boxSizing: "border-box",
                     margin: "0 auto",
                     display: "block",
+                    appearance: "none", // 크롬 기본 화살표 스타일 제거(선택)
                   }}
-                />
+                >
+                  <option value="">건물 선택</option>
+                  {buildingOptions.map((b, idx) => (
+                    <option key={b || idx} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
                 <input
                   type="text"
                   value={addFloorNum}

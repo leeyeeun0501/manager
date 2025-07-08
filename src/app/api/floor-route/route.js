@@ -32,10 +32,15 @@ export async function GET(request) {
   }
 
   // 2. 전체 층 정보 반환 (기존 방식)
-  const res = await fetch(
-    `http://13.55.76.216:3000/floor/${encodeURIComponent(building)}`,
-    { method: "GET", cache: "no-store" }
-  )
+  let apiUrl
+  if (building) {
+    apiUrl = `http://13.55.76.216:3000/floor/${encodeURIComponent(building)}`
+  } else {
+    // building 파라미터 없으면 전체 층 정보
+    apiUrl = `http://13.55.76.216:3000/floor/`
+  }
+
+  const res = await fetch(apiUrl, { method: "GET", cache: "no-store" })
 
   if (!res.ok) {
     return NextResponse.json(

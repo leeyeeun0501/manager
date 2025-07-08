@@ -20,9 +20,8 @@ export default function BuildingPage() {
   const [addFloorFile, setAddFloorFile] = useState(null)
   const [addFloorError, setAddFloorError] = useState("")
   const addFloorFileRef = useRef(null)
-  const [floorNames, setFloorNames] = useState([])
 
-  // 건물/층 옵션
+  // 건물 옵션
   const buildingOptions = buildingInfos.map((b) => b.name)
 
   // 층 표 필터 및 페이지네이션
@@ -58,29 +57,6 @@ export default function BuildingPage() {
     fetchBuildings()
   }, [])
 
-  // 건물 선택 시 해당 건물의 층수 목록만 fetch
-  useEffect(() => {
-    if (!selectedBuilding) {
-      setFloorNames([])
-      return
-    }
-    async function fetchFloorNames() {
-      try {
-        const res = await fetch(
-          `/api/floor-route?building=${encodeURIComponent(
-            selectedBuilding
-          )}&type=names`
-        )
-        if (!res.ok) throw new Error("Failed to fetch floor names")
-        const data = await res.json()
-        setFloorNames(data.floors || [])
-      } catch (err) {
-        setFloorNames([])
-      }
-    }
-    fetchFloorNames()
-  }, [selectedBuilding])
-
   // floors fetch (전체/건물별)
   useEffect(() => {
     async function fetchFloors() {
@@ -88,17 +64,25 @@ export default function BuildingPage() {
       if (selectedBuilding) {
         url += `?building=${encodeURIComponent(selectedBuilding)}`
       }
+      console.log("층 정보 fetch URL:", url) // ★ 로그 추가
       try {
         const res = await fetch(url)
-        if (!res.ok) throw new Error("Failed to fetch floors")
         const data = await res.json()
+        console.log("층 정보 응답:", data) // ★ 응답 로그 추가
         setFloors(data.floors || [])
       } catch (err) {
         setFloors([])
       }
+      setSelectedFloor("") // 건물 바뀌면 층 선택 초기화
+      setFloorPage(1)
     }
     fetchFloors()
   }, [selectedBuilding])
+
+  // 층 콤보박스 옵션: floors에서 추출
+  const floorNames = Array.from(
+    new Set(floors.map((f) => String(f.floor)).filter(Boolean))
+  ).sort((a, b) => Number(a) - Number(b))
 
   // 층 추가 핸들러
   const handleAddFloor = async (e) => {
@@ -148,47 +132,7 @@ export default function BuildingPage() {
         `정말로 ${buildingName}의 ${floorNum}층을 삭제하시겠습니까?`
       )
     )
-      return // 층 추가 핸들러
-    const handleAddFloor = async (e) => {
-      e.preventDefault()
-      setAddFloorError("")
-      if (!addFloorBuilding || !addFloorNum || !addFloorFile) {
-        setAddFloorError("모든 항목을 입력하세요.")
-        return
-      }
-      const formData = new FormData()
-      formData.append("building_name", addFloorBuilding)
-      formData.append("floor_number", addFloorNum)
-      formData.append("file", addFloorFile)
-      try {
-        const res = await fetch("/api/floor-route", {
-          method: "POST",
-          body: formData,
-        })
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}))
-          setAddFloorError(data.error || "층 추가 실패")
-          return
-        }
-        alert("층 추가가 완료되었습니다!")
-        setShowAddFloor(false)
-        setAddFloorBuilding("")
-        setAddFloorNum("")
-        setAddFloorFile(null)
-        if (addFloorFileRef.current) addFloorFileRef.current.value = ""
-        // 데이터 새로고침
-        if (selectedBuilding === addFloorBuilding) {
-          const floorsRes = await fetch(
-            `/api/floor-route?building=${encodeURIComponent(addFloorBuilding)}`
-          )
-          const floorsData = await floorsRes.json()
-          setFloors(floorsData.floors || [])
-        }
-      } catch (err) {
-        setAddFloorError("층 추가 중 오류가 발생했습니다.")
-      }
-    }
-
+      return
     try {
       const res = await fetch(
         `/api/floor-route?building=${encodeURIComponent(
@@ -219,7 +163,6 @@ export default function BuildingPage() {
   // 파일 선택 아이콘 버튼 컴포넌트
   function ClipFileInput({ onFileChange, fileName }) {
     const fileInputRef = useRef(null)
-
     return (
       <div
         style={{
@@ -230,7 +173,6 @@ export default function BuildingPage() {
           alignItems: "center",
         }}
       >
-        {/* 실제 입력란: 클릭 불가, 파일명 표시 */}
         <input
           type="text"
           readOnly
@@ -239,7 +181,7 @@ export default function BuildingPage() {
           style={{
             width: "100%",
             height: "100%",
-            padding: "0 44px 0 12px", // 오른쪽에 아이콘 공간 확보
+            padding: "0 44px 0 12px",
             border: "none",
             outline: "none",
             borderRadius: 14,
@@ -252,7 +194,6 @@ export default function BuildingPage() {
           }}
           onClick={() => fileInputRef.current && fileInputRef.current.click()}
         />
-        {/* 클립 아이콘 버튼: 입력란 오른쪽에 겹치게 */}
         <button
           type="button"
           onClick={() => fileInputRef.current && fileInputRef.current.click()}
@@ -276,7 +217,6 @@ export default function BuildingPage() {
         >
           <FaPaperclip size={22} />
         </button>
-        {/* 숨겨진 실제 파일 인풋 */}
         <input
           ref={fileInputRef}
           type="file"
@@ -292,7 +232,7 @@ export default function BuildingPage() {
     <div className="building-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className="building-content">
-        {/* 건물/층 선택 콤보박스: flex + gap으로 간격 부여 */}
+        {/* 건물/층 선택 콤보박스 */}
         <div
           style={{
             display: "flex",
@@ -355,7 +295,7 @@ export default function BuildingPage() {
           </button>
         </div>
 
-        {/* 표: 사용자 관리 스타일 */}
+        {/* 표 */}
         <div className="building-table-wrap">
           <table className="custom-table">
             <thead>
@@ -385,7 +325,7 @@ export default function BuildingPage() {
                             cursor: "pointer",
                           }}
                         >
-                          맵 보기
+                          2D 도면
                         </a>
                       ) : (
                         <span style={{ color: "#aaa" }}>없음</span>
@@ -447,7 +387,7 @@ export default function BuildingPage() {
           </button>
         </div>
 
-        {/* 층 추가 팝업: 첫 번째 이미지 스타일 + 파일 선택 아이콘 버튼 */}
+        {/* 층 추가 팝업 */}
         {showAddFloor && (
           <div
             style={{
@@ -520,7 +460,7 @@ export default function BuildingPage() {
                     boxSizing: "border-box",
                     margin: "0 auto",
                     display: "block",
-                    appearance: "none", // 크롬 기본 화살표 스타일 제거(선택)
+                    appearance: "none",
                   }}
                 >
                   <option value="">건물 선택</option>

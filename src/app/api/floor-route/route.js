@@ -5,65 +5,52 @@ import { NextResponse } from "next/server"
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const building = searchParams.get("building")
-  const type = searchParams.get("type")
 
-  // 1. 층 번호 목록만 반환 (type=names)
-  if (type === "names") {
-    if (!building) {
-      return NextResponse.json(
-        { error: "건물명을 입력하세요." },
-        { status: 400 }
-      )
-    }
-    const res = await fetch(
-      `http://13.55.76.216:3000/floor/names/${encodeURIComponent(building)}`,
-      { method: "GET", cache: "no-store" }
-    )
+  // 1. 전체 층 정보 조회 (GET /api/floor-route)
+  if (!building) {
+    const res = await fetch("http://13.55.76.216:3000/floor/", {
+      method: "GET",
+      cache: "no-store",
+    })
     if (!res.ok) {
       return NextResponse.json(
-        { error: "층 목록을 불러올 수 없습니다." },
+        { error: "전체 층 정보를 불러올 수 없습니다." },
         { status: res.status }
       )
     }
     const data = await res.json()
-    const floorNames = (Array.isArray(data) ? data : [])
-      .map((row) => row.Floor_Number)
-      .filter(Boolean)
-    return NextResponse.json({ floors: floorNames })
+    const result = (Array.isArray(data) ? data : []).map((row) => ({
+      floor: row.Floor_Number,
+      building: row.Building_Name,
+      file: row.File || null,
+    }))
+    return NextResponse.json({ floors: result })
   }
 
-  // 2. 전체 층 정보 반환 (건물별 or 전체)
-  const buildingParam = searchParams.get("building")
-  let apiUrl
-  if (buildingParam) {
-    apiUrl = `http://13.55.76.216:3000/floor/${encodeURIComponent(
-      buildingParam
-    )}`
-  } else {
-    apiUrl = `http://13.55.76.216:3000/floor/`
-  }
-
-  const res = await fetch(apiUrl, { method: "GET", cache: "no-store" })
-
-  if (!res.ok) {
-    return NextResponse.json(
-      { error: "층 정보를 불러올 수 없습니다." },
-      { status: res.status }
+  // 2. 특정 건물의 층 정보 조회 (GET /api/floor-route?building=건물명)
+  if (building) {
+    const res = await fetch(
+      `http://13.55.76.216:3000/floor/${encodeURIComponent(building)}`,
+      { method: "GET", cache: "no-store" }
     )
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: "해당 건물의 층 정보를 불러올 수 없습니다." },
+        { status: res.status }
+      )
+    }
+    const data = await res.json()
+    const result = (Array.isArray(data) ? data : []).map((row) => ({
+      floor: row.Floor_Number,
+      building: row.Building_Name,
+      file: row.File || null,
+    }))
+    return NextResponse.json({ floors: result })
   }
 
-  const data = await res.json()
-  const floors = Array.isArray(data) ? data : []
-
-  const result = floors.map((row) => ({
-    floor: row.Floor_Number,
-    building: row.Building_Name,
-    file: row.File || null,
-  }))
-
-  return NextResponse.json({ floors: result })
+  // 3. 그 외 잘못된 요청
+  return NextResponse.json({ error: "잘못된 요청" }, { status: 400 })
 }
-
 // 층 추가 (POST)
 export async function POST(request) {
   const formData = await request.formData()

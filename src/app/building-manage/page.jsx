@@ -292,7 +292,6 @@ export default function BuildingPage() {
                     <th>건물명</th>
                     <th>층</th>
                     <th>맵 파일</th>
-                    <th>태그</th>
                     <th>삭제</th>
                   </tr>
                 </thead>

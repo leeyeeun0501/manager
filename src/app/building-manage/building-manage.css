@@ -96,31 +96,36 @@ html {
 
 .custom-table {
   width: 100%;
-  border-collapse: separate;
+  border-collapse: collapse;
   border-spacing: 0;
   background: #fff;
   font-size: 1rem;
   border-radius: 16px;
   overflow: hidden;
 }
+
 .custom-table th,
 .custom-table td {
   padding: 15px 10px;
   text-align: center;
   border-bottom: 1.5px solid #e3eefd;
 }
+
 .custom-table th {
   background: #eaf2fd;
   font-weight: 800;
   color: #2574f5;
   border-top: none;
 }
+
 .custom-table tr:last-child td {
   border-bottom: none;
 }
+
 .custom-table tr {
   transition: background 0.12s;
 }
+
 .custom-table tr:hover {
   background: #f1f7ff;
 }

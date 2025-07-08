@@ -21,6 +21,9 @@ export default function BuildingPage() {
   const [addFloorError, setAddFloorError] = useState("")
   const addFloorFileRef = useRef(null)
 
+  const [mapModalOpen, setMapModalOpen] = useState(false)
+  const [mapModalFile, setMapModalFile] = useState("") // 파일 URL
+
   // 건물 옵션
   const buildingOptions = buildingInfos.map((b) => b.name)
 
@@ -315,19 +318,23 @@ export default function BuildingPage() {
                     <td>{row.floor}</td>
                     <td>
                       {row.file ? (
-                        <a
-                          href={row.file}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          type="button"
                           style={{
                             color: "#2574f5",
                             fontWeight: 600,
                             textDecoration: "underline",
+                            background: "none",
+                            border: "none",
                             cursor: "pointer",
+                          }}
+                          onClick={() => {
+                            setMapModalFile(row.file)
+                            setMapModalOpen(true)
                           }}
                         >
                           2D 도면
-                        </a>
+                        </button>
                       ) : (
                         <span style={{ color: "#aaa" }}>없음</span>
                       )}
@@ -564,6 +571,86 @@ export default function BuildingPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {mapModalOpen && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              background: "rgba(0,0,0,0.18)",
+              zIndex: 20000,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onClick={() => setMapModalOpen(false)}
+          >
+            <div
+              style={{
+                background: "#fff",
+                borderRadius: 18,
+                minWidth: 420,
+                maxWidth: "90vw",
+                maxHeight: "90vh",
+                padding: "28px 28px 18px 28px",
+                boxShadow: "0 2px 16px rgba(0,0,0,0.12)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                position: "relative",
+                overflow: "auto",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                style={{
+                  position: "absolute",
+                  top: 12,
+                  right: 18,
+                  background: "none",
+                  border: "none",
+                  fontSize: 22,
+                  cursor: "pointer",
+                  color: "#aaa",
+                }}
+                onClick={() => setMapModalOpen(false)}
+                aria-label="닫기"
+              >
+                ✕
+              </button>
+              <div
+                style={{
+                  marginBottom: 18,
+                  fontWeight: 700,
+                  fontSize: 18,
+                  color: "#2574f5",
+                }}
+              >
+                2D 도면 미리보기
+              </div>
+              <div style={{ width: "100%", textAlign: "center" }}>
+                <object
+                  type="image/svg+xml"
+                  data={mapModalFile}
+                  style={{
+                    width: "400px",
+                    height: "400px",
+                    maxWidth: "80vw",
+                    maxHeight: "60vh",
+                    border: "none",
+                    borderRadius: 10,
+                  }}
+                >
+                  SVG 미리보기를 지원하지 않는 브라우저입니다.
+                </object>
+              </div>
+              {/* 추후 수정 버튼 등 추가 가능 */}
             </div>
           </div>
         )}

@@ -1,9 +1,8 @@
-// building-manage
 "use client"
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
 import "./building-manage.css"
-import { FaTrashAlt } from "react-icons/fa"
+import { FaTrashAlt, FaEdit } from "react-icons/fa"
 
 export default function BuildingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -33,9 +32,6 @@ export default function BuildingPage() {
 
   // 건물/층 옵션
   const buildingOptions = buildingInfos.map((b) => b.name)
-  const floorOptions = Array.from(
-    new Set(floors.map((f) => String(f.floor)))
-  ).sort((a, b) => Number(a) - Number(b))
 
   // 층 표 필터 및 페이지네이션
   const floorFiltered = selectedFloor
@@ -91,6 +87,25 @@ export default function BuildingPage() {
       }
     }
     fetchFloorNames()
+  }, [selectedBuilding])
+
+  // floors fetch (전체/건물별)
+  useEffect(() => {
+    async function fetchFloors() {
+      let url = "/api/floor-route"
+      if (selectedBuilding) {
+        url += `?building=${encodeURIComponent(selectedBuilding)}`
+      }
+      try {
+        const res = await fetch(url)
+        if (!res.ok) throw new Error("Failed to fetch floors")
+        const data = await res.json()
+        setFloors(data.floors || [])
+      } catch (err) {
+        setFloors([])
+      }
+    }
+    fetchFloors()
   }, [selectedBuilding])
 
   // 층 추가 핸들러
@@ -315,12 +330,13 @@ export default function BuildingPage() {
               </form>
             )}
             <div className="building-table-wrap">
-              <table className="building-table">
+              <table className="custom-table">
                 <thead>
                   <tr>
-                    <th style={{ minWidth: 100 }}>건물명</th>
-                    <th style={{ minWidth: 60 }}>층</th>
-                    <th style={{ minWidth: 150 }}>맵 파일</th>
+                    <th>건물명</th>
+                    <th>층</th>
+                    <th>맵 파일</th>
+                    <th>태그</th>
                     <th>삭제</th>
                   </tr>
                 </thead>
@@ -330,28 +346,65 @@ export default function BuildingPage() {
                       <tr key={row.building + "-" + row.floor + "-" + idx}>
                         <td>{row.building}</td>
                         <td>{row.floor}</td>
-                        <td>
+                        <td className="map-file-cell">
                           {row.file ? (
-                            <button
-                              onClick={() => {
-                                setPopupImg(row.file)
-                                setPopupBuilding(row.building)
-                                setPopupFloor(row.floor)
-                                setEditFile(null)
-                                setEditError("")
-                                if (editFileRef.current)
-                                  editFileRef.current.value = ""
+                            <div
+                              className="map-file-btn-wrap"
+                              style={{
+                                position: "relative",
+                                display: "inline-block",
                               }}
                             >
-                              이미지 불러오기
-                            </button>
+                              <button
+                                className="edit-btn"
+                                onClick={() => {
+                                  setPopupImg(row.file)
+                                  setPopupBuilding(row.building)
+                                  setPopupFloor(row.floor)
+                                  setEditFile(null)
+                                  setEditError("")
+                                  if (editFileRef.current)
+                                    editFileRef.current.value = ""
+                                }}
+                              >
+                                이미지 불러오기
+                              </button>
+                              <button
+                                className="edit-icon-btn"
+                                title="맵 파일 수정"
+                                style={{
+                                  position: "absolute",
+                                  right: -30,
+                                  top: "50%",
+                                  transform: "translateY(-50%)",
+                                  opacity: 0,
+                                  pointerEvents: "none",
+                                  transition: "opacity 0.2s",
+                                }}
+                                onClick={() => {
+                                  setPopupImg(row.file)
+                                  setPopupBuilding(row.building)
+                                  setPopupFloor(row.floor)
+                                  setEditFile(null)
+                                  setEditError("")
+                                  if (editFileRef.current)
+                                    editFileRef.current.value = ""
+                                }}
+                                tabIndex={-1}
+                              >
+                                <FaEdit size={18} color="#4b2993" />
+                              </button>
+                            </div>
                           ) : (
                             <span style={{ color: "#aaa" }}>없음</span>
                           )}
                         </td>
                         <td>
+                          <span className="tag">{row.floor}F</span>
+                        </td>
+                        <td>
                           <button
-                            className="floor-delete-btn"
+                            className="delete-btn"
                             onClick={() =>
                               handleDeleteFloor(row.building, row.floor)
                             }
@@ -365,7 +418,7 @@ export default function BuildingPage() {
                   ) : (
                     <tr>
                       <td
-                        colSpan={4}
+                        colSpan={5}
                         style={{ textAlign: "center", color: "#aaa" }}
                       >
                         데이터가 없습니다.

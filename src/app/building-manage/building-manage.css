@@ -1,257 +1,125 @@
-/* building.css */
+body,
+html {
+  background: #f4f7fc;
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  color: #222;
+}
+
 .building-root {
   min-height: 100vh;
-  background: #f7f7f7;
-  padding: 0;
-  position: relative;
+  background: #f4f7fc;
 }
 
 .building-content {
-  /* max-width: 1100px;  ← 이 부분 삭제 또는 주석 */
-  margin: 0; /* 중앙 정렬 제거 */
-  padding: 40px 0 0 0;
-  background: #fafafa;
-  width: 100vw; /* 추가: 전체 너비 사용 */
+  margin: 0 auto;
+  padding: 48px 0 0 0;
+  max-width: 1200px;
   min-height: 100vh;
 }
 
 .building-filter-row {
   display: flex;
-  gap: 18px;
   align-items: center;
-  margin-bottom: 18px;
-  padding-left: 14px;
+  gap: 18px;
+  margin-bottom: 26px;
+  padding: 18px 32px 14px 32px;
+  background: #eaf2fd;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(37, 116, 245, 0.07);
+  position: relative;
 }
 
 .building-select,
 .floor-select {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #bbb;
-  font-size: 1rem;
-  min-width: 120px;
+  height: 46px;
+  min-width: 150px;
+  font-size: 1.07rem;
+  border-radius: 10px;
+  border: 1.5px solid #b3d1fa;
   background: #fff;
-  appearance: none;
+  color: #222;
+  padding: 0 18px;
+  outline: none;
+  transition: border 0.15s;
+}
+
+.building-select:focus,
+.floor-select:focus {
+  border: 1.5px solid #2574f5;
+}
+
+.add-floor-btn {
+  margin-left: auto;
+  min-width: 150px;
+  height: 46px;
+  font-weight: 700;
+  font-size: 1.07rem;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #2574f5 0%, #5eaefd 100%);
+  color: #fff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(37, 116, 245, 0.09);
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+  letter-spacing: 0.03em;
+}
+.add-floor-btn:hover {
+  background: linear-gradient(90deg, #1656b9 0%, #3d8bf7 100%);
+  box-shadow: 0 4px 18px rgba(37, 116, 245, 0.14);
 }
 
 .building-table-wrap {
   background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(37, 116, 245, 0.07);
   padding: 0;
   margin-bottom: 24px;
   margin-top: 10px;
-  width: 100%; /* 전체 너비로 확장 */
-  min-width: 0;
-  overflow-x: auto;
-}
-
-.building-table {
-  width: 100vw; /* 화면 전체 너비 */
-  min-width: 900px; /* 컬럼이 많을 때 가로 스크롤 */
-  border-collapse: collapse;
-  background: #fff;
-  margin-bottom: 0;
-}
-
-.building-table th,
-.building-table td {
-  border: 1px solid #eee;
-  padding: 12px 8px;
-  text-align: center;
-  font-size: 1rem;
-}
-
-.building-table th {
-  background: #f5f5f5;
-  font-weight: 800;
-}
-
-.building-table tr:nth-child(even) {
-  background: #fafafa;
-}
-
-.building-pagination-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 18px;
-  margin-top: 12px;
-  margin-bottom: 2px;
-}
-
-.building-pagination-btn {
-  padding: 6px 16px;
-  border-radius: 8px;
-  border: 1px solid #bbb;
-  background: #f5f5f5;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.building-pagination-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.building-pagination-info {
-  font-size: 1.05rem;
-  font-weight: 700;
-}
-
-.inline-add-floor-form {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin: 16px 0 10px 0;
-  background: #f8f7ff;
-  padding: 14px 20px;
-  border-radius: 10px;
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
-}
-
-.inline-add-floor-form select,
-.inline-add-floor-form input[type="number"] {
-  padding: 7px 10px;
-  border-radius: 6px;
-  border: 1px solid #bbb;
-  font-size: 1rem;
-}
-
-.inline-add-floor-form input[type="file"] {
-  font-size: 0.97rem;
-}
-
-.inline-add-floor-form .modal-save-btn,
-.inline-add-floor-form .modal-cancel-btn {
-  padding: 7px 16px;
-  border-radius: 6px;
-  border: 1px solid #bbb;
-  background: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.inline-add-floor-form .modal-save-btn:hover {
-  background: #4b2993;
-  color: #fff;
-}
-
-.inline-add-floor-form .modal-cancel-btn:hover {
-  background: #eee;
-}
-
-.inline-add-floor-form .modal-error {
-  color: #e74c3c;
-  font-size: 1rem;
-  margin-left: 10px;
-}
-
-.inline-add-building-form {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin: 16px 0 10px 0;
-  background: #f8f7ff;
-  padding: 14px 20px;
-  border-radius: 10px;
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
-}
-
-.inline-add-building-form input[type="text"],
-.inline-add-building-form input[type="number"] {
-  padding: 7px 10px;
-  border-radius: 6px;
-  border: 1px solid #bbb;
-  font-size: 1rem;
-}
-
-.inline-add-building-form .modal-save-btn,
-.inline-add-building-form .modal-cancel-btn {
-  padding: 7px 16px;
-  border-radius: 6px;
-  border: 1px solid #bbb;
-  background: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.inline-add-building-form .modal-save-btn:hover {
-  background: #4b2993;
-  color: #fff;
-}
-
-.inline-add-building-form .modal-cancel-btn:hover {
-  background: #eee;
-}
-
-.inline-add-building-form .modal-error {
-  color: #e74c3c;
-  font-size: 1rem;
-  margin-left: 10px;
-}
-
-.table-row {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 40px;
-  margin-top: 30px;
-}
-
-.table-col {
-  flex: 1 1 0;
-  max-width: none; /* 기존 500px → none */
   width: 100%;
-}
-
-.floor-delete-btn:hover {
-  background: #ffeaea;
-  border-radius: 4px;
-}
-
-@media (max-width: 900px) {
-  .building-content {
-    padding: 16px 0 0 0;
-  }
-  .building-table {
-    min-width: 600px;
-    font-size: 0.95rem;
-  }
+  overflow-x: auto;
 }
 
 .custom-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   background: #fff;
   font-size: 1rem;
+  border-radius: 16px;
+  overflow: hidden;
 }
 .custom-table th,
 .custom-table td {
-  border: 1px solid #eee;
-  padding: 10px 8px;
+  padding: 15px 10px;
   text-align: center;
+  border-bottom: 1.5px solid #e3eefd;
 }
 .custom-table th {
-  background: #f5f5f5;
-  font-weight: 700;
+  background: #eaf2fd;
+  font-weight: 800;
+  color: #2574f5;
+  border-top: none;
 }
-.custom-table tr:nth-child(even) {
-  background: #fafafa;
+.custom-table tr:last-child td {
+  border-bottom: none;
+}
+.custom-table tr {
+  transition: background 0.12s;
+}
+.custom-table tr:hover {
+  background: #f1f7ff;
 }
 .tag {
   display: inline-block;
   background: #e4e8f0;
-  color: #4b2993;
+  color: #2574f5;
   border-radius: 8px;
   padding: 3px 10px;
   margin-right: 4px;
   font-size: 0.97rem;
   font-weight: 600;
 }
+
 .edit-btn,
 .delete-btn,
 .edit-icon-btn {
@@ -265,23 +133,180 @@
   color: #e74c3c;
 }
 .edit-btn {
-  color: #4b2993;
-}
-.map-file-btn-wrap:hover .edit-icon-btn {
-  opacity: 1 !important;
-  pointer-events: auto !important;
+  color: #2574f5;
 }
 .edit-icon-btn {
+  color: #2574f5;
+}
+
+.building-pagination-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  margin-top: 12px;
+  margin-bottom: 2px;
+}
+.building-pagination-btn {
+  padding: 7px 18px;
+  border-radius: 9px;
+  border: 1.5px solid #b3d1fa;
+  background: #f5faff;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #2574f5;
+  transition: background 0.15s, border 0.15s;
+}
+.building-pagination-btn:hover {
+  background: #eaf2fd;
+  border: 1.5px solid #2574f5;
+}
+.building-pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.building-pagination-info {
+  font-size: 1.07rem;
+  font-weight: 700;
+  color: #2574f5;
+}
+
+/* 팝업 모달 */
+.add-floor-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(37, 116, 245, 0.1);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: popup-fadein 0.18s;
+}
+.add-floor-modal {
+  background: #fafdff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(37, 116, 245, 0.14),
+    0 1.5px 6px rgba(0, 0, 0, 0.07);
+  min-width: 350px;
+  max-width: 97vw;
+  padding: 0 0 26px 0;
+  position: relative;
+  animation: popup-fadein 0.18s;
+}
+@keyframes popup-fadein {
+  from {
+    transform: translateY(16px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.add-floor-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(90deg, #2574f5 0%, #5eaefd 100%);
+  border-radius: 18px 18px 0 0;
+  padding: 18px 28px 12px 28px;
+}
+.add-floor-modal-title {
+  font-size: 1.23rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.01em;
+}
+.add-floor-modal-close {
   background: none;
   border: none;
+  color: #fff;
+  font-size: 1.7rem;
+  font-weight: 900;
   cursor: pointer;
-  font-size: 1.1rem;
-  color: #4b2993;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
+  padding: 0 4px;
+  margin-left: 10px;
+  line-height: 1;
+  transition: color 0.15s;
 }
-.map-file-btn-wrap {
-  position: relative;
-  display: inline-block;
+.add-floor-modal-close:hover {
+  color: #dbeafe;
+}
+.add-floor-modal-form {
+  padding: 26px 32px 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.add-floor-modal-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.add-floor-modal-row label {
+  min-width: 50px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2574f5;
+}
+.add-floor-modal-row input[type="text"],
+.add-floor-modal-row select {
+  flex: 1 1 0;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1.5px solid #b3d1fa;
+  padding: 8px 12px;
+  background: #f4faff;
+  transition: border 0.13s;
+}
+.add-floor-modal-row input[type="file"] {
+  flex: 1 1 0;
+  font-size: 1rem;
+  background: #fbfcff;
+}
+.add-floor-modal-error {
+  color: #e74c3c;
+  font-size: 1rem;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  text-align: left;
+}
+.add-floor-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+  justify-content: flex-end;
+}
+.add-floor-modal-save-btn {
+  background: #2574f5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 9px 28px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.add-floor-modal-save-btn:hover {
+  background: #1556b9;
+}
+.add-floor-modal-cancel-btn {
+  background: #f2f6fa;
+  color: #2574f5;
+  border: 1.5px solid #b3d1fa;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 9px 28px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.add-floor-modal-cancel-btn:hover {
+  background: #e3ecfa;
+  color: #1556b9;
 }

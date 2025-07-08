@@ -73,7 +73,7 @@ h2 {
 .tower-header {
   width: 100vw;
   height: 72px; /* 헤더 높이 */
-  background: #fff;
+  background: #f4f7fc;
   display: flex;
   align-items: center;
   justify-content: flex-start; /* 왼쪽 정렬 */

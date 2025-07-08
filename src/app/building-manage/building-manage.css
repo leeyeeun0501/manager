@@ -10,6 +10,21 @@ html {
   background: #f4f7fc;
 }
 
+.building-header {
+  width: 100%;
+  background: #f7f9fc;
+  padding: 40px 0 24px 0; /* padding-top만 조절해도 타이틀이 아래로 내려감 */
+  border-bottom: 1.5px solid #e6eaf3;
+}
+
+.building-title {
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #222;
+  margin-left: 85px;
+  letter-spacing: -0.5px;
+}
+
 .building-content {
   margin: 0 auto;
   padding: 48px 0 0 0;
@@ -70,7 +85,6 @@ html {
 
 .building-table-wrap {
   background: #fff;
-  border: 1px solid #eee;
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(37, 116, 245, 0.07);
   padding: 0;
@@ -91,9 +105,9 @@ html {
 }
 .custom-table th,
 .custom-table td {
-  border: 1px solid #eee;
   padding: 15px 10px;
   text-align: center;
+  border-bottom: 1.5px solid #e3eefd;
 }
 .custom-table th {
   background: #eaf2fd;

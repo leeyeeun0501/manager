@@ -37,48 +37,6 @@ export default function BuildingPage() {
     floorPage * pageSize
   )
 
-  // 건물 목록 fetch
-  useEffect(() => {
-    async function fetchBuildings() {
-      try {
-        const res = await fetch("/api/building-route")
-        if (!res.ok) throw new Error("Failed to fetch buildings")
-        const data = await res.json()
-        const infos = (data.all || [])
-          .filter((b) => b && b.Building_Name)
-          .map((b) => ({
-            name: b.Building_Name,
-          }))
-        setBuildingInfos(infos)
-      } catch (err) {
-        setBuildingInfos([])
-      }
-    }
-    fetchBuildings()
-  }, [])
-
-  // floors fetch (전체/건물별)
-  useEffect(() => {
-    async function fetchFloors() {
-      let url = "/api/floor-route"
-      if (selectedBuilding) {
-        url += `?building=${encodeURIComponent(selectedBuilding)}`
-      }
-      console.log("층 정보 fetch URL:", url) // ★ 로그 추가
-      try {
-        const res = await fetch(url)
-        const data = await res.json()
-        console.log("층 정보 응답:", data) // ★ 응답 로그 추가
-        setFloors(data.floors || [])
-      } catch (err) {
-        setFloors([])
-      }
-      setSelectedFloor("") // 건물 바뀌면 층 선택 초기화
-      setFloorPage(1)
-    }
-    fetchFloors()
-  }, [selectedBuilding])
-
   // 층 콤보박스 옵션: floors에서 추출
   const floorNames = Array.from(
     new Set(floors.map((f) => String(f.floor)).filter(Boolean))
@@ -160,6 +118,48 @@ export default function BuildingPage() {
     }
   }
 
+  // 건물 목록 fetch
+  useEffect(() => {
+    async function fetchBuildings() {
+      try {
+        const res = await fetch("/api/building-route")
+        if (!res.ok) throw new Error("Failed to fetch buildings")
+        const data = await res.json()
+        const infos = (data.all || [])
+          .filter((b) => b && b.Building_Name)
+          .map((b) => ({
+            name: b.Building_Name,
+          }))
+        setBuildingInfos(infos)
+      } catch (err) {
+        setBuildingInfos([])
+      }
+    }
+    fetchBuildings()
+  }, [])
+
+  // floors fetch (전체/건물별)
+  useEffect(() => {
+    async function fetchFloors() {
+      let url = "/api/floor-route"
+      if (selectedBuilding) {
+        url += `?building=${encodeURIComponent(selectedBuilding)}`
+      }
+      console.log("층 정보 fetch URL:", url) // ★ 로그 추가
+      try {
+        const res = await fetch(url)
+        const data = await res.json()
+        console.log("층 정보 응답:", data) // ★ 응답 로그 추가
+        setFloors(data.floors || [])
+      } catch (err) {
+        setFloors([])
+      }
+      setSelectedFloor("") // 건물 바뀌면 층 선택 초기화
+      setFloorPage(1)
+    }
+    fetchFloors()
+  }, [selectedBuilding])
+
   // 파일 선택 아이콘 버튼 컴포넌트
   function ClipFileInput({ onFileChange, fileName }) {
     const fileInputRef = useRef(null)
@@ -230,6 +230,7 @@ export default function BuildingPage() {
 
   return (
     <div className="building-root">
+      <span className="building-title">층 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className="building-content">
         {/* 건물/층 선택 콤보박스 */}

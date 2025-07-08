@@ -55,7 +55,7 @@ html {
   font-weight: 700;
   font-size: 1.07rem;
   border-radius: 10px;
-  background: linear-gradient(90deg, #2574f5 0%, #5eaefd 100%);
+  background: #2574f5;
   color: #fff;
   border: none;
   box-shadow: 0 2px 8px rgba(37, 116, 245, 0.09);
@@ -64,7 +64,7 @@ html {
   letter-spacing: 0.03em;
 }
 .add-floor-btn:hover {
-  background: linear-gradient(90deg, #1656b9 0%, #3d8bf7 100%);
+  background: #2574f5;
   box-shadow: 0 4px 18px rgba(37, 116, 245, 0.14);
 }
 
@@ -260,13 +260,13 @@ html {
   border-radius: 8px;
   border: 1.5px solid #b3d1fa;
   padding: 8px 12px;
-  background: #f4faff;
+  background: #fff; /* ← 완전 흰색으로 변경! */
   transition: border 0.13s;
 }
 .add-floor-modal-row input[type="file"] {
   flex: 1 1 0;
   font-size: 1rem;
-  background: #fbfcff;
+  background: #fff; /* ← 완전 흰색으로 변경! */
 }
 .add-floor-modal-error {
   color: #e74c3c;

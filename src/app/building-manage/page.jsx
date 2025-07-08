@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
 import "./building-manage.css"
-import { FaTrashAlt, FaEdit } from "react-icons/fa"
+import { FaTrashAlt, FaPaperclip } from "react-icons/fa"
 
 export default function BuildingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -19,16 +19,7 @@ export default function BuildingPage() {
   const [addFloorNum, setAddFloorNum] = useState("")
   const [addFloorFile, setAddFloorFile] = useState(null)
   const [addFloorError, setAddFloorError] = useState("")
-  const addFloorFileRef = useRef(null)
   const [floorNames, setFloorNames] = useState([])
-
-  // 이미지 팝업 및 수정 상태 (층 맵 파일만)
-  const [popupImg, setPopupImg] = useState(null)
-  const [popupFloor, setPopupFloor] = useState(null)
-  const [popupBuilding, setPopupBuilding] = useState(null)
-  const [editFile, setEditFile] = useState(null)
-  const [editError, setEditError] = useState("")
-  const editFileRef = useRef(null)
 
   // 건물/층 옵션
   const buildingOptions = buildingInfos.map((b) => b.name)
@@ -135,8 +126,6 @@ export default function BuildingPage() {
       setAddFloorBuilding("")
       setAddFloorNum("")
       setAddFloorFile(null)
-      if (addFloorFileRef.current) addFloorFileRef.current.value = ""
-
       // 데이터 새로고침
       if (selectedBuilding === addFloorBuilding) {
         const floorsRes = await fetch(
@@ -147,52 +136,6 @@ export default function BuildingPage() {
       }
     } catch (err) {
       setAddFloorError("층 추가 중 오류가 발생했습니다.")
-    }
-  }
-
-  // 층 맵 파일 수정 핸들러
-  const handleEditFloorMap = async () => {
-    setEditError("")
-    if (!popupBuilding || !popupFloor || !editFile) {
-      setEditError("파일을 선택하세요.")
-      return
-    }
-    const formData = new FormData()
-    formData.append("file", editFile)
-    try {
-      const res = await fetch(
-        `/api/floor-route?building=${encodeURIComponent(
-          popupBuilding
-        )}&floor=${encodeURIComponent(popupFloor)}`,
-        {
-          method: "PUT",
-          body: formData,
-        }
-      )
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setEditError(data.error || "맵 파일 수정 실패")
-        return
-      }
-      // 새로고침
-      if (selectedBuilding === popupBuilding) {
-        const floorsRes = await fetch(
-          `/api/floor-route?building=${encodeURIComponent(
-            popupBuilding
-          )}&_=${Date.now()}`
-        )
-        const floorsData = await floorsRes.json()
-        setFloors(floorsData.floors || [])
-      }
-      alert("맵 파일이 수정되었습니다!")
-      setPopupImg(null)
-      setEditFile(null)
-      setEditError("")
-      if (editFileRef.current) editFileRef.current.value = ""
-      setPopupFloor(null)
-      setPopupBuilding(null)
-    } catch (err) {
-      setEditError("맵 파일 수정 중 오류가 발생했습니다.")
     }
   }
 
@@ -231,21 +174,98 @@ export default function BuildingPage() {
     }
   }
 
+  // 파일 선택 인풋 (입력란 스타일과 동일, 오른쪽에 클립 아이콘)
+  function ClipFileInput({ onFileChange, fileName }) {
+    const fileInputRef = useRef(null)
+    return (
+      <div
+        style={{
+          width: "90%",
+          margin: "0 auto",
+          position: "relative",
+          display: "block",
+        }}
+      >
+        <input
+          type="text"
+          readOnly
+          value={fileName || ""}
+          placeholder="SVG 파일만 업로드"
+          style={{
+            width: "100%",
+            height: 48,
+            padding: "12px 44px 12px 12px",
+            borderRadius: 14,
+            border: "1.5px solid #b3d1fa",
+            fontSize: 16,
+            background: "#fff",
+            color: fileName ? "#222" : "#aaa",
+            fontFamily: "inherit",
+            outline: "none",
+            boxSizing: "border-box",
+            cursor: "pointer",
+            transition: "border 0.13s",
+          }}
+          onClick={() => fileInputRef.current && fileInputRef.current.click()}
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current && fileInputRef.current.click()}
+          style={{
+            position: "absolute",
+            top: "50%",
+            right: 10,
+            transform: "translateY(-50%)",
+            background: "none",
+            border: "none",
+            padding: 0,
+            margin: 0,
+            cursor: "pointer",
+            color: "#2574f5",
+            fontSize: 22,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          aria-label="SVG 파일 업로드"
+        >
+          <FaPaperclip size={22} />
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".svg"
+          style={{ display: "none" }}
+          onChange={onFileChange}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="building-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className="building-content">
-        {/* 필터 */}
-        <div className="building-filter-row">
+        {/* 건물/층 선택 콤보박스 */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 18,
+            marginBottom: 18,
+          }}
+        >
           <select
             className="building-select"
             value={selectedBuilding}
             onChange={(e) => {
               setSelectedBuilding(e.target.value)
+              setSelectedFloor("")
               setFloorPage(1)
             }}
+            style={{ minWidth: 150 }}
           >
-            <option value="">건물</option>
+            <option value="">건물 선택</option>
             {buildingOptions.map((b, idx) => (
               <option key={b || idx} value={b}>
                 {b}
@@ -260,8 +280,9 @@ export default function BuildingPage() {
               setFloorPage(1)
             }}
             disabled={!selectedBuilding}
+            style={{ minWidth: 120 }}
           >
-            <option value="">전체</option>
+            <option value="">전체 층</option>
             {floorNames.length > 0 ? (
               floorNames.map((f, idx) => (
                 <option key={f || idx} value={f}>
@@ -274,286 +295,254 @@ export default function BuildingPage() {
               </option>
             )}
           </select>
+        </div>
+        {/* 표 상단 오른쪽에 층 추가 버튼 */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            marginBottom: 18,
+          }}
+        >
           <button
             className="add-floor-btn"
             onClick={() => setShowAddFloor(true)}
             type="button"
           >
-            Add Floor
+            층 추가
           </button>
         </div>
-
-        <div className="table-row">
-          <div className="table-col">
-            <div className="building-table-wrap">
-              <table className="custom-table">
-                <thead>
-                  <tr>
-                    <th>건물명</th>
-                    <th>층</th>
-                    <th>맵 파일</th>
-                    <th>삭제</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {floorPaged.length > 0 ? (
-                    floorPaged.map((row, idx) => (
-                      <tr key={row.building + "-" + row.floor + "-" + idx}>
-                        <td>{row.building}</td>
-                        <td>{row.floor}</td>
-                        <td className="map-file-cell">
-                          {row.file ? (
-                            <div
-                              className="map-file-btn-wrap"
-                              style={{
-                                position: "relative",
-                                display: "inline-block",
-                              }}
-                            >
-                              <button
-                                className="edit-btn"
-                                onClick={() => {
-                                  setPopupImg(row.file)
-                                  setPopupBuilding(row.building)
-                                  setPopupFloor(row.floor)
-                                  setEditFile(null)
-                                  setEditError("")
-                                  if (editFileRef.current)
-                                    editFileRef.current.value = ""
-                                }}
-                              >
-                                이미지 불러오기
-                              </button>
-                              <button
-                                className="edit-icon-btn"
-                                title="맵 파일 수정"
-                                style={{
-                                  position: "absolute",
-                                  right: -30,
-                                  top: "50%",
-                                  transform: "translateY(-50%)",
-                                  opacity: 1, // 항상 보임
-                                  pointerEvents: "auto",
-                                }}
-                                onClick={() => {
-                                  setPopupImg(row.file)
-                                  setPopupBuilding(row.building)
-                                  setPopupFloor(row.floor)
-                                  setEditFile(null)
-                                  setEditError("")
-                                  if (editFileRef.current)
-                                    editFileRef.current.value = ""
-                                }}
-                                tabIndex={-1}
-                              >
-                                <FaEdit size={18} color="#2574f5" />
-                              </button>
-                            </div>
-                          ) : (
-                            <span style={{ color: "#aaa" }}>없음</span>
-                          )}
-                        </td>
-                        <td>
-                          <span className="tag">{row.floor}F</span>
-                        </td>
-                        <td>
-                          <button
-                            className="delete-btn"
-                            onClick={() =>
-                              handleDeleteFloor(row.building, row.floor)
-                            }
-                            title="삭제"
-                          >
-                            <FaTrashAlt size={18} color="#e74c3c" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        style={{ textAlign: "center", color: "#aaa" }}
+        {/* 표 */}
+        <div className="building-table-wrap">
+          <table className="custom-table">
+            <thead>
+              <tr>
+                <th>건물명</th>
+                <th>층</th>
+                <th>맵 파일</th>
+                <th>삭제</th>
+              </tr>
+            </thead>
+            <tbody>
+              {floorPaged.length > 0 ? (
+                floorPaged.map((row, idx) => (
+                  <tr key={row.building + "-" + row.floor + "-" + idx}>
+                    <td>{row.building}</td>
+                    <td>{row.floor}</td>
+                    <td>
+                      {row.file ? (
+                        <span style={{ color: "#2574f5", fontWeight: 600 }}>
+                          등록됨
+                        </span>
+                      ) : (
+                        <span style={{ color: "#aaa" }}>없음</span>
+                      )}
+                    </td>
+                    <td>
+                      <button
+                        className="delete-btn"
+                        onClick={() =>
+                          handleDeleteFloor(row.building, row.floor)
+                        }
+                        title="삭제"
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          fontSize: "1.1rem",
+                        }}
                       >
-                        데이터가 없습니다.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <div className="building-pagination-row">
-              <button
-                className="building-pagination-btn"
-                onClick={() => setFloorPage((p) => Math.max(1, p - 1))}
-                disabled={floorPage === 1}
-              >
-                이전
-              </button>
-              <span className="building-pagination-info">
-                {floorPage} / {floorTotalPages}
-              </span>
-              <button
-                className="building-pagination-btn"
-                onClick={() =>
-                  setFloorPage((p) => Math.min(floorTotalPages, p + 1))
-                }
-                disabled={floorPage === floorTotalPages}
-              >
-                다음
-              </button>
-            </div>
-          </div>
+                        <FaTrashAlt size={18} color="#e74c3c" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={4}
+                    style={{ textAlign: "center", color: "#aaa" }}
+                  >
+                    데이터가 없습니다.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-
-        {/* 층 추가 팝업: 중앙 모달 */}
-        {showAddFloor && (
-          <div
-            className="add-floor-modal-backdrop"
-            onClick={() => setShowAddFloor(false)}
+        {/* 페이지네이션 */}
+        <div className="building-pagination-row">
+          <button
+            className="building-pagination-btn"
+            onClick={() => setFloorPage((p) => Math.max(1, p - 1))}
+            disabled={floorPage === 1}
           >
-            <div
-              className="add-floor-modal"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="add-floor-modal-header">
-                <span className="add-floor-modal-title">층 추가</span>
-                <button
-                  className="add-floor-modal-close"
-                  onClick={() => setShowAddFloor(false)}
-                  title="닫기"
-                  type="button"
-                >
-                  ×
-                </button>
-              </div>
-              <form className="add-floor-modal-form" onSubmit={handleAddFloor}>
-                <div className="add-floor-modal-row">
-                  <label>건물</label>
-                  <select
-                    value={addFloorBuilding}
-                    onChange={(e) => setAddFloorBuilding(e.target.value)}
-                    required
-                  >
-                    <option value="">건물 선택</option>
-                    {buildingOptions.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="add-floor-modal-row">
-                  <label>층수</label>
-                  <input
-                    type="text"
-                    value={addFloorNum}
-                    onChange={(e) => setAddFloorNum(e.target.value)}
-                    min={1}
-                    placeholder="예) 3"
-                    required
-                  />
-                </div>
-                <div className="add-floor-modal-row">
-                  <label>맵 파일</label>
-                  <input
-                    type="file"
-                    accept="image/png, image/svg+xml"
-                    ref={addFloorFileRef}
-                    onChange={(e) => setAddFloorFile(e.target.files[0])}
-                    required
-                  />
-                </div>
-                {addFloorError && (
-                  <div className="add-floor-modal-error">{addFloorError}</div>
-                )}
-                <div className="add-floor-modal-actions">
-                  <button type="submit" className="add-floor-modal-save-btn">
-                    저장
-                  </button>
-                  <button
-                    type="button"
-                    className="add-floor-modal-cancel-btn"
-                    onClick={() => setShowAddFloor(false)}
-                  >
-                    취소
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* 팝업: 층 이미지+수정 */}
-        {(popupImg !== null || (popupBuilding && popupFloor)) && (
+            이전
+          </button>
+          <span className="building-pagination-info">
+            {floorPage} / {floorTotalPages}
+          </span>
+          <button
+            className="building-pagination-btn"
+            onClick={() =>
+              setFloorPage((p) => Math.min(floorTotalPages, p + 1))
+            }
+            disabled={floorPage === floorTotalPages}
+          >
+            다음
+          </button>
+        </div>
+        {/* 층 추가 팝업 */}
+        {showAddFloor && (
           <div
             style={{
               position: "fixed",
               top: 0,
               left: 0,
-              right: 0,
-              bottom: 0,
-              background: "rgba(0,0,0,0.6)",
+              width: "100vw",
+              height: "100vh",
+              background: "rgba(0,0,0,0.14)",
+              zIndex: 10000,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              zIndex: 9999,
             }}
-            onClick={() => {
-              setPopupImg(null)
-              setEditFile(null)
-              setEditError("")
-              if (editFileRef.current) editFileRef.current.value = ""
-            }}
+            onClick={() => setShowAddFloor(false)}
           >
             <div
               style={{
                 background: "#fff",
-                padding: 20,
-                borderRadius: 8,
-                boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
-                maxWidth: "90vw",
-                maxHeight: "90vh",
+                borderRadius: 18,
+                minWidth: 380,
+                maxWidth: "95vw",
+                padding: "36px 32px 28px 32px",
+                boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "stretch",
+                position: "relative",
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              {popupImg && (
-                <img
-                  src={`data:image/png;base64,${popupImg}`}
-                  alt="확대 이미지"
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: 18,
+                  color: "#1976d2",
+                  marginBottom: 18,
+                  textAlign: "center",
+                  borderBottom: "2px solid #1976d2",
+                  paddingBottom: 6,
+                  letterSpacing: "-0.5px",
+                }}
+              >
+                층 추가
+              </div>
+              <form
+                onSubmit={handleAddFloor}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 16,
+                }}
+              >
+                <input
+                  type="text"
+                  value={addFloorBuilding}
+                  onChange={(e) => setAddFloorBuilding(e.target.value)}
+                  placeholder="건물명"
+                  required
                   style={{
-                    maxWidth: "80vw",
-                    maxHeight: "60vh",
-                    display: "block",
-                    margin: "0 auto",
+                    width: "90%",
+                    height: 48,
+                    padding: "12px",
+                    borderRadius: 14,
+                    border: "1.5px solid #b3d1fa",
+                    fontSize: 16,
+                    background: "#fff",
+                    color: "#222",
+                    fontFamily: "inherit",
+                    outline: "none",
+                    boxSizing: "border-box",
                   }}
                 />
-              )}
-              <div style={{ marginTop: 16 }}>
                 <input
-                  type="file"
-                  accept="image/png"
-                  ref={editFileRef}
-                  onChange={(e) => setEditFile(e.target.files[0])}
+                  type="text"
+                  value={addFloorNum}
+                  onChange={(e) => setAddFloorNum(e.target.value)}
+                  placeholder="층수"
+                  required
+                  style={{
+                    width: "90%",
+                    height: 48,
+                    padding: "12px",
+                    borderRadius: 14,
+                    border: "1.5px solid #b3d1fa",
+                    fontSize: 16,
+                    background: "#fff",
+                    color: "#222",
+                    fontFamily: "inherit",
+                    outline: "none",
+                    boxSizing: "border-box",
+                  }}
                 />
-                <button style={{ marginLeft: 8 }} onClick={handleEditFloorMap}>
-                  수정
-                </button>
-                <button
-                  style={{ marginLeft: 8 }}
-                  onClick={() => {
-                    setPopupImg(null)
-                    setEditFile(null)
-                    setEditError("")
-                    if (editFileRef.current) editFileRef.current.value = ""
+                {/* 파일 선택 인풋 */}
+                <ClipFileInput
+                  onFileChange={(e) => setAddFloorFile(e.target.files[0])}
+                  fileName={addFloorFile ? addFloorFile.name : ""}
+                />
+                {addFloorError && (
+                  <div
+                    style={{ color: "#e74c3c", fontSize: 15, margin: "4px 0" }}
+                  >
+                    {addFloorError}
+                  </div>
+                )}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 10,
+                    marginTop: 14,
+                    width: "100%",
+                    justifyContent: "flex-end",
                   }}
                 >
-                  닫기
-                </button>
-              </div>
-              {editError && (
-                <div style={{ color: "red", marginTop: 8 }}>{editError}</div>
-              )}
+                  <button
+                    type="button"
+                    style={{
+                      flex: 1,
+                      padding: "10px 0",
+                      borderRadius: 24,
+                      border: "none",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      background: "#eee",
+                      color: "#333",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setShowAddFloor(false)}
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="submit"
+                    style={{
+                      flex: 1,
+                      padding: "10px 0",
+                      borderRadius: 24,
+                      border: "none",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      background: "#2574f5",
+                      color: "#fff",
+                      cursor: "pointer",
+                    }}
+                  >
+                    저장
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

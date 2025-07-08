@@ -21,6 +21,7 @@ export default function BuildingPage() {
   const [addFloorFile, setAddFloorFile] = useState(null)
   const [addFloorError, setAddFloorError] = useState("")
   const addFloorFileRef = useRef(null)
+  const [floorNames, setFloorNames] = useState([])
 
   // 이미지 팝업 및 수정 상태 (층 맵 파일만)
   const [popupImg, setPopupImg] = useState(null)
@@ -69,31 +70,27 @@ export default function BuildingPage() {
     fetchBuildings()
   }, [])
 
-  // 건물 선택 시 해당 건물의 층 fetch
+  // 건물 선택 시 해당 건물의 층수 목록만 fetch
   useEffect(() => {
     if (!selectedBuilding) {
-      setFloors([])
-      setSelectedFloor("")
-      setFloorPage(1)
+      setFloorNames([])
       return
     }
-    async function fetchFloors() {
+    async function fetchFloorNames() {
       try {
         const res = await fetch(
-          `/api/floor-route?building=${encodeURIComponent(selectedBuilding)}`
+          `/api/floor-route?building=${encodeURIComponent(
+            selectedBuilding
+          )}&type=names`
         )
-        if (!res.ok) throw new Error("Failed to fetch floors")
+        if (!res.ok) throw new Error("Failed to fetch floor names")
         const data = await res.json()
-        setFloors(Array.isArray(data.floors) ? data.floors : [])
-        setSelectedFloor("")
-        setFloorPage(1)
+        setFloorNames(data.floors || [])
       } catch (err) {
-        setFloors([])
-        setSelectedFloor("")
-        setFloorPage(1)
+        setFloorNames([])
       }
     }
-    fetchFloors()
+    fetchFloorNames()
   }, [selectedBuilding])
 
   // 층 추가 핸들러
@@ -250,8 +247,8 @@ export default function BuildingPage() {
             disabled={!selectedBuilding}
           >
             <option value="">전체</option>
-            {floorOptions.length > 0 ? (
-              floorOptions.map((f, idx) => (
+            {floorNames.length > 0 ? (
+              floorNames.map((f, idx) => (
                 <option key={f || idx} value={f}>
                   {f}
                 </option>

@@ -7,12 +7,14 @@ export async function GET(request) {
   const building = searchParams.get("building")
   const type = searchParams.get("type")
 
-  if (!building) {
-    return NextResponse.json({ error: "건물명을 입력하세요." }, { status: 400 })
-  }
-
   // 1. 층 번호 목록만 반환 (type=names)
   if (type === "names") {
+    if (!building) {
+      return NextResponse.json(
+        { error: "건물명을 입력하세요." },
+        { status: 400 }
+      )
+    }
     const res = await fetch(
       `http://13.55.76.216:3000/floor/names/${encodeURIComponent(building)}`,
       { method: "GET", cache: "no-store" }
@@ -23,7 +25,6 @@ export async function GET(request) {
         { status: res.status }
       )
     }
-    // 서버 응답 예: [{ Floor_Number: "1" }, { Floor_Number: "2" }, ...]
     const data = await res.json()
     const floorNames = (Array.isArray(data) ? data : [])
       .map((row) => row.Floor_Number)
@@ -31,12 +32,14 @@ export async function GET(request) {
     return NextResponse.json({ floors: floorNames })
   }
 
-  // 2. 전체 층 정보 반환 (기존 방식)
+  // 2. 전체 층 정보 반환 (건물별 or 전체)
+  const buildingParam = searchParams.get("building")
   let apiUrl
-  if (building) {
-    apiUrl = `http://13.55.76.216:3000/floor/${encodeURIComponent(building)}`
+  if (buildingParam) {
+    apiUrl = `http://13.55.76.216:3000/floor/${encodeURIComponent(
+      buildingParam
+    )}`
   } else {
-    // building 파라미터 없으면 전체 층 정보
     apiUrl = `http://13.55.76.216:3000/floor/`
   }
 
@@ -55,7 +58,7 @@ export async function GET(request) {
   const result = floors.map((row) => ({
     floor: row.Floor_Number,
     building: row.Building_Name,
-    file: row.file || null, // Base64 PNG
+    file: row.File || null,
   }))
 
   return NextResponse.json({ floors: result })

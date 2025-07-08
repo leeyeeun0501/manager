@@ -374,9 +374,19 @@ export default function BuildingPage() {
                     <td>{row.floor}</td>
                     <td>
                       {row.file ? (
-                        <span style={{ color: "#2574f5", fontWeight: 600 }}>
-                          등록됨
-                        </span>
+                        <a
+                          href={row.file}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: "#2574f5",
+                            fontWeight: 600,
+                            textDecoration: "underline",
+                            cursor: "pointer",
+                          }}
+                        >
+                          맵 보기
+                        </a>
                       ) : (
                         <span style={{ color: "#aaa" }}>없음</span>
                       )}

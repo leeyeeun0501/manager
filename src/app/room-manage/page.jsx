@@ -47,6 +47,15 @@ export default function RoomManagePage() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
+  const normalizeRoom = (room) => {
+    return {
+      building: room.building || room.Building_Name || "",
+      floor: room.floor || room.Floor_Number || "",
+      name: room.name || room.Room_Name || "",
+      description: room.description || room.Room_Description || "",
+    }
+  }
+
   // 1. 건물 목록만 최초 1회 받아오기
   useEffect(() => {
     fetchBuildings()
@@ -119,18 +128,20 @@ export default function RoomManagePage() {
 
       const res = await fetch(url)
       const data = await res.json()
-      console.log("전체 강의실 조회 응답:", data)
+      console.log("강의실 조회 응답:", data)
 
-      if (!res.ok || !Array.isArray(data.rooms)) {
+      // 🔧 응답 포맷에 따라 유연하게 처리
+      let roomList = []
+
+      if (Array.isArray(data)) {
+        roomList = data // 배열 자체가 옴
+      } else if (Array.isArray(data.rooms)) {
+        roomList = data.rooms // 객체 내에 rooms 속성으로 배열이 옴
+      } else {
         throw new Error(data.error || "강의실 정보를 불러올 수 없습니다.")
       }
 
-      const mapped = data.rooms.map((room) => ({
-        building: room.building,
-        floor: room.floor,
-        name: room.name,
-        description: room.description,
-      }))
+      const mapped = roomList.map(normalizeRoom)
       setRooms(mapped)
     } catch (err) {
       setError(err.message)

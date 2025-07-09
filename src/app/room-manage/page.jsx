@@ -120,7 +120,20 @@ export default function RoomManagePage() {
       const data = await res.json()
       if (!res.ok)
         throw new Error(data.error || "강의실 정보를 불러올 수 없습니다.")
-      setRooms(Array.isArray(data.rooms) ? data.rooms : [])
+
+      // 전체 조회: 배열로 바로 올 때도 처리
+      let arr = Array.isArray(data.rooms)
+        ? data.rooms
+        : Array.isArray(data)
+        ? data
+        : []
+      const mapped = arr.map((room) => ({
+        building: room.Building_Name,
+        floor: room.Floor_Number,
+        name: room.Room_Name,
+        description: room.Room_Description,
+      }))
+      setRooms(mapped)
     } catch (err) {
       setError(err.message)
       setRooms([])
@@ -349,7 +362,13 @@ export default function RoomManagePage() {
                       </tr>
                     ) : (
                       pagedRooms.map((room, idx) => (
-                        <tr key={`${room.building}-${room.floor}-${room.name}`}>
+                        <tr
+                          key={
+                            room.building && room.floor && room.name
+                              ? `${room.building}-${room.floor}-${room.name}`
+                              : `row-${idx}`
+                          }
+                        >
                           <td>{room.building}</td>
                           <td>{room.floor}</td>
                           <td>{room.name}</td>

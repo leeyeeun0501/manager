@@ -140,51 +140,6 @@ export default function BuildingPage() {
     }
   }
 
-  const handleEditFloorMap = async () => {
-    setEditError("")
-    if (!popupBuilding || !popupFloor || !editFile) {
-      setEditError("파일을 선택하세요.")
-      return
-    }
-    const formData = new FormData()
-    formData.append("file", editFile)
-    formData.append("building_name", popupBuilding)
-    formData.append("floor_number", popupFloor)
-    try {
-      const res = await fetch(
-        `/api/floor-route?floor=${encodeURIComponent(
-          popupFloor
-        )}&building=${encodeURIComponent(popupBuilding)}`,
-        {
-          method: "PUT",
-          body: formData,
-        }
-      )
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setEditError(data.error || "맵 파일 수정 실패")
-        return
-      }
-      // 수정 후 floors 새로고침
-      if (selectedBuilding === popupBuilding) {
-        const floorsRes = await fetch(
-          `/api/floor-route?building=${encodeURIComponent(popupBuilding)}`
-        )
-        const floorsData = await floorsRes.json()
-        setFloors(floorsData.floors || [])
-      }
-      alert("맵 파일이 수정되었습니다!")
-      setPopupImg(null)
-      setEditFile(null)
-      setEditError("")
-      if (editFileRef.current) editFileRef.current.value = ""
-      setPopupFloor(null)
-      setPopupBuilding(null)
-    } catch (err) {
-      setEditError("맵 파일 수정 중 오류가 발생했습니다.")
-    }
-  }
-
   // 건물 목록 fetch
   useEffect(() => {
     async function fetchBuildings() {

@@ -749,7 +749,22 @@ export default function BuildingPage() {
               <div
                 style={{ marginBottom: 12, fontWeight: "bold", fontSize: 16 }}
               >
-                건물명: {editMapBuilding} / 층수: {editMapFloor}
+                {/* 건물명/층수 표시 */}
+                <div
+                  style={{
+                    width: "100%",
+                    fontSize: 16,
+                    color: "#2574f5",
+                    fontWeight: 600,
+                    marginBottom: 12,
+                    textAlign: "center",
+                    whiteSpace: "nowrap", // 한 줄로!
+                    overflow: "hidden",
+                    textOverflow: "ellipsis", // 너무 길면 ... 처리
+                  }}
+                >
+                  건물명: {editMapBuilding} / 층수: {editMapFloor}
+                </div>
               </div>
               {/* 도면 이미지 */}
               <object
@@ -986,7 +1001,10 @@ export default function BuildingPage() {
                     marginBottom: 8,
                     textAlign: "center",
                   }}
-                ></div>
+                >
+                  {" "}
+                  건물명: {fileAddModal.building} / 층수: {fileAddModal.floor}
+                </div>
                 {/* 파일 선택 */}
                 <div
                   style={{

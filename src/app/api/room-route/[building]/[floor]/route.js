@@ -1,6 +1,6 @@
 // room-route/[building]/[floor]
 import { NextResponse } from "next/server"
-import { API_BASE } from "../_apiBase"
+import { API_BASE } from "../apibase"
 
 // 강의실 추가 (POST)
 export async function POST(req, { params }) {

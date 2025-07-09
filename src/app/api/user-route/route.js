@@ -1,6 +1,6 @@
 // user-route
 import { NextResponse } from "next/server"
-import { AUTH_API_BASE } from "../_apiBase"
+import { AUTH_API_BASE } from "../apibase"
 
 // 전체 사용자 조회 (GET)
 export async function GET(request) {

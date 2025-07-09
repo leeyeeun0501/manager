@@ -15,7 +15,7 @@ export async function GET(request) {
     )
   }
 
-  const apiUrl = `http://13.55.76.216:3000/category/manager/${encodeURIComponent(
+  const apiUrl = `${API_BASE}/category/manager/${encodeURIComponent(
     building
   )}/${encodeURIComponent(floor)}`
   try {
@@ -72,7 +72,7 @@ export async function DELETE(request) {
     )
   }
 
-  const apiUrl = `http://13.55.76.216:3000/category/${encodeURIComponent(
+  const apiUrl = `${API_BASE}/category/${encodeURIComponent(
     building
   )}/${encodeURIComponent(floor)}`
 

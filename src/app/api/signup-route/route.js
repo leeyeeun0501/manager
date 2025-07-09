@@ -1,9 +1,10 @@
 // signup-route
 import { NextResponse } from "next/server"
+import { API_BASE } from "../apibase"
 
 // 회원가입 API 요청
 async function registerUser({ id, pw, name, phone, email }) {
-  const res = await fetch("http://13.55.76.216:3001/user/register", {
+  const res = await fetch(`${API_BASE}/user/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, pw, name, phone, email }),

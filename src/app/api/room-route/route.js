@@ -1,6 +1,6 @@
 // room-route
 import { NextResponse } from "next/server"
-import { API_BASE } from "../_apiBase"
+import { API_BASE } from "../apibase"
 
 // 전체 데이터 조회 (GET)
 export async function GET() {

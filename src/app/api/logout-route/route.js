@@ -1,6 +1,6 @@
 // logout-route
 import { NextResponse } from "next/server"
-import { AUTH_API_BASE } from "../_apiBase"
+import { AUTH_API_BASE } from "../apibase"
 
 // 로그아웃 (POST)
 export async function POST(req) {

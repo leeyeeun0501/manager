@@ -1,7 +1,7 @@
 // login-route
 export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
-import { AUTH_API_BASE } from "../_apiBase"
+import { AUTH_API_BASE } from "../apibase"
 
 // 로그인 API 요청
 async function login(id, pw) {

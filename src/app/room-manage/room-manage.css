@@ -2,12 +2,13 @@
 .management-root {
   display: flex;
   background: #f4f7fc;
+  min-height: 100vh;
 }
 
 .management-content {
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 32px 0 0 0;
+  padding: 0px 0 0 0;
 }
 
 .room-manage-filter-row {
@@ -23,7 +24,7 @@
   gap: 48px;
   width: 100%;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 20px auto 0;
   overflow-x: auto;
 }
 
@@ -37,7 +38,7 @@
 .user-table.center-table {
   margin-left: 0;
   margin-right: 0;
-  margin-top: 40px;
+  margin-top: 0;
   width: 100%; /* 900px → 100% */
   max-width: 700px;
 }

@@ -13,6 +13,9 @@ export default function BuildingPage() {
   const [floorPage, setFloorPage] = useState(1)
   const pageSize = 10
 
+  const [editMapBuilding, setEditMapBuilding] = useState("")
+  const [editMapFloor, setEditMapFloor] = useState("")
+
   // 층 추가 폼 상태
   const [showAddFloor, setShowAddFloor] = useState(false)
   const [addFloorBuilding, setAddFloorBuilding] = useState("")
@@ -134,6 +137,51 @@ export default function BuildingPage() {
       }
     } catch (err) {
       alert("층 삭제 중 오류가 발생했습니다.")
+    }
+  }
+
+  const handleEditFloorMap = async () => {
+    setEditError("")
+    if (!popupBuilding || !popupFloor || !editFile) {
+      setEditError("파일을 선택하세요.")
+      return
+    }
+    const formData = new FormData()
+    formData.append("file", editFile)
+    formData.append("building_name", popupBuilding)
+    formData.append("floor_number", popupFloor)
+    try {
+      const res = await fetch(
+        `/api/floor-route?floor=${encodeURIComponent(
+          popupFloor
+        )}&building=${encodeURIComponent(popupBuilding)}`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      )
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setEditError(data.error || "맵 파일 수정 실패")
+        return
+      }
+      // 수정 후 floors 새로고침
+      if (selectedBuilding === popupBuilding) {
+        const floorsRes = await fetch(
+          `/api/floor-route?building=${encodeURIComponent(popupBuilding)}`
+        )
+        const floorsData = await floorsRes.json()
+        setFloors(floorsData.floors || [])
+      }
+      alert("맵 파일이 수정되었습니다!")
+      setPopupImg(null)
+      setEditFile(null)
+      setEditError("")
+      if (editFileRef.current) editFileRef.current.value = ""
+      setPopupFloor(null)
+      setPopupBuilding(null)
+    } catch (err) {
+      setEditError("맵 파일 수정 중 오류가 발생했습니다.")
     }
   }
 
@@ -353,6 +401,10 @@ export default function BuildingPage() {
                           onClick={() => {
                             setMapModalFile(row.file)
                             setMapModalOpen(true)
+                            setEditMapBuilding(row.building)
+                            setEditMapFloor(row.floor)
+                            setEditMapFile(null)
+                            setEditMapError("")
                           }}
                         >
                           2D 도면
@@ -644,7 +696,12 @@ export default function BuildingPage() {
               alignItems: "center",
               justifyContent: "center",
             }}
-            onClick={() => setMapModalOpen(false)}
+            onClick={() => {
+              setMapModalOpen(false)
+              setEditFile(null)
+              setEditError("")
+              if (editFileRef.current) editFileRef.current.value = ""
+            }}
           >
             <div
               style={{
@@ -689,6 +746,11 @@ export default function BuildingPage() {
               >
                 2D 도면 미리보기
               </div>
+              <div
+                style={{ marginBottom: 12, fontWeight: "bold", fontSize: 16 }}
+              >
+                건물명: {editMapBuilding} / 층수: {editMapFloor}
+              </div>
               {/* 도면 이미지 */}
               <object
                 type="image/svg+xml"
@@ -725,16 +787,21 @@ export default function BuildingPage() {
                     setEditMapError("SVG 파일을 선택하세요.")
                     return
                   }
+                  if (!editMapBuilding || !editMapFloor) {
+                    setEditMapError("건물명과 층수를 선택하세요.")
+                    return
+                  }
                   setEditMapLoading(true)
                   try {
                     const formData = new FormData()
                     formData.append("file", editMapFile)
-                    formData.append("building_name", selectedBuilding)
-                    formData.append("floor_number", selectedFloor)
+                    formData.append("building_name", editMapBuilding)
+                    formData.append("floor_number", editMapFloor)
+
                     const res = await fetch(
                       `/api/floor-route?building=${encodeURIComponent(
-                        selectedBuilding
-                      )}&floor=${encodeURIComponent(selectedFloor)}`,
+                        editMapBuilding
+                      )}&floor=${encodeURIComponent(editMapFloor)}`,
                       {
                         method: "PUT",
                         body: formData,
@@ -748,16 +815,7 @@ export default function BuildingPage() {
                     }
                     alert("도면이 성공적으로 수정되었습니다!")
                     setMapModalOpen(false)
-                    // 새로고침: 현재 건물의 층 정보 다시 불러오기
-                    if (selectedBuilding) {
-                      const floorsRes = await fetch(
-                        `/api/floor-route?building=${encodeURIComponent(
-                          selectedBuilding
-                        )}`
-                      )
-                      const floorsData = await floorsRes.json()
-                      setFloors(floorsData.floors || [])
-                    }
+                    // 도면 수정 후, 필요하다면 목록 새로고침 등 추가
                   } catch (err) {
                     setEditMapError("도면 수정 중 오류가 발생했습니다.")
                   }
@@ -866,6 +924,10 @@ export default function BuildingPage() {
                   setAddFileError("")
                   if (!addFile) {
                     setAddFileError("SVG 파일을 선택하세요.")
+                    return
+                  }
+                  if (!editMapBuilding || !editMapFloor) {
+                    setEditMapError("건물명과 층수를 선택하세요.")
                     return
                   }
                   setAddFileLoading(true)

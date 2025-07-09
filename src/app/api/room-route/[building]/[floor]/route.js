@@ -1,17 +1,13 @@
-// room-route/[building]/[floor]
 import { NextResponse } from "next/server"
-import { API_BASE } from "../../../apibase"
+import { API_BASE } from "../../../../apibase" // 경로 주의!
 
-// 강의실 조회(건물/층) (GET)
 export async function GET(request, { params }) {
   const { building, floor } = params
 
   try {
-    let url = `${API_BASE}/room/${encodeURIComponent(building)}`
-    if (floor) {
-      url += `/${encodeURIComponent(floor)}`
-    }
-
+    const url = `${API_BASE}/room/${encodeURIComponent(
+      building
+    )}/${encodeURIComponent(floor)}`
     const res = await fetch(url)
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}))

@@ -1,4 +1,4 @@
-// room-manage
+// room-manage/page.jsx
 "use client"
 import React, { useRef, useState, useEffect } from "react"
 import Menu from "../components/menu"
@@ -11,7 +11,7 @@ export default function RoomManagePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
-  // 전체 건물/층 목록
+  // 건물/층 목록
   const [buildingOptions, setBuildingOptions] = useState([])
   const [floorOptions, setFloorOptions] = useState([])
 
@@ -47,20 +47,31 @@ export default function RoomManagePage() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
+  // 1. 건물 목록만 최초 1회 받아오기
   useEffect(() => {
-    fetchRooms()
     fetchBuildings()
+    fetchRooms() // 전체 강의실 조회
   }, [])
 
+  // 2. 건물 선택 시: 층 목록 + 해당 건물 전체 강의실 조회
   useEffect(() => {
-    if (filterBuilding) {
-      fetchFloors(filterBuilding)
-    } else {
+    if (!filterBuilding) {
       setFloorOptions([])
+      setFilterFloor("")
+      fetchRooms() // 전체 강의실
+      return
     }
+    fetchFloors(filterBuilding)
+    fetchRooms(filterBuilding) // 해당 건물 전체 강의실
     setFilterFloor("")
-    setImgUrl("")
   }, [filterBuilding])
+
+  // 3. 층 선택 시: 해당 건물, 해당 층 강의실만 조회
+  useEffect(() => {
+    if (filterBuilding && filterFloor) {
+      fetchRooms(filterBuilding, filterFloor)
+    }
+  }, [filterFloor, filterBuilding])
 
   // 건물 목록
   const fetchBuildings = async () => {
@@ -94,18 +105,25 @@ export default function RoomManagePage() {
     }
   }
 
-  // 강의실 정보
-  const fetchRooms = async () => {
+  // 강의실 정보: 전체/건물/건물+층 조회
+  const fetchRooms = async (building, floor) => {
     setLoading(true)
     setError("")
     try {
-      const res = await fetch("/api/room-route")
+      let url = "/api/room-route"
+      if (building && floor) {
+        url += `/${encodeURIComponent(building)}/${encodeURIComponent(floor)}`
+      } else if (building) {
+        url += `/${encodeURIComponent(building)}`
+      }
+      const res = await fetch(url)
       const data = await res.json()
       if (!res.ok)
         throw new Error(data.error || "강의실 정보를 불러올 수 없습니다.")
       setRooms(Array.isArray(data.rooms) ? data.rooms : [])
     } catch (err) {
       setError(err.message)
+      setRooms([])
     } finally {
       setLoading(false)
     }
@@ -173,7 +191,7 @@ export default function RoomManagePage() {
       } else {
         setAddMsg("강의실이 추가되었습니다!")
         setAddPopup(null)
-        fetchRooms()
+        fetchRooms(filterBuilding, filterFloor)
       }
     } catch {
       setAddMsg("서버 오류가 발생했습니다.")
@@ -203,7 +221,7 @@ export default function RoomManagePage() {
       )
       const text = await res.text()
       if (res.status === 200) {
-        fetchRooms() // 삭제 후 최신 목록 불러오기
+        fetchRooms(filterBuilding, filterFloor)
         alert(text)
       } else {
         alert(text)
@@ -238,7 +256,7 @@ export default function RoomManagePage() {
         setEditRoomError(data.error || "수정 실패")
         return
       }
-      fetchRooms()
+      fetchRooms(filterBuilding, filterFloor)
       setShowEditRoomModal(false)
       setEditRoom(null)
       setEditRoomName("")
@@ -251,21 +269,13 @@ export default function RoomManagePage() {
     }
   }
 
-  // 룸 필터링
-  const filteredRooms = rooms.filter(
-    (room) =>
-      (!filterBuilding || room.building === filterBuilding) &&
-      (!filterFloor || room.floor === filterFloor)
-  )
-
   // 페이징
-  const totalRooms = filteredRooms.length
+  const totalRooms = rooms.length
   const totalPages = Math.ceil(totalRooms / itemsPerPage)
   const startIdx = (currentPage - 1) * itemsPerPage
   const endIdx = startIdx + itemsPerPage
-  const pagedRooms = filteredRooms.slice(startIdx, endIdx)
+  const pagedRooms = rooms.slice(startIdx, endIdx)
 
-  // 페이지 변경 시 스크롤 유지
   useEffect(() => {
     // 페이지 바뀔 때 스크롤 맨 위로 (필요시)
     // window.scrollTo(0, 0)

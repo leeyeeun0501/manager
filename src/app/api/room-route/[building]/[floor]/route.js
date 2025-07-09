@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { API_BASE } from "../../../../apibase" // 경로 주의!
+import { API_BASE } from "../../../apibase" // 경로 주의!
 
 export async function GET(request, { params }) {
   const { building, floor } = params

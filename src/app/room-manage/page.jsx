@@ -294,11 +294,17 @@ export default function RoomManagePage() {
             disabled={!filterBuilding}
           >
             <option value="">전체 층</option>
-            {floorOptions.map((f) => (
-              <option key={f} value={f}>
-                {f}
-              </option>
-            ))}
+            {floorOptions.map((f, idx) =>
+              typeof f === "object" && f !== null ? (
+                <option key={f.floor ?? idx} value={f.floor}>
+                  {f.floor}
+                </option>
+              ) : (
+                <option key={String(f)} value={f}>
+                  {f}
+                </option>
+              )
+            )}
           </select>
           <button
             onClick={handleLoadMap}

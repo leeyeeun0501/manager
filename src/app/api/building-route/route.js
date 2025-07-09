@@ -1,5 +1,6 @@
 // building-route
 import { NextResponse } from "next/server"
+import { API_BASE } from "../apibase"
 
 // 전체 데이터 조회/건물 이름만 조회 (GET)
 export async function GET(request) {
@@ -7,7 +8,7 @@ export async function GET(request) {
 
   // 1. 건물 이름만 조회 (GET /api/building-route?type=names)
   if (searchParams.get("type") === "names") {
-    const res = await fetch("http://13.55.76.216:3000/building/names", {
+    const res = await fetch(`${API_BASE}/building/names`, {
       method: "GET",
     })
     const data = await res.json()
@@ -20,7 +21,7 @@ export async function GET(request) {
   const floor = searchParams.get("floor")
 
   if (!building && !floor) {
-    const res = await fetch("http://13.55.76.216:3000/building", {
+    const res = await fetch(`${API_BASE}/building`, {
       method: "GET",
     })
     const data = await res.json()
@@ -61,7 +62,7 @@ export async function PUT(request) {
   if (file) externalForm.append("file", file)
   if (desc) externalForm.append("desc", desc)
   const res = await fetch(
-    `http://13.55.76.216:3000/building/${encodeURIComponent(building)}`,
+    `${API_BASE}/building/${encodeURIComponent(building)}`,
     { method: "PUT", body: externalForm }
   )
 
@@ -115,7 +116,7 @@ export async function POST(request) {
     externalForm.append("desc", desc || "")
     if (file) externalForm.append("file", file)
 
-    const res = await fetch("http://13.55.76.216:3000/building/", {
+    const res = await fetch(`${API_BASE}/building/`, {
       method: "POST",
       body: externalForm,
     })
@@ -146,9 +147,7 @@ export async function DELETE(request) {
   }
 
   try {
-    const url = `http://13.55.76.216:3000/building/${encodeURIComponent(
-      building_name
-    )}`
+    const url = `${API_BASE}/building/${encodeURIComponent(building_name)}`
     const res = await fetch(url, { method: "DELETE" })
 
     if (res.status === 200) {

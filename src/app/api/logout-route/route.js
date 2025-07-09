@@ -1,5 +1,6 @@
 // logout-route
 import { NextResponse } from "next/server"
+import { AUTH_API_BASE } from "../_apiBase"
 
 // 로그아웃 (POST)
 export async function POST(req) {
@@ -13,7 +14,7 @@ export async function POST(req) {
       )
     }
 
-    const res = await fetch("http://13.55.76.216:3001/user/logout", {
+    const res = await fetch(`${AUTH_API_BASE}/user/logout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),

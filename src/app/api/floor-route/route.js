@@ -1,5 +1,6 @@
 // floor-route
 import { NextResponse } from "next/server"
+import { API_BASE } from "../apibase"
 
 // 전체 데이터 조회 (GET)
 export async function GET(request) {
@@ -8,7 +9,7 @@ export async function GET(request) {
 
   // 1. 전체 층 정보 조회 (GET /api/floor-route)
   if (!building) {
-    const res = await fetch("http://13.55.76.216:3000/floor/", {
+    const res = await fetch(`${API_BASE}/floor/`, {
       method: "GET",
       cache: "no-store",
     })
@@ -30,7 +31,7 @@ export async function GET(request) {
   // 2. 특정 건물의 층 정보 조회 (GET /api/floor-route?building=건물명)
   if (building) {
     const res = await fetch(
-      `http://13.55.76.216:3000/floor/${encodeURIComponent(building)}`,
+      `${API_BASE}/floor/${encodeURIComponent(building)}`,
       { method: "GET", cache: "no-store" }
     )
     if (!res.ok) {
@@ -54,7 +55,7 @@ export async function GET(request) {
 // 층 추가 (POST)
 export async function POST(request) {
   const formData = await request.formData()
-  const res = await fetch("http://13.55.76.216:3000/floor", {
+  const res = await fetch(`${API_BASE}/floor`, {
     method: "POST",
     body: formData,
   })
@@ -102,9 +103,9 @@ export async function PUT(request) {
   externalFormData.append("floor_number", floor)
 
   const res = await fetch(
-    `http://13.55.76.216:3000/floor/${encodeURIComponent(
-      floor
-    )}/${encodeURIComponent(building)}`,
+    `${API_BASE}/floor/${encodeURIComponent(floor)}/${encodeURIComponent(
+      building
+    )}`,
     {
       method: "PUT",
       body: externalFormData,
@@ -143,9 +144,9 @@ export async function DELETE(request) {
 
   try {
     const res = await fetch(
-      `http://13.55.76.216:3000/floor/${encodeURIComponent(
-        floor
-      )}/${encodeURIComponent(building)}`,
+      `${API_BASE}/floor/${encodeURIComponent(floor)}/${encodeURIComponent(
+        building
+      )}`,
       { method: "DELETE" }
     )
     const text = await res.text()

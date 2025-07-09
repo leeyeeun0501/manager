@@ -1,10 +1,11 @@
 // user-route
 import { NextResponse } from "next/server"
+import { AUTH_API_BASE } from "../_apiBase"
 
 // 전체 사용자 조회 (GET)
 export async function GET(request) {
   try {
-    const res = await fetch("http://13.55.76.216:3001/user", { method: "GET" })
+    const res = await fetch(`${AUTH_API_BASE}/user`, { method: "GET" })
     if (!res.ok) {
       return NextResponse.json(
         { success: false, error: "외부 서버 오류" },
@@ -32,7 +33,7 @@ export async function DELETE(request) {
       )
     }
 
-    const res = await fetch(`http://13.55.76.216:3001/user/delete`, {
+    const res = await fetch(`${AUTH_API_BASE}/user/delete`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }), // body에 id 포함!
@@ -73,7 +74,7 @@ export async function PUT(request) {
       )
     }
 
-    const res = await fetch(`http://13.55.76.216:3001/update`, {
+    const res = await fetch(`${AUTH_API_BASE}/update`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, pw, phone, email }),

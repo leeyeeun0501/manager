@@ -1,10 +1,11 @@
 // tower-route
 import { NextResponse } from "next/server"
+import { API_BASE } from "../_apiBase"
 
 // 전체 데이터 조회 (GET)
 export async function GET() {
   try {
-    const res = await fetch("http://13.55.76.216:3000/path/", {
+    const res = await fetch(`${API_BASE}/path/`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     })
@@ -48,7 +49,7 @@ export async function PUT(request) {
     }
 
     // 외부 API로 PUT 요청 (x: 위도, y: 경도)
-    const res = await fetch("http://13.55.76.216:3000/path/", {
+    const res = await fetch(`${API_BASE}/path/`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ node_name, x, y }),
@@ -90,7 +91,7 @@ export async function POST(request) {
     }
 
     // 외부 API에 JSON 바디로 전달
-    const res = await fetch("http://13.55.76.216:3000/path/create", {
+    const res = await fetch(`${API_BASE}/path/create`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -135,7 +136,7 @@ export async function DELETE(request) {
     }
 
     // 외부 API에 DELETE 요청
-    const res = await fetch("http://13.55.76.216:3000/path/", {
+    const res = await fetch(`${API_BASE}/path/`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type, node_name }),

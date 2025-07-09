@@ -1,11 +1,12 @@
 // node-route
 import { NextResponse } from "next/server"
+import { API_BASE } from "../apibase"
 
 // 전체 노드 데이터 조회 (GET)
 export async function GET() {
   try {
     // 1. edges 데이터 가져오기
-    const edgesRes = await fetch("http://13.55.76.216:3000/path/edges", {
+    const edgesRes = await fetch(`${API_BASE}/path/edges`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     })
@@ -37,7 +38,7 @@ export async function POST(request) {
       )
     }
 
-    const res = await fetch("http://13.55.76.216:3000/path/connect", {
+    const res = await fetch(`${API_BASE}/path/connect`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ from_node, to_node }),
@@ -77,7 +78,7 @@ export async function DELETE(request) {
     }
 
     // 외부 서버로 DELETE 요청 (body 포함)
-    const res = await fetch("http://13.55.76.216:3000/path/disconnect", {
+    const res = await fetch(`${API_BASE}/path/disconnect`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ from_node, to_node }),

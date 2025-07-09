@@ -1,5 +1,6 @@
 // room-route/[building]/[floor]
 import { NextResponse } from "next/server"
+import { API_BASE } from "../_apiBase"
 
 // 강의실 추가 (POST)
 export async function POST(req, { params }) {
@@ -13,9 +14,9 @@ export async function POST(req, { params }) {
     }
 
     const res = await fetch(
-      `http://13.55.76.216:3000/room/${encodeURIComponent(
-        building
-      )}/${encodeURIComponent(floor)}`,
+      `${API_BASE}/room/${encodeURIComponent(building)}/${encodeURIComponent(
+        floor
+      )}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -61,9 +62,9 @@ export async function PUT(req, context) {
     }
 
     const res = await fetch(
-      `http://13.55.76.216:3000/room/${encodeURIComponent(
-        building
-      )}/${encodeURIComponent(floor)}`,
+      `${API_BASE}/room/${encodeURIComponent(building)}/${encodeURIComponent(
+        floor
+      )}`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -107,9 +108,9 @@ export async function DELETE(request, { params }) {
   }
 
   const res = await fetch(
-    `http://13.55.76.216:3000/room/${encodeURIComponent(
-      building
-    )}/${encodeURIComponent(floor)}`,
+    `${API_BASE}/room/${encodeURIComponent(building)}/${encodeURIComponent(
+      floor
+    )}`,
     {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },

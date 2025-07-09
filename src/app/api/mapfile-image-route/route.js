@@ -1,5 +1,6 @@
 //mapfile-image-route
 import { NextResponse } from "next/server"
+import { API_BASE } from "../apibase"
 
 // 전체 데이터 조회 (GET)
 export async function GET(request) {
@@ -12,9 +13,9 @@ export async function GET(request) {
   }
 
   const imageRes = await fetch(
-    `http://13.55.76.216:3000/floor/${encodeURIComponent(
-      floor
-    )}/${encodeURIComponent(building)}`
+    `${API_BASE}/floor/${encodeURIComponent(floor)}/${encodeURIComponent(
+      building
+    )}`
   )
 
   if (!imageRes.ok) {
@@ -54,9 +55,9 @@ export async function POST(request) {
   }
 
   const res = await fetch(
-    `http://13.55.76.216:3000/category/${encodeURIComponent(
-      building
-    )}/${encodeURIComponent(floor)}`,
+    `${API_BASE}/category/${encodeURIComponent(building)}/${encodeURIComponent(
+      floor
+    )}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

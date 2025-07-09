@@ -1,5 +1,6 @@
 // category-route
 import { NextResponse } from "next/server"
+import { API_BASE } from "../apibase"
 
 // 카테고리 위치 목록 조회 (GET)
 export async function GET(request) {

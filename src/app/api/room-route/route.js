@@ -1,10 +1,11 @@
 // room-route
 import { NextResponse } from "next/server"
+import { API_BASE } from "../_apiBase"
 
 // 전체 데이터 조회 (GET)
 export async function GET() {
   try {
-    const res = await fetch("http://13.55.76.216:3000/room", {
+    const res = await fetch(`${API_BASE}/room`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     })

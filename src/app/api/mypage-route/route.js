@@ -1,5 +1,6 @@
 // mypage-route
 import { NextResponse } from "next/server"
+import { AUTH_API_BASE } from "../apibase"
 
 // 회원정보 검색 (PUT)
 export async function GET(request) {
@@ -14,7 +15,7 @@ export async function GET(request) {
   }
 
   try {
-    const apiUrl = `http://13.55.76.216:3001/user/${encodeURIComponent(id)}`
+    const apiUrl = `${AUTH_API_BASE}/user/${encodeURIComponent(id)}`
     const res = await fetch(apiUrl, { method: "GET" })
 
     if (!res.ok) {
@@ -54,7 +55,7 @@ export async function PUT(request) {
       )
     }
 
-    const apiUrl = "http://13.55.76.216:3001/user/update"
+    const apiUrl = `${AUTH_API_BASE}/user/update`
     const res = await fetch(apiUrl, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

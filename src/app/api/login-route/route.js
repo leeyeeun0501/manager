@@ -1,10 +1,11 @@
 // login-route
 export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
+import { AUTH_API_BASE } from "../_apiBase"
 
 // 로그인 API 요청
 async function login(id, pw) {
-  const res = await fetch("http://13.55.76.216:3001/user/login", {
+  const res = await fetch(`${AUTH_API_BASE}/user/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, pw }),

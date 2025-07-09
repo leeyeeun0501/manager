@@ -116,22 +116,20 @@ export default function RoomManagePage() {
       } else if (building) {
         url += `/${encodeURIComponent(building)}`
       }
+
       const res = await fetch(url)
       const data = await res.json()
-      if (!res.ok)
-        throw new Error(data.error || "강의실 정보를 불러올 수 없습니다.")
+      console.log("전체 강의실 조회 응답:", data)
 
-      // 전체 조회: 배열로 바로 올 때도 처리
-      let arr = Array.isArray(data.rooms)
-        ? data.rooms
-        : Array.isArray(data)
-        ? data
-        : []
-      const mapped = arr.map((room) => ({
-        building: room.Building_Name,
-        floor: room.Floor_Number,
-        name: room.Room_Name,
-        description: room.Room_Description,
+      if (!res.ok || !Array.isArray(data.rooms)) {
+        throw new Error(data.error || "강의실 정보를 불러올 수 없습니다.")
+      }
+
+      const mapped = data.rooms.map((room) => ({
+        building: room.building,
+        floor: room.floor,
+        name: room.name,
+        description: room.description,
       }))
       setRooms(mapped)
     } catch (err) {

@@ -108,8 +108,8 @@ export default function MapfileManagePage() {
         setSubmitMsg("도면 이미지를 불러올 수 없습니다.")
         return
       }
-      const blob = await res.blob()
-      const objectUrl = URL.createObjectURL(blob)
+      const blob = await res.json()
+      const objectUrl = blob.File;
       setImgUrl(objectUrl)
 
       // 2. 카테고리 위치 fetch

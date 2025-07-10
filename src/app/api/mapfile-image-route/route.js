@@ -9,30 +9,32 @@ export async function GET(request) {
   const floor = searchParams.get("floor")
 
   if (!building || !floor) {
-    return new NextResponse("잘못된 요청", { status: 400 })
-  }
-
-  const imageRes = await fetch(
-    `${API_BASE}/floor/${encodeURIComponent(floor)}/${encodeURIComponent(
-      building
-    )}`
-  )
-
-  if (!imageRes.ok) {
-    return new NextResponse("도면 이미지를 불러올 수 없습니다.", {
-      status: 404,
+    return new Response(JSON.stringify({ error: "잘못된 요청" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
     })
   }
 
-  const contentType = imageRes.headers.get("content-type") || "image/png"
-  const arrayBuffer = await imageRes.arrayBuffer()
+  // SVG 파일의 URL을 조합 (예시: /your-api-base/W19_1.svg)
+  const svgUrl = `${API_BASE}/floor/${encodeURIComponent(
+    floor
+  )}/${encodeURIComponent(building)}`
+  const svgRes = await fetch(svgUrl)
+  if (!svgRes.ok) {
+    return new Response(
+      JSON.stringify({ error: "SVG 파일을 불러올 수 없습니다." }),
+      {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      }
+    )
+  }
 
-  return new NextResponse(Buffer.from(arrayBuffer), {
+  // SVG 파일을 텍스트로 읽어서 반환
+  const svgText = await svgRes.text()
+  return new Response(svgText, {
     status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Content-Disposition": `inline; filename="${building}_${floor}.png"`,
-    },
+    headers: { "Content-Type": "image/svg+xml; charset=utf-8" },
   })
 }
 

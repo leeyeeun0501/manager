@@ -21,7 +21,6 @@ export default function RoomManagePage() {
 
   // 맵 이미지 관련
   const [imgUrl, setImgUrl] = useState("")
-  const [mapLoading, setMapLoading] = useState(false)
   const imgRef = useRef(null)
 
   // 강의실 추가 팝업
@@ -55,6 +54,37 @@ export default function RoomManagePage() {
       description: room.description || room.Room_Description || "",
     }
   }
+
+  // 페이징
+  const totalRooms = rooms.length
+  const totalPages = Math.ceil(totalRooms / itemsPerPage)
+  const startIdx = (currentPage - 1) * itemsPerPage
+  const endIdx = startIdx + itemsPerPage
+  const pagedRooms = rooms.slice(startIdx, endIdx)
+
+  const [svgRaw, setSvgRaw] = useState("") // SVG 텍스트 원본
+  const [mapNodes, setMapNodes] = useState([])
+  const [mapEdges, setMapEdges] = useState([])
+  const [mapLoading, setMapLoading] = useState(false)
+
+  useEffect(() => {
+    if (filterBuilding && filterFloor) {
+      setMapLoading(true)
+      fetch(
+        `/api/mapfile-image-route?building=${encodeURIComponent(
+          filterBuilding
+        )}&floor=${encodeURIComponent(filterFloor)}`
+      )
+        .then((res) => res.text()) // 반드시 .text()!
+        .then((svgText) => {
+          setSvgRaw(svgText)
+          console.log("svg text 확인:", svgText)
+        })
+        .finally(() => setMapLoading(false))
+    } else {
+      setSvgRaw("")
+    }
+  }, [filterBuilding, filterFloor])
 
   // 1. 건물 목록만 최초 1회 받아오기
   useEffect(() => {
@@ -291,13 +321,6 @@ export default function RoomManagePage() {
     }
   }
 
-  // 페이징
-  const totalRooms = rooms.length
-  const totalPages = Math.ceil(totalRooms / itemsPerPage)
-  const startIdx = (currentPage - 1) * itemsPerPage
-  const endIdx = startIdx + itemsPerPage
-  const pagedRooms = rooms.slice(startIdx, endIdx)
-
   useEffect(() => {
     // 페이지 바뀔 때 스크롤 맨 위로 (필요시)
     // window.scrollTo(0, 0)
@@ -467,86 +490,115 @@ export default function RoomManagePage() {
 
           {/* 맵 */}
           <div className="room-manage-canvas-outer">
-            <div className="room-manage-canvas">
+            <div
+              className="room-manage-canvas"
+              style={{ position: "relative" }}
+            >
               {mapLoading ? (
                 <div className="room-manage-canvas-placeholder">로딩 중...</div>
-              ) : imgUrl ? (
-                <img
-                  ref={imgRef}
-                  src={imgUrl}
-                  alt="도면"
-                  className="room-manage-canvas-img"
-                  onClick={handleImageClick}
-                />
               ) : (
-                <div className="room-manage-canvas-placeholder">
-                  건물과 층을 선택 후 맵을 불러오세요.
-                </div>
-              )}
-              {/* 강의실 추가 팝업 */}
-              {addPopup && (
-                <div
-                  className="room-manage-popup"
-                  style={{
-                    left: addPopup.x,
-                    top: addPopup.y,
-                  }}
-                >
-                  <form onSubmit={handleAddRoom}>
-                    <div>
-                      <b>좌표:</b> ({addPopup.x}, {addPopup.y})
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="강의실명"
-                      value={addForm.room_name}
-                      onChange={(e) =>
-                        setAddForm((f) => ({
-                          ...f,
-                          room_name: e.target.value,
-                        }))
-                      }
-                      required
-                      style={{ width: "100%", margin: "8px 0" }}
+                <>
+                  {/* 1. SVG 도면(배경) */}
+                  {svgRaw && (
+                    <div
+                      className="svg-canvas"
+                      style={{
+                        width: 400,
+                        height: 400,
+                        background: "#f5f6fa",
+                        borderRadius: 16,
+                        overflow: "auto",
+                        border: "2px solid #2574f5",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        zIndex: 1,
+                      }}
+                      dangerouslySetInnerHTML={{ __html: svgRaw }}
                     />
-                    <input
-                      type="text"
-                      placeholder="강의실 설명"
-                      value={addForm.room_desc}
-                      onChange={(e) =>
-                        setAddForm((f) => ({
-                          ...f,
-                          room_desc: e.target.value,
-                        }))
-                      }
-                      style={{ width: "100%", marginBottom: 8 }}
-                    />
-                    <input type="hidden" value={addPopup.x} readOnly />
-                    <input type="hidden" value={addPopup.y} readOnly />
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button type="submit" disabled={addLoading}>
-                        {addLoading ? "저장 중..." : "저장"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setAddPopup(null)}
-                        style={{ background: "#bbb" }}
+                  )}
+
+                  {/* 2. 노드/엣지 오버레이 */}
+                  <svg
+                    width={400}
+                    height={400}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      pointerEvents: "none", // 노드/엣지만 이벤트 허용
+                      zIndex: 2,
+                    }}
+                  >
+                    {/* 엣지(연결선) */}
+                    {mapEdges.map((edge, i) => {
+                      const from = mapNodes.find((n) => n.id === edge.from)
+                      const to = mapNodes.find((n) => n.id === edge.to)
+                      if (!from || !to) return null
+                      return (
+                        <line
+                          key={i}
+                          x1={from.x}
+                          y1={from.y}
+                          x2={to.x}
+                          y2={to.y}
+                          stroke="#2574f5"
+                          strokeWidth={2}
+                          opacity={0.8}
+                          pointerEvents="visibleStroke"
+                          onClick={() =>
+                            alert(`엣지 클릭: ${edge.from} - ${edge.to}`)
+                          }
+                        />
+                      )
+                    })}
+                    {/* 노드(강의실) */}
+                    {mapNodes.map((node) => (
+                      <g
+                        key={node.id}
+                        style={{ cursor: "pointer" }}
+                        pointerEvents="visiblePainted"
+                        onClick={() => alert(`노드 클릭: ${node.name}`)}
                       >
-                        취소
-                      </button>
+                        <circle
+                          cx={node.x}
+                          cy={node.y}
+                          r={18}
+                          fill="#fff"
+                          stroke="#2574f5"
+                          strokeWidth={2}
+                        />
+                        <text
+                          x={node.x}
+                          y={node.y + 5}
+                          fontSize={12}
+                          textAnchor="middle"
+                          fill="#2574f5"
+                          pointerEvents="none"
+                        >
+                          {node.name}
+                        </text>
+                      </g>
+                    ))}
+                  </svg>
+                  {/* 3. 안내 메시지 */}
+                  {!svgRaw && (
+                    <div
+                      className="room-manage-canvas-placeholder"
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: 400,
+                        height: 400,
+                        zIndex: 3,
+                      }}
+                    >
+                      건물과 층을 선택 후 맵을 불러오세요.
                     </div>
-                    {addMsg && (
-                      <div
-                        style={{
-                          color: addMsg.includes("추가") ? "green" : "red",
-                          marginTop: 8,
-                        }}
-                      >
-                        {addMsg}
-                      </div>
-                    )}
-                  </form>
-                </div>
+                  )}
+                </>
               )}
             </div>
           </div>

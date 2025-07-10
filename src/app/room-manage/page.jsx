@@ -303,6 +303,67 @@ export default function RoomManagePage() {
     // window.scrollTo(0, 0)
   }, [currentPage])
 
+  const [svgRaw, setSvgRaw] = useState("")
+  const [navigationNodes, setNavigationNodes] = useState([])
+
+  useEffect(() => {
+    if (filterBuilding && filterFloor) {
+      fetch(
+        `/api/mapfile-image-route?building=${encodeURIComponent(
+          filterBuilding
+        )}&floor=${encodeURIComponent(filterFloor)}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          const fileList = Array.isArray(data) ? data : []
+          const svgUrl = fileList[0]?.File
+          if (svgUrl) {
+            fetch(svgUrl)
+              .then((res) => res.text())
+              .then((svgXml) => setSvgRaw(svgXml))
+          } else {
+            setSvgRaw("")
+          }
+        })
+        .catch(() => setSvgRaw(""))
+    } else {
+      setSvgRaw("")
+    }
+  }, [filterBuilding, filterFloor])
+
+  function parseNavigationNodes(svgXml) {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(svgXml, "image/svg+xml")
+    // Navigation_Node 레이어(group) 찾기
+    const navLayer = Array.from(doc.querySelectorAll("g")).find(
+      (g) =>
+        g.getAttribute("id") === "Navigation_Node" ||
+        g.getAttribute("inkscape:label") === "Navigation_Node"
+    )
+    if (!navLayer) return []
+    const nodes = []
+    navLayer.querySelectorAll("circle, ellipse").forEach((el) => {
+      const id = el.getAttribute("id") || ""
+      const cx = parseFloat(
+        el.getAttribute("cx") || el.getAttribute("x") || "0"
+      )
+      const cy = parseFloat(
+        el.getAttribute("cy") || el.getAttribute("y") || "0"
+      )
+      nodes.push({ id, x: cx, y: cy })
+    })
+    return nodes
+  }
+
+  useEffect(() => {
+    if (svgRaw) {
+      const nodes = parseNavigationNodes(svgRaw)
+      setNavigationNodes(nodes)
+    } else {
+      setNavigationNodes([])
+    }
+  }, [svgRaw])
+
   return (
     <div className="management-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
@@ -467,17 +528,55 @@ export default function RoomManagePage() {
 
           {/* 맵 */}
           <div className="room-manage-canvas-outer">
-            <div className="room-manage-canvas">
+            <div
+              className="room-manage-canvas"
+              style={{ position: "relative", width: 400, height: 400 }}
+            >
               {mapLoading ? (
                 <div className="room-manage-canvas-placeholder">로딩 중...</div>
-              ) : imgUrl ? (
-                <img
-                  ref={imgRef}
-                  src={imgUrl}
-                  alt="도면"
-                  className="room-manage-canvas-img"
-                  onClick={handleImageClick}
-                />
+              ) : svgRaw ? (
+                <>
+                  {/* SVG 도면(배경) */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: 400,
+                      height: 400,
+                      zIndex: 1,
+                      pointerEvents: "none",
+                    }}
+                    dangerouslySetInnerHTML={{ __html: svgRaw }}
+                  />
+                  {/* 오버레이 (Navigation_Node 점 표시) */}
+                  {navigationNodes.map((node) => (
+                    <div
+                      key={node.id}
+                      style={{
+                        position: "absolute",
+                        left: node.x - 8,
+                        top: node.y - 8,
+                        width: 16,
+                        height: 16,
+                        borderRadius: "50%",
+                        background: "#ff4d4f",
+                        border: "2px solid #fff",
+                        zIndex: 2,
+                        boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 10,
+                        color: "#fff",
+                        cursor: "pointer",
+                      }}
+                      title={node.id}
+                    >
+                      {node.id}
+                    </div>
+                  ))}
+                </>
               ) : (
                 <div className="room-manage-canvas-placeholder">
                   건물과 층을 선택 후 맵을 불러오세요.

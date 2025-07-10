@@ -4,7 +4,7 @@ import { API_BASE } from "../../apibase"
 
 // 강의실 조회(건물) (GET)
 export async function GET(request, { params }) {
-  const { building } = params
+  const { building } = await params
 
   try {
     const url = `${API_BASE}/room/${encodeURIComponent(building)}`

@@ -12,7 +12,7 @@ export default function ManagementPage() {
     user: 0,
   })
 
-  // 건물, 강의실, 사용자 검색
+  // 건물, 강의실, 사용자 수
   useEffect(() => {
     fetch("/api/building-route?type=names")
       .then((res) => res.json())

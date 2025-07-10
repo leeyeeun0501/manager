@@ -26,14 +26,22 @@ export async function GET(request) {
 
   const contentType = imageRes.headers.get("content-type") || "image/png"
   const arrayBuffer = await imageRes.arrayBuffer()
-
-  return new NextResponse(Buffer.from(arrayBuffer), {
-    status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Content-Disposition": `inline; filename="${building}_${floor}.png"`,
-    },
-  })
+  if (
+    contentType.includes("svg") ||
+    contentType.includes("xml") ||
+    contentType.startsWith("text/")
+  ) {
+    const text = new TextDecoder("utf-8").decode(arrayBuffer)
+    return new NextResponse(text, {
+      status: 200,
+      headers: { "Content-Type": contentType },
+    })
+  } else {
+    return new NextResponse(Buffer.from(arrayBuffer), {
+      status: 200,
+      headers: { "Content-Type": contentType },
+    })
+  }
 }
 
 // 카테고리 추가 (POST)

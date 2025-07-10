@@ -62,12 +62,22 @@ export default function RoomManagePage() {
   const endIdx = startIdx + itemsPerPage
   const pagedRooms = rooms.slice(startIdx, endIdx)
 
-  const [svgRaw, setSvgRaw] = useState("") // SVG 텍스트 원본
+  const [svgRaw, setSvgRaw] = useState("")
   const [mapNodes, setMapNodes] = useState([])
   const [mapEdges, setMapEdges] = useState([])
   const [mapLoading, setMapLoading] = useState(false)
 
-  // 서버에서 받은 응답 예시: [{"File":"https://.../W17-동관_1.svg"}]
+  const [navigationNodes, setNavigationNodes] = useState([])
+
+  useEffect(() => {
+    if (svgRaw) {
+      const nodes = parseNavigationNodes(svgRaw)
+      setNavigationNodes(nodes)
+    } else {
+      setNavigationNodes([])
+    }
+  }, [svgRaw])
+
   useEffect(() => {
     if (filterBuilding && filterFloor) {
       setMapLoading(true)
@@ -81,6 +91,7 @@ export default function RoomManagePage() {
           // 여기서만 data 사용 가능!
           const fileList = Array.isArray(data) ? data : []
           const svgUrl = fileList[0]?.File
+          console.log("SVG 파일 URL:", svgUrl)
           if (svgUrl) {
             fetch(svgUrl)
               .then((res) => res.text())
@@ -337,6 +348,29 @@ export default function RoomManagePage() {
     // window.scrollTo(0, 0)
   }, [currentPage])
 
+  function parseNavigationNodes(svgXml) {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(svgXml, "image/svg+xml")
+    const navLayer = Array.from(doc.querySelectorAll("g")).find(
+      (g) =>
+        g.getAttribute("id") === "Navigation_Node" ||
+        g.getAttribute("inkscape:label") === "Navigation_Node"
+    )
+    if (!navLayer) return []
+    const nodes = []
+    navLayer.querySelectorAll("circle, ellipse").forEach((el) => {
+      const id = el.getAttribute("id") || ""
+      const cx = parseFloat(
+        el.getAttribute("cx") || el.getAttribute("x") || "0"
+      )
+      const cy = parseFloat(
+        el.getAttribute("cy") || el.getAttribute("y") || "0"
+      )
+      nodes.push({ id, x: cx, y: cy })
+    })
+    return nodes
+  }
+
   return (
     <div className="management-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
@@ -500,114 +534,47 @@ export default function RoomManagePage() {
           </div>
 
           {/* 맵 */}
-          <div className="room-manage-canvas-outer">
+          <div style={{ position: "relative", width: 400, height: 400 }}>
+            {/* SVG 도면(배경) */}
             <div
-              className="room-manage-canvas"
-              style={{ position: "relative" }}
-            >
-              {mapLoading ? (
-                <div className="room-manage-canvas-placeholder">로딩 중...</div>
-              ) : (
-                <>
-                  {/* 1. SVG 도면(배경) */}
-                  {svgRaw && (
-                    <div
-                      className="svg-canvas"
-                      style={{
-                        width: 400,
-                        height: 400,
-                        background: "#f5f6fa",
-                        borderRadius: 16,
-                        overflow: "auto",
-                        border: "2px solid #2574f5",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                      }}
-                      dangerouslySetInnerHTML={{ __html: svgRaw }}
-                    />
-                  )}
-
-                  {/* 2. 노드/엣지 오버레이 */}
-                  <svg
-                    width={400}
-                    height={400}
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      pointerEvents: "none", // 노드/엣지만 이벤트 허용
-                      zIndex: 2,
-                    }}
-                  >
-                    {/* 엣지(연결선) */}
-                    {mapEdges.map((edge, i) => {
-                      const from = mapNodes.find((n) => n.id === edge.from)
-                      const to = mapNodes.find((n) => n.id === edge.to)
-                      if (!from || !to) return null
-                      return (
-                        <line
-                          key={i}
-                          x1={from.x}
-                          y1={from.y}
-                          x2={to.x}
-                          y2={to.y}
-                          stroke="#2574f5"
-                          strokeWidth={2}
-                          opacity={0.8}
-                          pointerEvents="visibleStroke"
-                          onClick={() =>
-                            alert(`엣지 클릭: ${edge.from} - ${edge.to}`)
-                          }
-                        />
-                      )
-                    })}
-                    {/* 노드(강의실) */}
-                    {mapNodes.map((node) => (
-                      <g
-                        key={node.id}
-                        style={{ cursor: "pointer" }}
-                        pointerEvents="visiblePainted"
-                        onClick={() => alert(`노드 클릭: ${node.name}`)}
-                      >
-                        <circle
-                          cx={node.x}
-                          cy={node.y}
-                          r={18}
-                          fill="#fff"
-                          stroke="#2574f5"
-                          strokeWidth={2}
-                        />
-                        <text
-                          x={node.x}
-                          y={node.y + 5}
-                          fontSize={12}
-                          textAnchor="middle"
-                          fill="#2574f5"
-                          pointerEvents="none"
-                        >
-                          {node.name}
-                        </text>
-                      </g>
-                    ))}
-                  </svg>
-                  {/* 3. 안내 메시지 */}
-                  {!svgRaw && (
-                    <div
-                      className="room-manage-canvas-placeholder"
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: 400,
-                        height: 400,
-                        zIndex: 3,
-                      }}
-                    >
-                      건물과 층을 선택 후 맵을 불러오세요.
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: 400,
+                height: 400,
+                zIndex: 1,
+                pointerEvents: "none",
+              }}
+              dangerouslySetInnerHTML={{ __html: svgRaw }}
+            />
+            {/* 오버레이 (노드 점 표시) */}
+            {navigationNodes.map((node) => (
+              <div
+                key={node.id}
+                style={{
+                  position: "absolute",
+                  left: node.x - 8,
+                  top: node.y - 8,
+                  width: 16,
+                  height: 16,
+                  borderRadius: "50%",
+                  background: "#ff4d4f",
+                  border: "2px solid #fff",
+                  zIndex: 2,
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 10,
+                  color: "#fff",
+                  cursor: "pointer",
+                }}
+                title={node.id}
+              >
+                {node.id}
+              </div>
+            ))}
           </div>
         </div>
 

@@ -348,9 +348,6 @@ export default function RoomManagePage() {
     // window.scrollTo(0, 0)
   }, [currentPage])
 
-  const [svgRaw, setSvgRaw] = useState("")
-  const [navigationNodes, setNavigationNodes] = useState([])
-
   useEffect(() => {
     if (filterBuilding && filterFloor) {
       fetch(

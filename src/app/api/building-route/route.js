@@ -6,17 +6,16 @@ import { API_BASE } from "../apibase"
 export async function GET(request) {
   const { searchParams, pathname } = new URL(request.url)
 
-  // 1. 건물 이름만 조회 (GET /api/building-route?type=names)
+  // 건물 이름만 조회
   if (searchParams.get("type") === "names") {
     const res = await fetch(`${API_BASE}/building/names`, {
       method: "GET",
     })
     const data = await res.json()
-    // [{ Building_Name: "W19" }, ...] 형태로 반환
     return NextResponse.json({ names: data })
   }
 
-  // 2. 전체 데이터 조회 (GET /api/building-route)
+  // 전체 데이터 조회
   const building = searchParams.get("building")
   const floor = searchParams.get("floor")
 

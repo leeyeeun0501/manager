@@ -7,7 +7,7 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const building = searchParams.get("building")
 
-  // 1. 전체 층 정보 조회 (GET /api/floor-route)
+  // 전체 층 정보 조회
   if (!building) {
     const res = await fetch(`${API_BASE}/floor/`, {
       method: "GET",
@@ -28,7 +28,7 @@ export async function GET(request) {
     return NextResponse.json({ floors: result })
   }
 
-  // 2. 특정 건물의 층 정보 조회 (GET /api/floor-route?building=건물명)
+  // 특정 건물의 층 정보 조회(건물명)
   if (building) {
     const res = await fetch(
       `${API_BASE}/floor/${encodeURIComponent(building)}`,
@@ -49,9 +49,9 @@ export async function GET(request) {
     return NextResponse.json({ floors: result })
   }
 
-  // 3. 그 외 잘못된 요청
   return NextResponse.json({ error: "잘못된 요청" }, { status: 400 })
 }
+
 // 층 추가 (POST)
 export async function POST(request) {
   const formData = await request.formData()
@@ -134,7 +134,7 @@ export async function PUT(request) {
 
 // 층 삭제 (DELETE)
 export async function DELETE(request) {
-  const { searchParams } = request.nextUrl // ← 수정!
+  const { searchParams } = request.nextUrl
   const building = searchParams.get("building")
   const floor = searchParams.get("floor")
 

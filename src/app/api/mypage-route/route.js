@@ -27,7 +27,6 @@ export async function GET(request) {
 
     const data = await res.json()
 
-    // data가 { id, name, phone, email, password }
     return NextResponse.json({ success: true, user: data })
   } catch (err) {
     return NextResponse.json(

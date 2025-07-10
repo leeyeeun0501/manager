@@ -37,10 +37,8 @@ export async function GET() {
 // 경로 노드 정보 수정 (PUT)
 export async function PUT(request) {
   try {
-    // 요청 body에서 데이터 추출
     const { node_name, x, y } = await request.json()
 
-    // 필수 값 체크
     if (!node_name || typeof x !== "number" || typeof y !== "number") {
       return NextResponse.json(
         { error: "node_name, x(위도), y(경도) 값을 모두 입력하세요." },
@@ -48,7 +46,6 @@ export async function PUT(request) {
       )
     }
 
-    // 외부 API로 PUT 요청 (x: 위도, y: 경도)
     const res = await fetch(`${API_BASE}/path/`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -90,7 +87,6 @@ export async function POST(request) {
       )
     }
 
-    // 외부 API에 JSON 바디로 전달
     const res = await fetch(`${API_BASE}/path/create`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -122,12 +118,11 @@ export async function POST(request) {
   }
 }
 
-// 건물/노드 삭제 (DELETE)
+// 건물/노드 삭제 (DELETE
 export async function DELETE(request) {
   try {
     const { type, node_name } = await request.json()
 
-    // 필수 값 체크
     if (!type || !node_name) {
       return NextResponse.json(
         { success: false, error: "타입(type)과 이름(node_name)은 필수입니다." },
@@ -135,7 +130,6 @@ export async function DELETE(request) {
       )
     }
 
-    // 외부 API에 DELETE 요청
     const res = await fetch(`${API_BASE}/path/`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },

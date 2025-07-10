@@ -1,6 +1,8 @@
+// room-route/[floor]
 import { NextResponse } from "next/server"
-import { API_BASE } from "../../../apibase" // 경로 주의!
+import { API_BASE } from "../../../apibase"
 
+// 강의실 조회(건물 + 층) (GET)
 export async function GET(request, { params }) {
   const { building, floor } = params
 
@@ -18,7 +20,6 @@ export async function GET(request, { params }) {
     }
 
     const data = await res.json()
-    // data.rooms 형태로 반환된다고 가정
     return NextResponse.json(data)
   } catch (err) {
     return NextResponse.json({ error: "서버 오류" }, { status: 500 })

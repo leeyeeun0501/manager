@@ -27,7 +27,6 @@ export async function GET(request) {
       )
     }
     const data = await res.json()
-    // data는 [{ Category_Name, Location: { x, y }, ... }, ...]
     return NextResponse.json(data, { status: 200 })
   } catch (err) {
     return NextResponse.json({ error: "서버 통신 오류" }, { status: 500 })

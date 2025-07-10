@@ -75,16 +75,49 @@ export default function RoomManagePage() {
           filterBuilding
         )}&floor=${encodeURIComponent(filterFloor)}`
       )
-        .then((res) => res.text()) // 반드시 .text()!
-        .then((svgText) => {
+        .then((res) => res.json()) // ✅ JSON 파싱
+        .then(async (data) => {
+          if (!Array.isArray(data) || !data[0]?.File) {
+            console.error("❌ SVG 링크가 유효하지 않음:", data)
+            return
+          }
+          const svgUrl = data[0].File
+          console.log("✅ svgUrl:", svgUrl)
+
+          // ✅ SVG 파일을 proxy API 통해 fetch (CORS 우회)
+          const svgRes = await fetch(
+            `/api/svg-proxy?url=${encodeURIComponent(svgUrl)}`
+          )
+          const svgText = await svgRes.text()
+
           setSvgRaw(svgText)
-          console.log("svg text 확인:", svgText)
+        })
+        .catch((err) => {
+          console.error("❌ SVG fetch 실패", err)
+          setSvgRaw("")
         })
         .finally(() => setMapLoading(false))
     } else {
       setSvgRaw("")
     }
   }, [filterBuilding, filterFloor])
+
+  const svgContainerRef = useRef(null)
+
+  useEffect(() => {
+    if (svgRaw && svgContainerRef.current) {
+      svgContainerRef.current.innerHTML = ""
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(svgRaw, "image/svg+xml")
+      const svgEl = doc.querySelector("svg") || doc.documentElement
+      if (svgEl) {
+        svgEl.style.display = "block"
+        svgEl.style.width = "100%"
+        svgEl.style.height = "100%"
+        svgContainerRef.current.appendChild(svgEl)
+      }
+    }
+  }, [svgRaw])
 
   // 1. 건물 목록만 최초 1회 받아오기
   useEffect(() => {
@@ -510,12 +543,8 @@ export default function RoomManagePage() {
                         overflow: "auto",
                         border: "2px solid #2574f5",
                         boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        zIndex: 1,
                       }}
-                      dangerouslySetInnerHTML={{ __html: svgRaw }}
+                      ref={svgContainerRef}
                     />
                   )}
 

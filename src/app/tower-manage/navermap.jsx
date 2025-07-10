@@ -1,3 +1,4 @@
+// navermap
 "use client"
 import React, { useEffect, useRef, useState } from "react"
 
@@ -94,45 +95,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     fetchBuildingDesc()
   }, [deletePopup])
 
-  // 건물 설명 수정 버튼 클릭 시 서버로 PUT
-  async function handleUpdateBuildingDesc(e) {
-    e.preventDefault()
-    if (!deletePopup.node_name) {
-      alert("건물 이름이 없습니다.")
-      return
-    }
-    setBuildingDescLoading(true)
-    try {
-      const formData = new FormData()
-      formData.append("desc", buildingDesc)
-      const res = await fetch(
-        `/api/building-route?building=${encodeURIComponent(
-          deletePopup.node_name
-        )}`,
-        { method: "PUT", body: formData }
-      )
-      const data = await res.json()
-      if (data && !data.error) {
-        alert("설명 수정 완료!")
-        // 최신 설명 다시 반영 (선택)
-        const res2 = await fetch(
-          `/api/building-route?building=${encodeURIComponent(
-            deletePopup.node_name
-          )}`
-        )
-        const json2 = await res2.json()
-        if (json2.all && json2.all.length > 0) {
-          setBuildingDesc(json2.all[0].Desc || "")
-        }
-      } else {
-        alert(data.error || "설명 수정 실패")
-      }
-    } catch {
-      alert("서버 오류")
-    }
-    setBuildingDescLoading(false)
-  }
-
   // 지도 최초 생성 및 클릭 마커 + 추가 팝업
   useEffect(() => {
     if (
@@ -158,7 +120,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       const map = new window.naver.maps.Map(mapRef.current, { center, zoom })
       mapInstance.current = map
 
-      // ★ 여기서 바로 삭제!
       localStorage.removeItem("naverMapCenter")
       localStorage.removeItem("naverMapZoom")
 
@@ -175,7 +136,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         setNodeName("")
         setDesc("")
 
-        // 기존 임시 마커 제거
         if (tempMarkerRef.current) {
           tempMarkerRef.current.setMap(null)
           tempMarkerRef.current = null
@@ -206,15 +166,12 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     const map = mapInstance.current
     if (!naver || !map) return
 
-    // 1. 기존 마커/원 완전 초기화 (안전하게!)
     if (Array.isArray(circlesRef.current)) {
       circlesRef.current.forEach((circle) => {
         if (circle && typeof circle.setMap === "function") {
           try {
             circle.setMap(null)
-          } catch (e) {
-            // 이미 해제된 객체라면 오류 무시
-          }
+          } catch (e) {}
         }
       })
     }
@@ -223,9 +180,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         if (marker && typeof marker.setMap === "function") {
           try {
             marker.setMap(null)
-          } catch (e) {
-            // 이미 해제된 객체라면 오류 무시
-          }
+          } catch (e) {}
         }
       })
     }
@@ -244,7 +199,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       const isNode = id && id.startsWith("O")
       const type = isNode ? "node" : "building"
 
-      // 원(circle) 생성 및 클릭 이벤트
       const circle = new naver.maps.Circle({
         map,
         center: new naver.maps.LatLng(x, y),
@@ -257,7 +211,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       })
       circlesRef.current.push(circle)
 
-      // 마커 생성 및 클릭 이벤트
       const marker = new naver.maps.Marker({
         position: new naver.maps.LatLng(x, y),
         map,
@@ -270,10 +223,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       })
       markersRef.current.push(marker)
 
-      // 마커 클릭 이벤트
       naver.maps.Event.addListener(marker, "click", function () {
         if (edgeConnectMode.active) {
-          // 엣지 연결 모드: 연결 함수 호출
           handleEdgeConnect(edgeConnectMode.fromNode, {
             id,
             node_name: node_name || id,
@@ -281,7 +232,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
           setEdgeConnectMode({ active: false, fromNode: null })
           setEdgeConnectHint(false)
         } else {
-          // 평소처럼 관리 팝업만
           setAddPopup({ open: false, x: null, y: null })
           setDeletePopup({
             open: true,
@@ -294,7 +244,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         }
       })
 
-      // 원 클릭 이벤트
       naver.maps.Event.addListener(circle, "click", function () {
         if (edgeConnectMode.active) {
           handleEdgeConnect(edgeConnectMode.fromNode, {
@@ -358,6 +307,45 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       }
     }
   }, [nodes, edges, edgeConnectMode, recentlyAddedNode])
+
+  // 건물 설명 수정 버튼 클릭 시 서버로 PUT
+  async function handleUpdateBuildingDesc(e) {
+    e.preventDefault()
+    if (!deletePopup.node_name) {
+      alert("건물 이름이 없습니다.")
+      return
+    }
+    setBuildingDescLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append("desc", buildingDesc)
+      const res = await fetch(
+        `/api/building-route?building=${encodeURIComponent(
+          deletePopup.node_name
+        )}`,
+        { method: "PUT", body: formData }
+      )
+      const data = await res.json()
+      if (data && !data.error) {
+        alert("설명 수정 완료!")
+        // 최신 설명 다시 반영 (선택)
+        const res2 = await fetch(
+          `/api/building-route?building=${encodeURIComponent(
+            deletePopup.node_name
+          )}`
+        )
+        const json2 = await res2.json()
+        if (json2.all && json2.all.length > 0) {
+          setBuildingDesc(json2.all[0].Desc || "")
+        }
+      } else {
+        alert(data.error || "설명 수정 실패")
+      }
+    } catch {
+      alert("서버 오류")
+    }
+    setBuildingDescLoading(false)
+  }
 
   // Polyline(노드 선) 표시 (edges + nodes 매핑)
   useEffect(() => {
@@ -488,7 +476,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     if (!deletePopup.type || !deletePopup.node_name) return
     if (!window.confirm("정말 삭제하시겠습니까?")) return
 
-    // === 지도 위치/줌 저장 (여기서 반드시 먼저 저장!) ===
     const map = mapInstance.current
     if (map) {
       const center = map.getCenter()
@@ -724,11 +711,9 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         <div
           style={{
             position: "fixed",
-            top: 80, // 햄버거 메뉴(상단바)와 겹치지 않게 여백
-            left: 32, // 왼쪽 여백
+            top: 80,
+            left: 32,
             zIndex: 3000,
-            // 중앙 오버레이 배경이 필요하면 아래 주석 해제
-            // background: "rgba(0,0,0,0.08)",
           }}
         >
           <div
@@ -895,7 +880,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                       display: "flex",
                       alignItems: "center",
                       gap: 6,
-                      position: "relative", // 기준점
+                      position: "relative",
                     }}
                   >
                     <span>
@@ -1085,7 +1070,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                   alignItems: "stretch",
                   maxHeight: "80vh",
                   overflowY: "auto",
-                  overflowX: "hidden", // ← 이 줄 추가!
+                  overflowX: "hidden",
                 }}
               >
                 {/* 상단 타이틀 */}
@@ -1121,13 +1106,13 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                         width: "100%",
                         display: "flex",
                         justifyContent: "center",
-                        alignItems: "center", // 세로 가운데 정렬(선택)
+                        alignItems: "center",
                         marginBottom: 12,
                       }}
                     >
                       <textarea
                         style={{
-                          width: "90%", // 원하는 너비
+                          width: "90%",
                           minHeight: 80,
                           maxHeight: 180,
                           padding: 12,
@@ -1280,7 +1265,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
           style={{
             position: "fixed",
             top: 32,
-            left: 410, // 패널(360px) + 여백(32px) + 여유(18px)
+            left: 410,
             zIndex: 3500,
             background: "#00C3FF",
             color: "#fff",

@@ -25,10 +25,27 @@ export default function BuildingPage() {
   const addFloorFileRef = useRef(null)
 
   const [mapModalOpen, setMapModalOpen] = useState(false)
-  const [mapModalFile, setMapModalFile] = useState("") // 파일 URL
+  const [mapModalFile, setMapModalFile] = useState("")
 
   // 건물 옵션
   const buildingOptions = buildingInfos.map((b) => b.name)
+
+  const [editMapFile, setEditMapFile] = useState(null)
+  const editMapFileRef = useRef(null)
+  const [editMapError, setEditMapError] = useState("")
+  const [editMapLoading, setEditMapLoading] = useState(false)
+
+  const [hoveredKey, setHoveredKey] = useState("")
+  const [addFile, setAddFile] = useState(null)
+  const [addFileError, setAddFileError] = useState("")
+  const [addFileLoading, setAddFileLoading] = useState(false)
+  const addFileRef = useRef(null)
+
+  const [fileAddModal, setFileAddModal] = useState({
+    open: false,
+    building: "",
+    floor: "",
+  })
 
   // 층 표 필터 및 페이지네이션
   const floorFiltered = selectedFloor
@@ -47,22 +64,6 @@ export default function BuildingPage() {
   const floorNames = Array.from(
     new Set(floors.map((f) => String(f.floor)).filter(Boolean))
   ).sort((a, b) => Number(a) - Number(b))
-
-  const [editMapFile, setEditMapFile] = useState(null)
-  const editMapFileRef = useRef(null)
-  const [editMapError, setEditMapError] = useState("")
-  const [editMapLoading, setEditMapLoading] = useState(false)
-
-  const [hoveredKey, setHoveredKey] = useState("") // 마우스 오버 행 관리
-  const [fileAddModal, setFileAddModal] = useState({
-    open: false,
-    building: "",
-    floor: "",
-  })
-  const [addFile, setAddFile] = useState(null)
-  const [addFileError, setAddFileError] = useState("")
-  const [addFileLoading, setAddFileLoading] = useState(false)
-  const addFileRef = useRef(null)
 
   // 층 추가 핸들러
   const handleAddFloor = async (e) => {
@@ -167,16 +168,16 @@ export default function BuildingPage() {
       if (selectedBuilding) {
         url += `?building=${encodeURIComponent(selectedBuilding)}`
       }
-      console.log("층 정보 fetch URL:", url) // ★ 로그 추가
+      console.log("층 정보 fetch URL:", url)
       try {
         const res = await fetch(url)
         const data = await res.json()
-        console.log("층 정보 응답:", data) // ★ 응답 로그 추가
+        console.log("층 정보 응답:", data)
         setFloors(data.floors || [])
       } catch (err) {
         setFloors([])
       }
-      setSelectedFloor("") // 건물 바뀌면 층 선택 초기화
+      setSelectedFloor("")
       setFloorPage(1)
     }
     fetchFloors()
@@ -265,7 +266,7 @@ export default function BuildingPage() {
             justifyContent: "space-between",
           }}
         >
-          {/* 왼쪽: 콤보박스 2개 */}
+          {/* 건물/층 콤보 박스 */}
           <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
             <select
               className="building-select"
@@ -308,7 +309,8 @@ export default function BuildingPage() {
               )}
             </select>
           </div>
-          {/* 오른쪽: 층 추가 버튼 */}
+
+          {/* 층 추가 버튼 */}
           <button
             className="add-floor-btn"
             onClick={() => setShowAddFloor(true)}
@@ -367,7 +369,6 @@ export default function BuildingPage() {
                       ) : (
                         <>
                           <span style={{ color: "#aaa" }}>없음</span>
-                          {/* 클립 아이콘: 파일 없을 때만, 마우스 오버 시 보임 */}
                           {hoveredKey === `${row.building}-${row.floor}` && (
                             <button
                               style={{
@@ -562,7 +563,6 @@ export default function BuildingPage() {
                     display: "block",
                   }}
                 />
-                {/* 파일 선택 아이콘 버튼 */}
                 <div
                   style={{
                     width: "90%",
@@ -637,6 +637,7 @@ export default function BuildingPage() {
           </div>
         )}
 
+        {/* 2D 도면 팝업 */}
         {mapModalOpen && (
           <div
             style={{
@@ -841,6 +842,7 @@ export default function BuildingPage() {
           </div>
         )}
 
+        {/* 2D 도면 추가 팝업 */}
         {fileAddModal.open && (
           <div
             style={{

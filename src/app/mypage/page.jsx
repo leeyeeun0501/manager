@@ -1,3 +1,4 @@
+// mypage
 "use client"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
@@ -180,11 +181,9 @@ export default function MyPage() {
             {editMsg}
           </div>
         )}
-
         <button onClick={handleLogout} className={styles["mypage-btn-sub"]}>
           로그아웃
         </button>
-
         <button
           onClick={handleDeleteAccount}
           disabled={deleting}

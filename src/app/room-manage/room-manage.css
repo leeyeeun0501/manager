@@ -31,7 +31,7 @@
 .room-manage-table-wrap {
   flex: 1 1 0;
   min-width: 400px;
-  max-width: 700px; /* 700px 이하로! */
+  max-width: 700px;
   margin-right: 0;
 }
 
@@ -39,7 +39,7 @@
   margin-left: 0;
   margin-right: 0;
   margin-top: 0;
-  width: 100%; /* 900px → 100% */
+  width: 100%;
   max-width: 700px;
 }
 
@@ -101,7 +101,7 @@ select {
   font-size: 1rem;
   color: #333;
   cursor: pointer;
-  width: 100px; /* 필요에 따라 조절 */
+  width: 100px;
   transition: border-color 0.3s ease;
   margin-right: 12px;
 }

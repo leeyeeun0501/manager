@@ -49,14 +49,14 @@ h2 {
 
 .tower-map-wrapper {
   width: 100vw;
-  height: calc(100vh - 72px); /* 헤더 높이만큼 빼기 */
+  height: calc(100vh - 72px);
   position: relative;
   flex: 1 1 0;
 }
 
 .tower-root {
   display: flex;
-  flex-direction: column; /* 세로로 쌓기 */
+  flex-direction: column;
   min-height: 100vh;
   background: #f5f6fa;
 }

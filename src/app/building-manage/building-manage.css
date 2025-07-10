@@ -1,3 +1,4 @@
+/* building-manage.css */
 body,
 html {
   background: #f4f7fc;
@@ -13,7 +14,7 @@ html {
 .building-header {
   width: 100%;
   background: #f7f9fc;
-  padding: 40px 0 24px 0; /* padding-top만 조절해도 타이틀이 아래로 내려감 */
+  padding: 40px 0 24px 0;
   border-bottom: 1.5px solid #e6eaf3;
 }
 
@@ -129,6 +130,7 @@ html {
 .custom-table tr:hover {
   background: #f1f7ff;
 }
+
 .tag {
   display: inline-block;
   background: #e4e8f0;
@@ -149,12 +151,15 @@ html {
   font-size: 1.1rem;
   margin: 0 2px;
 }
+
 .delete-btn {
   color: #e74c3c;
 }
+
 .edit-btn {
   color: #2574f5;
 }
+
 .edit-icon-btn {
   color: #2574f5;
 }
@@ -167,6 +172,7 @@ html {
   margin-top: 12px;
   margin-bottom: 2px;
 }
+
 .building-pagination-btn {
   padding: 7px 18px;
   border-radius: 9px;
@@ -178,21 +184,23 @@ html {
   color: #2574f5;
   transition: background 0.15s, border 0.15s;
 }
+
 .building-pagination-btn:hover {
   background: #eaf2fd;
   border: 1.5px solid #2574f5;
 }
+
 .building-pagination-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
 .building-pagination-info {
   font-size: 1.07rem;
   font-weight: 700;
   color: #2574f5;
 }
 
-/* 팝업 모달 */
 .add-floor-modal-backdrop {
   position: fixed;
   top: 0;
@@ -206,6 +214,7 @@ html {
   justify-content: center;
   animation: popup-fadein 0.18s;
 }
+
 .add-floor-modal {
   background: #fafdff;
   border-radius: 18px;
@@ -217,6 +226,7 @@ html {
   position: relative;
   animation: popup-fadein 0.18s;
 }
+
 @keyframes popup-fadein {
   from {
     transform: translateY(16px) scale(0.98);
@@ -227,6 +237,7 @@ html {
     opacity: 1;
   }
 }
+
 .add-floor-modal-header {
   display: flex;
   align-items: center;
@@ -235,12 +246,14 @@ html {
   border-radius: 18px 18px 0 0;
   padding: 18px 28px 12px 28px;
 }
+
 .add-floor-modal-title {
   font-size: 1.23rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: 0.01em;
 }
+
 .add-floor-modal-close {
   background: none;
   border: none;
@@ -253,26 +266,31 @@ html {
   line-height: 1;
   transition: color 0.15s;
 }
+
 .add-floor-modal-close:hover {
   color: #dbeafe;
 }
+
 .add-floor-modal-form {
   padding: 26px 32px 0 32px;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
+
 .add-floor-modal-row {
   display: flex;
   align-items: center;
   gap: 12px;
 }
+
 .add-floor-modal-row label {
   min-width: 50px;
   font-size: 1rem;
   font-weight: 600;
   color: #2574f5;
 }
+
 .add-floor-modal-row input[type="text"],
 .add-floor-modal-row select {
   flex: 1 1 0;
@@ -283,11 +301,13 @@ html {
   background: #fff; /* ← 완전 흰색으로 변경! */
   transition: border 0.13s;
 }
+
 .add-floor-modal-row input[type="file"] {
   flex: 1 1 0;
   font-size: 1rem;
   background: #fff; /* ← 완전 흰색으로 변경! */
 }
+
 .add-floor-modal-error {
   color: #e74c3c;
   font-size: 1rem;
@@ -295,12 +315,14 @@ html {
   margin-bottom: 2px;
   text-align: left;
 }
+
 .add-floor-modal-actions {
   display: flex;
   gap: 12px;
   margin-top: 18px;
   justify-content: flex-end;
 }
+
 .add-floor-modal-save-btn {
   background: #2574f5;
   color: #fff;
@@ -312,9 +334,11 @@ html {
   cursor: pointer;
   transition: background 0.15s;
 }
+
 .add-floor-modal-save-btn:hover {
   background: #1556b9;
 }
+
 .add-floor-modal-cancel-btn {
   background: #f2f6fa;
   color: #2574f5;
@@ -326,6 +350,7 @@ html {
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
+
 .add-floor-modal-cancel-btn:hover {
   background: #e3ecfa;
   color: #1556b9;

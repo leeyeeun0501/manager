@@ -9,7 +9,10 @@ export async function GET(request) {
   const floor = searchParams.get("floor")
 
   if (!building || !floor) {
-    return new NextResponse("잘못된 요청", { status: 400 })
+    return new Response(JSON.stringify({ error: "잘못된 요청" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    })
   }
 
   const imageRes = await fetch(

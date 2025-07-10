@@ -21,7 +21,6 @@ export default function RoomManagePage() {
 
   // 맵 이미지 관련
   const [imgUrl, setImgUrl] = useState("")
-  const [mapLoading, setMapLoading] = useState(false)
   const imgRef = useRef(null)
 
   // 강의실 추가 팝업
@@ -55,6 +54,59 @@ export default function RoomManagePage() {
       description: room.description || room.Room_Description || "",
     }
   }
+
+  // 페이징
+  const totalRooms = rooms.length
+  const totalPages = Math.ceil(totalRooms / itemsPerPage)
+  const startIdx = (currentPage - 1) * itemsPerPage
+  const endIdx = startIdx + itemsPerPage
+  const pagedRooms = rooms.slice(startIdx, endIdx)
+
+  const [svgRaw, setSvgRaw] = useState("")
+  const [mapNodes, setMapNodes] = useState([])
+  const [mapEdges, setMapEdges] = useState([])
+  const [mapLoading, setMapLoading] = useState(false)
+
+  const [navigationNodes, setNavigationNodes] = useState([])
+
+  useEffect(() => {
+    if (svgRaw) {
+      const nodes = parseNavigationNodes(svgRaw)
+      setNavigationNodes(nodes)
+    } else {
+      setNavigationNodes([])
+    }
+  }, [svgRaw])
+
+  useEffect(() => {
+    if (filterBuilding && filterFloor) {
+      setMapLoading(true)
+      fetch(
+        `/api/mapfile-image-route?building=${encodeURIComponent(
+          filterBuilding
+        )}&floor=${encodeURIComponent(filterFloor)}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          // 여기서만 data 사용 가능!
+          const fileList = Array.isArray(data) ? data : []
+          const svgUrl = fileList[0]?.File
+          console.log("SVG 파일 URL:", svgUrl)
+          if (svgUrl) {
+            fetch(svgUrl)
+              .then((res) => res.text())
+              .then((svgXml) => setSvgRaw(svgXml))
+          } else {
+            setSvgRaw("")
+          }
+        })
+        .catch(() => setSvgRaw(""))
+        .finally(() => setMapLoading(false))
+    } else {
+      setSvgRaw("")
+    }
+  }, [filterBuilding, filterFloor])
+  const svgContainerRef = useRef(null)
 
   // 1. 건물 목록만 최초 1회 받아오기
   useEffect(() => {
@@ -290,13 +342,6 @@ export default function RoomManagePage() {
       setEditRoomLoading(false)
     }
   }
-
-  // 페이징
-  const totalRooms = rooms.length
-  const totalPages = Math.ceil(totalRooms / itemsPerPage)
-  const startIdx = (currentPage - 1) * itemsPerPage
-  const endIdx = startIdx + itemsPerPage
-  const pagedRooms = rooms.slice(startIdx, endIdx)
 
   useEffect(() => {
     // 페이지 바뀔 때 스크롤 맨 위로 (필요시)

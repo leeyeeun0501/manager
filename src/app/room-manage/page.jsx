@@ -63,18 +63,91 @@ export default function RoomManagePage() {
   const pagedRooms = rooms.slice(startIdx, endIdx)
 
   const [svgRaw, setSvgRaw] = useState("")
-  const [mapNodes, setMapNodes] = useState([])
-  const [mapEdges, setMapEdges] = useState([])
   const [mapLoading, setMapLoading] = useState(false)
 
   const [navigationNodes, setNavigationNodes] = useState([])
 
+  const SVG_ORIGINAL_WIDTH = 210
+  const SVG_ORIGINAL_HEIGHT = 297
+  const CANVAS_SIZE = 400
+
+  const [svgUrl, setSvgUrl] = useState("")
+
+  const [svgSize, setSvgSize] = useState({ width: 400, height: 400 })
+
+  // "비율 유지"로 최대한 크게 들어가도록 scale 계산
+
+  const scale = Math.min(
+    CANVAS_SIZE / SVG_ORIGINAL_WIDTH,
+    CANVAS_SIZE / SVG_ORIGINAL_HEIGHT
+  )
+  const offsetX = (CANVAS_SIZE - SVG_ORIGINAL_WIDTH * scale) / 2
+  const offsetY = (CANVAS_SIZE - SVG_ORIGINAL_HEIGHT * scale) / 2
+
+  function getScaledCoord(x, y) {
+    return {
+      left: x * scale + offsetX - 8, // 8은 점 반지름(16px) 보정
+      top: y * scale + offsetY - 8,
+    }
+  }
+
+  function enlargeViewBox(svgXml, factor = 2) {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(svgXml, "image/svg+xml")
+    const svgEl = doc.querySelector("svg")
+    if (!svgEl) return svgXml
+
+    let viewBox = svgEl.getAttribute("viewBox")
+    if (viewBox) {
+      const parts = viewBox.split(/[\s,]+/).map(Number)
+      if (parts.length === 4) {
+        const [x, y, w, h] = parts
+        svgEl.setAttribute("viewBox", `${x} ${y} ${w * factor} ${h * factor}`)
+        return doc.documentElement.outerHTML
+      }
+    }
+    return svgXml
+  }
+
+  function fitSvgToContent(svgXml) {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(svgXml, "image/svg+xml")
+    const svgEl = doc.querySelector("svg")
+    if (!svgEl) return svgXml
+
+    // SVG 내 모든 그래픽 요소들의 바운딩 박스 계산
+    const elements = doc.querySelectorAll(
+      "rect, circle, ellipse, path, polygon, polyline, line, g"
+    )
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity
+
+    elements.forEach((el) => {
+      const bbox = el.getBBox?.()
+      if (bbox) {
+        minX = Math.min(minX, bbox.x)
+        minY = Math.min(minY, bbox.y)
+        maxX = Math.max(maxX, bbox.x + bbox.width)
+        maxY = Math.max(maxY, bbox.y + bbox.height)
+      }
+    })
+
+    if (minX < maxX && minY < maxY) {
+      svgEl.setAttribute(
+        "viewBox",
+        `${minX} ${minY} ${maxX - minX} ${maxY - minY}`
+      )
+      return doc.documentElement.outerHTML
+    }
+    return svgXml
+  }
+
   useEffect(() => {
     if (svgRaw) {
-      const nodes = parseNavigationNodes(svgRaw)
-      setNavigationNodes(nodes)
-    } else {
-      setNavigationNodes([])
+      setSvgSize(getSvgOriginalSize(svgRaw))
+      console.log(svgRaw)
     }
   }, [svgRaw])
 
@@ -88,14 +161,14 @@ export default function RoomManagePage() {
       )
         .then((res) => res.json())
         .then((data) => {
-          // 여기서만 data 사용 가능!
           const fileList = Array.isArray(data) ? data : []
           const svgUrl = fileList[0]?.File
           console.log("SVG 파일 URL:", svgUrl)
+          // SVG 불러오는 부분
           if (svgUrl) {
             fetch(svgUrl)
               .then((res) => res.text())
-              .then((svgXml) => setSvgRaw(svgXml))
+              .then((svgXml) => setSvgRaw(enlargeViewBox(svgXml)))
           } else {
             setSvgRaw("")
           }
@@ -350,6 +423,7 @@ export default function RoomManagePage() {
 
   useEffect(() => {
     if (filterBuilding && filterFloor) {
+      setMapLoading(true)
       fetch(
         `/api/mapfile-image-route?building=${encodeURIComponent(
           filterBuilding
@@ -359,6 +433,7 @@ export default function RoomManagePage() {
         .then((data) => {
           const fileList = Array.isArray(data) ? data : []
           const svgUrl = fileList[0]?.File
+          setSvgUrl(svgUrl || "") // 여기 추가!
           if (svgUrl) {
             fetch(svgUrl)
               .then((res) => res.text())
@@ -367,9 +442,14 @@ export default function RoomManagePage() {
             setSvgRaw("")
           }
         })
-        .catch(() => setSvgRaw(""))
+        .catch(() => {
+          setSvgRaw("")
+          setSvgUrl("")
+        })
+        .finally(() => setMapLoading(false))
     } else {
       setSvgRaw("")
+      setSvgUrl("")
     }
   }, [filterBuilding, filterFloor])
 
@@ -396,6 +476,52 @@ export default function RoomManagePage() {
     })
     return nodes
   }
+
+  function getSvgOriginalSize(svgXml) {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(svgXml, "image/svg+xml")
+    const svgEl = doc.querySelector("svg")
+    if (!svgEl) return { width: 400, height: 400 }
+
+    const viewBox = svgEl.getAttribute("viewBox")
+    if (viewBox) {
+      const parts = viewBox.split(/[\s,]+/).map(Number)
+      if (parts.length === 4 && parts[2] && parts[3]) {
+        return { width: parts[2], height: parts[3] }
+      }
+    }
+    let width = svgEl.getAttribute("width")
+    let height = svgEl.getAttribute("height")
+    width = parseFloat(width)
+    height = parseFloat(height)
+    if (width && height) return { width, height }
+    return { width: 400, height: 400 }
+  }
+
+  function ensureViewBox(svgXml) {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(svgXml, "image/svg+xml")
+    const svgEl = doc.querySelector("svg")
+    if (!svgEl) return svgXml
+    if (!svgEl.getAttribute("viewBox")) {
+      let w = svgEl.getAttribute("width") || 800
+      let h = svgEl.getAttribute("height") || 600
+      // px 등 단위 제거
+      w = parseFloat(w)
+      h = parseFloat(h)
+      svgEl.setAttribute("viewBox", `0 0 ${w} ${h}`)
+      return doc.documentElement.outerHTML
+    }
+    return svgXml
+  }
+
+  useEffect(() => {
+    if (svgRaw) {
+      const size = getSvgOriginalSize(svgRaw)
+      console.log("SVG 원본 사이즈:", size)
+      setSvgSize(size)
+    }
+  }, [svgRaw])
 
   useEffect(() => {
     if (svgRaw) {
@@ -441,12 +567,6 @@ export default function RoomManagePage() {
               )
             )}
           </select>
-          <button
-            onClick={handleLoadMap}
-            disabled={!filterBuilding || !filterFloor}
-          >
-            맵 불러오기
-          </button>
         </div>
 
         {/* 표와 맵을 한 줄에 나란히 */}
@@ -572,7 +692,15 @@ export default function RoomManagePage() {
           <div className="room-manage-canvas-outer">
             <div
               className="room-manage-canvas"
-              style={{ position: "relative", width: 400, height: 400 }}
+              style={{
+                position: "relative",
+                width: CANVAS_SIZE,
+                height: CANVAS_SIZE,
+                background: "#f5f6fa",
+                borderRadius: 16,
+                overflow: "hidden",
+                border: "2px solid #2574f5",
+              }}
             >
               {mapLoading ? (
                 <div className="room-manage-canvas-placeholder">로딩 중...</div>
@@ -584,40 +712,57 @@ export default function RoomManagePage() {
                       position: "absolute",
                       top: 0,
                       left: 0,
-                      width: 400,
-                      height: 400,
+                      width: "100%",
+                      height: "100%",
                       zIndex: 1,
                       pointerEvents: "none",
+                      overflow: "hidden",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
-                    dangerouslySetInnerHTML={{ __html: svgRaw }}
-                  />
-                  {/* 오버레이 (Navigation_Node 점 표시) */}
-                  {navigationNodes.map((node) => (
+                  >
                     <div
-                      key={node.id}
                       style={{
-                        position: "absolute",
-                        left: node.x - 8,
-                        top: node.y - 8,
-                        width: 16,
-                        height: 16,
-                        borderRadius: "50%",
-                        background: "#ff4d4f",
-                        border: "2px solid #fff",
-                        zIndex: 2,
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 10,
-                        color: "#fff",
-                        cursor: "pointer",
+                        width: SVG_ORIGINAL_WIDTH,
+                        height: SVG_ORIGINAL_HEIGHT,
+                        transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
+                        transformOrigin: "top left",
+                        display: "block",
                       }}
-                      title={node.id}
-                    >
-                      {node.id}
-                    </div>
-                  ))}
+                      dangerouslySetInnerHTML={{ __html: svgRaw }}
+                    />
+                  </div>
+                  {/* 오버레이 (Navigation_Node 점 표시) */}
+                  {navigationNodes.map((node) => {
+                    const { left, top } = getScaledCoord(node.x, node.y)
+                    return (
+                      <div
+                        key={node.id}
+                        style={{
+                          position: "absolute",
+                          left,
+                          top,
+                          width: 16,
+                          height: 16,
+                          borderRadius: "50%",
+                          background: "#ff4d4f",
+                          border: "2px solid #fff",
+                          zIndex: 2,
+                          boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 10,
+                          color: "#fff",
+                          cursor: "pointer",
+                        }}
+                        title={node.id}
+                      >
+                        {node.id}
+                      </div>
+                    )
+                  })}{" "}
                 </>
               ) : (
                 <div className="room-manage-canvas-placeholder">

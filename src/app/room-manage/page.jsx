@@ -73,8 +73,20 @@ export default function RoomManagePage() {
     const doc = parser.parseFromString(svgXml, "image/svg+xml")
     const nodes = []
 
-    // 모든 요소를 순회하면서 id가 있는 요소들 찾기
-    const allElements = doc.querySelectorAll("*[id]")
+    // Navigation_Nodes 레이어 찾기
+    const navigationLayer =
+      doc.querySelector('g[id="Navigation_Nodes"]') ||
+      doc.querySelector('g[id="navigation_nodes"]') ||
+      doc.querySelector('g[id="Navigation_nodes"]') ||
+      doc.querySelector('g[id="navigation-nodes"]')
+
+    if (!navigationLayer) {
+      console.warn("Navigation_Nodes 레이어를 찾을 수 없습니다.")
+      return []
+    }
+
+    // Navigation_Nodes 레이어 내의 id가 있는 요소들만 찾기
+    const allElements = navigationLayer.querySelectorAll("*[id]")
 
     allElements.forEach((element) => {
       const id = element.getAttribute("id")
@@ -183,7 +195,7 @@ export default function RoomManagePage() {
         width,
         height,
         element: element.tagName.toLowerCase(),
-        layer: element.closest("g")?.getAttribute("id") || "default",
+        layer: "Navigation_Nodes",
       })
     })
 
@@ -210,10 +222,13 @@ export default function RoomManagePage() {
                 const processedSvg = processSvg(svgXml)
                 setSvgRaw(processedSvg)
 
-                // 노드 파싱 추가
+                // Navigation_Nodes 레이어 노드 파싱
                 const parsedNodes = parseSvgNodes(svgXml)
                 setSvgNodes(parsedNodes)
-                console.log("Parsed SVG nodes:", parsedNodes)
+                console.log(
+                  "Navigation_Nodes 레이어에서 파싱된 노드들:",
+                  parsedNodes
+                )
               })
               .catch(() => {
                 setSvgRaw("")

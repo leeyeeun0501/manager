@@ -19,10 +19,6 @@ export default function RoomManagePage() {
   const [filterBuilding, setFilterBuilding] = useState("")
   const [filterFloor, setFilterFloor] = useState("")
 
-  // 맵 이미지 관련
-  const [imgUrl, setImgUrl] = useState("")
-  const imgRef = useRef(null)
-
   // 강의실 추가 팝업
   const [addPopup, setAddPopup] = useState(null)
   const [addForm, setAddForm] = useState({
@@ -46,6 +42,19 @@ export default function RoomManagePage() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
+  // SVG 및 맵 관련 상태
+  const [svgRaw, setSvgRaw] = useState("")
+  const [mapLoading, setMapLoading] = useState(false)
+  const [svgViewBox, setSvgViewBox] = useState({
+    x: 0,
+    y: 0,
+    width: 400,
+    height: 400,
+  })
+
+  const CANVAS_SIZE = 400
+  const mapContainerRef = useRef(null)
+
   const normalizeRoom = (room) => {
     return {
       building: room.building || room.Building_Name || "",
@@ -62,124 +71,71 @@ export default function RoomManagePage() {
   const endIdx = startIdx + itemsPerPage
   const pagedRooms = rooms.slice(startIdx, endIdx)
 
-  const [svgRaw, setSvgRaw] = useState("")
-  const [mapLoading, setMapLoading] = useState(false)
-
-  const [navigationNodes, setNavigationNodes] = useState([])
-
-  const SVG_ORIGINAL_WIDTH = 210
-  const SVG_ORIGINAL_HEIGHT = 297
-  const CANVAS_SIZE = 400
-
-  const [svgUrl, setSvgUrl] = useState("")
-
-  const [svgSize, setSvgSize] = useState({ width: 400, height: 400 })
-
-  // "비율 유지"로 최대한 크게 들어가도록 scale 계산
-
-  const scale = Math.min(
-    CANVAS_SIZE / SVG_ORIGINAL_WIDTH,
-    CANVAS_SIZE / SVG_ORIGINAL_HEIGHT
-  )
-  const offsetX = (CANVAS_SIZE - SVG_ORIGINAL_WIDTH * scale) / 2
-  const offsetY = (CANVAS_SIZE - SVG_ORIGINAL_HEIGHT * scale) / 2
-
-  function getScaledCoord(x, y) {
-    return {
-      left: x * scale + offsetX - 8, // 8은 점 반지름(16px) 보정
-      top: y * scale + offsetY - 8,
-    }
-  }
-
-  function enlargeViewBox(svgXml, factor = 2) {
+  // SVG 처리 및 viewBox 설정 - 개선된 버전
+  const processSvg = (svgXml) => {
     const parser = new DOMParser()
     const doc = parser.parseFromString(svgXml, "image/svg+xml")
     const svgEl = doc.querySelector("svg")
+
     if (!svgEl) return svgXml
 
-    let viewBox = svgEl.getAttribute("viewBox")
-    if (viewBox) {
-      const parts = viewBox.split(/[\s,]+/).map(Number)
+    // 기존 viewBox가 있다면 사용
+    const existingViewBox = svgEl.getAttribute("viewBox")
+    if (existingViewBox) {
+      const parts = existingViewBox.split(/[\s,]+/).map(Number)
       if (parts.length === 4) {
-        const [x, y, w, h] = parts
-        svgEl.setAttribute("viewBox", `${x} ${y} ${w * factor} ${h * factor}`)
-        return doc.documentElement.outerHTML
+        setSvgViewBox({
+          x: parts[0],
+          y: parts[1],
+          width: parts[2],
+          height: parts[3],
+        })
+        return svgXml
       }
     }
-    return svgXml
-  }
 
-  function fitSvgToContent(svgXml) {
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(svgXml, "image/svg+xml")
-    const svgEl = doc.querySelector("svg")
-    if (!svgEl) return svgXml
+    // width, height 속성에서 크기 가져오기
+    const width = parseFloat(svgEl.getAttribute("width")) || 400
+    const height = parseFloat(svgEl.getAttribute("height")) || 400
 
-    // SVG 내 모든 그래픽 요소들의 바운딩 박스 계산
-    const elements = doc.querySelectorAll(
-      "rect, circle, ellipse, path, polygon, polyline, line, g"
-    )
-    let minX = Infinity,
-      minY = Infinity,
-      maxX = -Infinity,
-      maxY = -Infinity
-
-    elements.forEach((el) => {
-      const bbox = el.getBBox?.()
-      if (bbox) {
-        minX = Math.min(minX, bbox.x)
-        minY = Math.min(minY, bbox.y)
-        maxX = Math.max(maxX, bbox.x + bbox.width)
-        maxY = Math.max(maxY, bbox.y + bbox.height)
-      }
+    // viewBox 설정
+    const viewBoxStr = `0 0 ${width} ${height}`
+    svgEl.setAttribute("viewBox", viewBoxStr)
+    setSvgViewBox({
+      x: 0,
+      y: 0,
+      width: width,
+      height: height,
     })
 
-    if (minX < maxX && minY < maxY) {
-      svgEl.setAttribute(
-        "viewBox",
-        `${minX} ${minY} ${maxX - minX} ${maxY - minY}`
-      )
-      return doc.documentElement.outerHTML
-    }
-    return svgXml
+    // 불필요한 width, height 속성 제거하여 반응형으로 만들기
+    svgEl.removeAttribute("width")
+    svgEl.removeAttribute("height")
+
+    return doc.documentElement.outerHTML
   }
 
-  useEffect(() => {
-    if (svgRaw) {
-      setSvgSize(getSvgOriginalSize(svgRaw))
-      console.log(svgRaw)
-    }
-  }, [svgRaw])
+  // 캔버스 클릭 핸들러 - 강의실 추가용
+  const handleMapClick = (e) => {
+    if (!mapContainerRef.current) return
 
-  useEffect(() => {
-    if (filterBuilding && filterFloor) {
-      setMapLoading(true)
-      fetch(
-        `/api/mapfile-image-route?building=${encodeURIComponent(
-          filterBuilding
-        )}&floor=${encodeURIComponent(filterFloor)}`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          const fileList = Array.isArray(data) ? data : []
-          const svgUrl = fileList[0]?.File
-          console.log("SVG 파일 URL:", svgUrl)
-          // SVG 불러오는 부분
-          if (svgUrl) {
-            fetch(svgUrl)
-              .then((res) => res.text())
-              .then((svgXml) => setSvgRaw(enlargeViewBox(svgXml)))
-          } else {
-            setSvgRaw("")
-          }
-        })
-        .catch(() => setSvgRaw(""))
-        .finally(() => setMapLoading(false))
-    } else {
-      setSvgRaw("")
-    }
-  }, [filterBuilding, filterFloor])
-  const svgContainerRef = useRef(null)
+    const rect = mapContainerRef.current.getBoundingClientRect()
+    const clickX = e.clientX - rect.left
+    const clickY = e.clientY - rect.top
+
+    // SVG 좌표계로 변환
+    const svgX = (clickX / rect.width) * svgViewBox.width + svgViewBox.x
+    const svgY = (clickY / rect.height) * svgViewBox.height + svgViewBox.y
+
+    setAddPopup({ x: e.clientX, y: e.clientY })
+    setAddForm({
+      room_name: "",
+      room_desc: "",
+      x: Math.round(svgX),
+      y: Math.round(svgY),
+    })
+    setAddMsg("")
+  }
 
   // 1. 건물 목록만 최초 1회 받아오기
   useEffect(() => {
@@ -206,6 +162,42 @@ export default function RoomManagePage() {
       fetchRooms(filterBuilding, filterFloor)
     }
   }, [filterFloor, filterBuilding])
+
+  // SVG 로드
+  useEffect(() => {
+    if (filterBuilding && filterFloor) {
+      setMapLoading(true)
+      fetch(
+        `/api/mapfile-image-route?building=${encodeURIComponent(
+          filterBuilding
+        )}&floor=${encodeURIComponent(filterFloor)}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          const fileList = Array.isArray(data) ? data : []
+          const svgUrl = fileList[0]?.File
+          if (svgUrl) {
+            fetch(svgUrl)
+              .then((res) => res.text())
+              .then((svgXml) => {
+                const processedSvg = processSvg(svgXml)
+                setSvgRaw(processedSvg)
+              })
+              .catch(() => {
+                setSvgRaw("")
+              })
+          } else {
+            setSvgRaw("")
+          }
+        })
+        .catch(() => {
+          setSvgRaw("")
+        })
+        .finally(() => setMapLoading(false))
+    } else {
+      setSvgRaw("")
+    }
+  }, [filterBuilding, filterFloor])
 
   // 건물 목록
   const fetchBuildings = async () => {
@@ -253,15 +245,12 @@ export default function RoomManagePage() {
 
       const res = await fetch(url)
       const data = await res.json()
-      console.log("강의실 조회 응답:", data)
 
-      // 🔧 응답 포맷에 따라 유연하게 처리
       let roomList = []
-
       if (Array.isArray(data)) {
-        roomList = data // 배열 자체가 옴
+        roomList = data
       } else if (Array.isArray(data.rooms)) {
-        roomList = data.rooms // 객체 내에 rooms 속성으로 배열이 옴
+        roomList = data.rooms
       } else {
         throw new Error(data.error || "강의실 정보를 불러올 수 없습니다.")
       }
@@ -274,41 +263,6 @@ export default function RoomManagePage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  // 맵 이미지 불러오기 핸들러
-  const handleLoadMap = async () => {
-    setImgUrl("")
-    setMapLoading(true)
-    try {
-      const res = await fetch(
-        `/api/mapfile-image-route?floor=${encodeURIComponent(
-          filterFloor
-        )}&building=${encodeURIComponent(filterBuilding)}`
-      )
-      if (!res.ok) {
-        setImgUrl("")
-        setMapLoading(false)
-        return
-      }
-      const blob = await res.blob()
-      const objectUrl = URL.createObjectURL(blob)
-      setImgUrl(objectUrl)
-    } catch (e) {
-      setImgUrl("")
-    }
-    setMapLoading(false)
-  }
-
-  // 맵 클릭 시 강의실 추가 폼 열리기 핸들러
-  const handleImageClick = (e) => {
-    if (!imgRef.current) return
-    const rect = imgRef.current.getBoundingClientRect()
-    const x = Math.round(e.clientX - rect.left)
-    const y = Math.round(e.clientY - rect.top)
-    setAddPopup({ x, y })
-    setAddForm({ room_name: "", room_desc: "", x, y })
-    setAddMsg("")
   }
 
   // 강의실 추가 폼 제출 핸들러
@@ -415,122 +369,6 @@ export default function RoomManagePage() {
       setEditRoomLoading(false)
     }
   }
-
-  useEffect(() => {
-    // 페이지 바뀔 때 스크롤 맨 위로 (필요시)
-    // window.scrollTo(0, 0)
-  }, [currentPage])
-
-  useEffect(() => {
-    if (filterBuilding && filterFloor) {
-      setMapLoading(true)
-      fetch(
-        `/api/mapfile-image-route?building=${encodeURIComponent(
-          filterBuilding
-        )}&floor=${encodeURIComponent(filterFloor)}`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          const fileList = Array.isArray(data) ? data : []
-          const svgUrl = fileList[0]?.File
-          setSvgUrl(svgUrl || "") // 여기 추가!
-          if (svgUrl) {
-            fetch(svgUrl)
-              .then((res) => res.text())
-              .then((svgXml) => setSvgRaw(svgXml))
-          } else {
-            setSvgRaw("")
-          }
-        })
-        .catch(() => {
-          setSvgRaw("")
-          setSvgUrl("")
-        })
-        .finally(() => setMapLoading(false))
-    } else {
-      setSvgRaw("")
-      setSvgUrl("")
-    }
-  }, [filterBuilding, filterFloor])
-
-  function parseNavigationNodes(svgXml) {
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(svgXml, "image/svg+xml")
-    // Navigation_Node 레이어(group) 찾기
-    const navLayer = Array.from(doc.querySelectorAll("g")).find(
-      (g) =>
-        g.getAttribute("id") === "Navigation_Node" ||
-        g.getAttribute("inkscape:label") === "Navigation_Node"
-    )
-    if (!navLayer) return []
-    const nodes = []
-    navLayer.querySelectorAll("circle, ellipse").forEach((el) => {
-      const id = el.getAttribute("id") || ""
-      const cx = parseFloat(
-        el.getAttribute("cx") || el.getAttribute("x") || "0"
-      )
-      const cy = parseFloat(
-        el.getAttribute("cy") || el.getAttribute("y") || "0"
-      )
-      nodes.push({ id, x: cx, y: cy })
-    })
-    return nodes
-  }
-
-  function getSvgOriginalSize(svgXml) {
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(svgXml, "image/svg+xml")
-    const svgEl = doc.querySelector("svg")
-    if (!svgEl) return { width: 400, height: 400 }
-
-    const viewBox = svgEl.getAttribute("viewBox")
-    if (viewBox) {
-      const parts = viewBox.split(/[\s,]+/).map(Number)
-      if (parts.length === 4 && parts[2] && parts[3]) {
-        return { width: parts[2], height: parts[3] }
-      }
-    }
-    let width = svgEl.getAttribute("width")
-    let height = svgEl.getAttribute("height")
-    width = parseFloat(width)
-    height = parseFloat(height)
-    if (width && height) return { width, height }
-    return { width: 400, height: 400 }
-  }
-
-  function ensureViewBox(svgXml) {
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(svgXml, "image/svg+xml")
-    const svgEl = doc.querySelector("svg")
-    if (!svgEl) return svgXml
-    if (!svgEl.getAttribute("viewBox")) {
-      let w = svgEl.getAttribute("width") || 800
-      let h = svgEl.getAttribute("height") || 600
-      // px 등 단위 제거
-      w = parseFloat(w)
-      h = parseFloat(h)
-      svgEl.setAttribute("viewBox", `0 0 ${w} ${h}`)
-      return doc.documentElement.outerHTML
-    }
-    return svgXml
-  }
-
-  useEffect(() => {
-    if (svgRaw) {
-      const size = getSvgOriginalSize(svgRaw)
-      console.log("SVG 원본 사이즈:", size)
-      setSvgSize(size)
-    }
-  }, [svgRaw])
-
-  useEffect(() => {
-    if (svgRaw) {
-      const nodes = parseNavigationNodes(svgRaw)
-      setNavigationNodes(nodes)
-    } else {
-      setNavigationNodes([])
-    }
-  }, [svgRaw])
 
   return (
     <div className="management-root">
@@ -689,225 +527,249 @@ export default function RoomManagePage() {
           </div>
 
           {/* 맵 */}
-          <div className="room-manage-canvas-outer">
-            <div
-              className="room-manage-canvas"
+          <div className="room-manage-map-wrap">
+            {filterBuilding && filterFloor && (
+              <div style={{ marginBottom: 10, fontSize: 14, color: "#666" }}>
+                맵을 클릭하면 해당 위치에 강의실을 추가할 수 있습니다.
+              </div>
+            )}
+
+            {mapLoading && <p>맵 로딩 중...</p>}
+
+            {!mapLoading && filterBuilding && filterFloor && svgRaw && (
+              <div
+                ref={mapContainerRef}
+                style={{
+                  width: CANVAS_SIZE,
+                  height: CANVAS_SIZE,
+                  border: "1px solid #ddd",
+                  cursor: "crosshair",
+                  backgroundColor: "#f8f9fa",
+                  overflow: "hidden",
+                }}
+                onClick={handleMapClick}
+                dangerouslySetInnerHTML={{ __html: svgRaw }}
+              />
+            )}
+
+            {!mapLoading && (!filterBuilding || !filterFloor) && (
+              <div
+                style={{
+                  width: CANVAS_SIZE,
+                  height: CANVAS_SIZE,
+                  border: "1px solid #ddd",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#f8f9fa",
+                  color: "#666",
+                  textAlign: "center",
+                }}
+              >
+                건물과 층을 선택하면 맵이 표시됩니다.
+              </div>
+            )}
+
+            {!mapLoading && filterBuilding && filterFloor && !svgRaw && (
+              <div
+                style={{
+                  width: CANVAS_SIZE,
+                  height: CANVAS_SIZE,
+                  border: "1px solid #ddd",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#f8f9fa",
+                  color: "#666",
+                  textAlign: "center",
+                }}
+              >
+                해당 건물/층의 맵 파일을 찾을 수 없습니다.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 강의실 추가 팝업 */}
+      {addPopup && (
+        <div
+          style={{
+            position: "fixed",
+            top: Math.min(addPopup.y + 10, window.innerHeight - 300),
+            left: Math.min(addPopup.x + 10, window.innerWidth - 280),
+            backgroundColor: "white",
+            border: "1px solid #ddd",
+            padding: 16,
+            borderRadius: 8,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            zIndex: 1000,
+            minWidth: 250,
+          }}
+        >
+          <h4>강의실 추가</h4>
+          <form onSubmit={handleAddRoom}>
+            <div style={{ marginBottom: 8 }}>
+              <label>강의실명:</label>
+              <input
+                type="text"
+                value={addForm.room_name}
+                onChange={(e) =>
+                  setAddForm({ ...addForm, room_name: e.target.value })
+                }
+                required
+                style={{ width: "100%", padding: 4, marginTop: 4 }}
+              />
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <label>설명:</label>
+              <input
+                type="text"
+                value={addForm.room_desc}
+                onChange={(e) =>
+                  setAddForm({ ...addForm, room_desc: e.target.value })
+                }
+                style={{ width: "100%", padding: 4, marginTop: 4 }}
+              />
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <label>X 좌표: {addForm.x}</label>
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <label>Y 좌표: {addForm.y}</label>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="submit"
+                disabled={addLoading}
+                style={{
+                  padding: "8px 16px",
+                  backgroundColor: "#28a745",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 4,
+                  cursor: addLoading ? "not-allowed" : "pointer",
+                }}
+              >
+                {addLoading ? "추가 중..." : "추가"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAddPopup(null)}
+                style={{
+                  padding: "8px 16px",
+                  backgroundColor: "#6c757d",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                }}
+              >
+                취소
+              </button>
+            </div>
+          </form>
+          {addMsg && (
+            <p
               style={{
-                position: "relative",
-                width: CANVAS_SIZE,
-                height: CANVAS_SIZE,
-                background: "#f5f6fa",
-                borderRadius: 16,
-                overflow: "hidden",
-                border: "2px solid #2574f5",
+                marginTop: 8,
+                color: addMsg.includes("추가되었습니다") ? "green" : "red",
               }}
             >
-              {mapLoading ? (
-                <div className="room-manage-canvas-placeholder">로딩 중...</div>
-              ) : svgRaw ? (
-                <>
-                  {/* SVG 도면(배경) */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      width: "100%",
-                      height: "100%",
-                      zIndex: 1,
-                      pointerEvents: "none",
-                      overflow: "hidden",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: SVG_ORIGINAL_WIDTH,
-                        height: SVG_ORIGINAL_HEIGHT,
-                        transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
-                        transformOrigin: "top left",
-                        display: "block",
-                      }}
-                      dangerouslySetInnerHTML={{ __html: svgRaw }}
-                    />
-                  </div>
-                  {/* 오버레이 (Navigation_Node 점 표시) */}
-                  {navigationNodes.map((node) => {
-                    const { left, top } = getScaledCoord(node.x, node.y)
-                    return (
-                      <div
-                        key={node.id}
-                        style={{
-                          position: "absolute",
-                          left,
-                          top,
-                          width: 16,
-                          height: 16,
-                          borderRadius: "50%",
-                          background: "#ff4d4f",
-                          border: "2px solid #fff",
-                          zIndex: 2,
-                          boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 10,
-                          color: "#fff",
-                          cursor: "pointer",
-                        }}
-                        title={node.id}
-                      >
-                        {node.id}
-                      </div>
-                    )
-                  })}{" "}
-                </>
-              ) : (
-                <div className="room-manage-canvas-placeholder">
-                  건물과 층을 선택 후 맵을 불러오세요.
-                </div>
-              )}
-              {/* 강의실 추가 팝업 */}
-              {addPopup && (
-                <div
-                  className="room-manage-popup"
-                  style={{
-                    left: addPopup.x,
-                    top: addPopup.y,
-                  }}
-                >
-                  <form onSubmit={handleAddRoom}>
-                    <div>
-                      <b>좌표:</b> ({addPopup.x}, {addPopup.y})
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="강의실명"
-                      value={addForm.room_name}
-                      onChange={(e) =>
-                        setAddForm((f) => ({
-                          ...f,
-                          room_name: e.target.value,
-                        }))
-                      }
-                      required
-                      style={{ width: "100%", margin: "8px 0" }}
-                    />
-                    <input
-                      type="text"
-                      placeholder="강의실 설명"
-                      value={addForm.room_desc}
-                      onChange={(e) =>
-                        setAddForm((f) => ({
-                          ...f,
-                          room_desc: e.target.value,
-                        }))
-                      }
-                      style={{ width: "100%", marginBottom: 8 }}
-                    />
-                    <input type="hidden" value={addPopup.x} readOnly />
-                    <input type="hidden" value={addPopup.y} readOnly />
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button type="submit" disabled={addLoading}>
-                        {addLoading ? "저장 중..." : "저장"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setAddPopup(null)}
-                        style={{ background: "#bbb" }}
-                      >
-                        취소
-                      </button>
-                    </div>
-                    {addMsg && (
-                      <div
-                        style={{
-                          color: addMsg.includes("추가") ? "green" : "red",
-                          marginTop: 8,
-                        }}
-                      >
-                        {addMsg}
-                      </div>
-                    )}
-                  </form>
-                </div>
-              )}
+              {addMsg}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* 강의실 수정 모달 */}
+      {showEditRoomModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              padding: 24,
+              borderRadius: 8,
+              minWidth: 300,
+              maxWidth: 500,
+            }}
+          >
+            <h3>강의실 정보 수정</h3>
+            <div style={{ marginBottom: 16 }}>
+              <label>강의실명:</label>
+              <input
+                type="text"
+                value={editRoomName}
+                onChange={(e) => setEditRoomName(e.target.value)}
+                style={{ width: "100%", padding: 8, marginTop: 4 }}
+              />
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label>설명:</label>
+              <input
+                type="text"
+                value={editRoomDesc}
+                onChange={(e) => setEditRoomDesc(e.target.value)}
+                style={{ width: "100%", padding: 8, marginTop: 4 }}
+              />
+            </div>
+            {editRoomError && (
+              <p style={{ color: "red", marginBottom: 16 }}>{editRoomError}</p>
+            )}
+            <div
+              style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}
+            >
+              <button
+                onClick={() => {
+                  setShowEditRoomModal(false)
+                  setEditRoom(null)
+                  setEditRoomName("")
+                  setEditRoomDesc("")
+                  setEditRoomOldName("")
+                  setEditRoomError("")
+                }}
+                style={{
+                  padding: "8px 16px",
+                  backgroundColor: "#6c757d",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                }}
+              >
+                취소
+              </button>
+              <button
+                onClick={handleEditRoom}
+                disabled={editRoomLoading}
+                style={{
+                  padding: "8px 16px",
+                  backgroundColor: "#007bff",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 4,
+                  cursor: editRoomLoading ? "not-allowed" : "pointer",
+                }}
+              >
+                {editRoomLoading ? "수정 중..." : "수정"}
+              </button>
             </div>
           </div>
         </div>
-
-        {/* 수정 모달 등 기존 UI 유지 */}
-        {showEditRoomModal && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: "rgba(0,0,0,0.4)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 9999,
-            }}
-            onClick={() => setShowEditRoomModal(false)}
-          >
-            <div
-              style={{
-                background: "#fff",
-                padding: 24,
-                borderRadius: 8,
-                minWidth: 320,
-                boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 style={{ marginBottom: 12 }}>강의실 정보 수정</h3>
-              <div style={{ marginBottom: 12 }}>
-                <input
-                  type="text"
-                  value={editRoomName}
-                  onChange={(e) => setEditRoomName(e.target.value)}
-                  style={{ width: "100%", padding: 8, fontSize: 16 }}
-                  placeholder="강의실명"
-                />
-              </div>
-              <div style={{ marginBottom: 12 }}>
-                <input
-                  type="text"
-                  value={editRoomDesc}
-                  onChange={(e) => setEditRoomDesc(e.target.value)}
-                  style={{ width: "100%", padding: 8, fontSize: 16 }}
-                  placeholder="강의실 설명"
-                />
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  className="modal-save-btn"
-                  onClick={handleEditRoom}
-                  disabled={editRoomLoading}
-                >
-                  {editRoomLoading ? "저장 중..." : "저장"}
-                </button>
-                <button
-                  className="modal-cancel-btn"
-                  onClick={() => setShowEditRoomModal(false)}
-                >
-                  취소
-                </button>
-              </div>
-              {editRoomError && (
-                <div style={{ color: "red", marginTop: 8 }}>
-                  {editRoomError}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   )
 }

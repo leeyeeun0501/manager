@@ -755,175 +755,131 @@ export default function RoomManagePage() {
           </div>
 
           {/* 맵 */}
-          <div className="room-manage-map-wrap">
-            {filterBuilding && filterFloor && (
-              <div style={{ marginBottom: 10, fontSize: 14, color: "#666" }}>
-                맵을 클릭하면 해당 위치에 강의실을 추가할 수 있습니다.
-              </div>
-            )}
-            {mapLoading && <p>맵 로딩 중...</p>}
-            {!mapLoading && filterBuilding && filterFloor && svgRaw && (
+{/* 맵 */}
+<div className="room-manage-map-wrap">
+  {filterBuilding && filterFloor && (
+    <div style={{ marginBottom: 10, fontSize: 14, color: "#666" }}>
+      맵의 노드를 클릭하여 정보를 확인하거나 강의실로 추가할 수 있습니다.
+    </div>
+  )}
+
+  {/* 맵을 표시할 캔버스 영역 */}
+  <div
+    style={{
+      position: "relative",
+      width: CANVAS_SIZE,
+      height: CANVAS_SIZE,
+      border: "1px solid #ddd",
+      backgroundColor: "#f8f9fa",
+      overflow: "hidden", // 이 영역을 벗어나는 내용은 보이지 않게 함
+    }}
+  >
+    {/* 로딩 중 또는 데이터가 없을 때의 화면 처리 */}
+    {mapLoading && <div className="room-manage-canvas-placeholder">맵 로딩 중...</div>}
+    {!mapLoading && (!filterBuilding || !filterFloor) && (
+      <div className="room-manage-canvas-placeholder">건물과 층을 선택하면 맵이 표시됩니다.</div>
+    )}
+    {!mapLoading && filterBuilding && filterFloor && !svgRaw && (
+      <div className="room-manage-canvas-placeholder">해당 건물/층의 맵 파일을 찾을 수 없습니다.</div>
+    )}
+
+    {/* ★★★ SVG와 노드를 함께 렌더링하는 핵심 컨테이너 ★★★ */}
+    {!mapLoading && svgRaw && (
+      (() => {
+        // 렌더링에 필요한 스케일과 오프셋을 계산
+        const scale = Math.min(CANVAS_SIZE / svgViewBox.width, CANVAS_SIZE / svgViewBox.height) * 0.95;
+        const offsetX = (CANVAS_SIZE - svgViewBox.width * scale) / 2;
+        const offsetY = (CANVAS_SIZE - svgViewBox.height * scale) / 2;
+
+        return (
+          <div
+            ref={mapContainerRef}
+            style={{
+              // 이 컨테이너의 크기를 SVG 원본 viewBox 크기로 설정
+              width: svgViewBox.width,
+              height: svgViewBox.height,
+              // 이 컨테이너 자체를 스케일하고 중앙으로 이동
+              transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
+              transformOrigin: 'top left',
+              position: 'relative', // 자식 요소(SVG, 노드)들의 기준점 역할
+            }}
+          >
+            {/* 레이어 1: SVG 배경 */}
+            <div
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+              dangerouslySetInnerHTML={{ __html: svgRaw }}
+            />
+
+            {/* 레이어 2: 노드 오버레이 */}
+            {svgNodes.map((node, index) => (
               <div
+                key={`node-overlay-${node.id}-${index}`}
                 style={{
-                  position: "relative",
-                  width: CANVAS_SIZE,
-                  height: CANVAS_SIZE,
-                  border: "1px solid #ddd",
-                  backgroundColor: "#f8f9fa",
-                  overflow: "hidden",
+                  position: 'absolute',
+                  // SVG 내부 좌표를 그대로 사용
+                  left: `${node.x}px`,
+                  top: `${node.y}px`,
+                  width: `${node.width}px`,
+                  height: `${node.height}px`,
+                  // 시각적 스타일
+                  border: selectedNode?.id === node.id ? '2px solid #ff4757' : '1px solid #007bff',
+                  backgroundColor: selectedNode?.id === node.id ? 'rgba(255, 71, 87, 0.3)' : 'rgba(0, 123, 255, 0.1)',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s, border-color 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '10px',
+                  color: '#333',
+                  fontWeight: 'bold',
                 }}
+                onClick={(e) => handleNodeClick(node, e)}
+                title={`ID: ${node.id}`}
               >
-                <div
-                  ref={mapContainerRef}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    cursor: "crosshair",
-                    position: "relative",
-                  }}
-                  dangerouslySetInnerHTML={{ __html: svgRaw }}
-                />
-                {/* 노드 오버레이 */}
-                {renderNodeOverlays()}
+                {node.id}
               </div>
-            )}
-            {selectedNode && (
-              <div
-                style={{
-                  marginTop: 16,
-                  padding: 16,
-                  backgroundColor: "#f8f9fa",
-                  border: "1px solid #dee2e6",
-                  borderRadius: 8,
-                  maxWidth: CANVAS_SIZE,
-                }}
-              >
-                <h4>선택된 노드 정보</h4>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 8,
-                    fontSize: "14px",
-                  }}
-                >
-                  <div>
-                    <strong>ID:</strong> {selectedNode.id}
-                  </div>
-                  <div>
-                    <strong>레이어:</strong> {selectedNode.layer}
-                  </div>
-                  <div>
-                    <strong>타입:</strong> {selectedNode.element}
-                  </div>
-                  <div>
-                    <strong>위치:</strong> ({selectedNode.x.toFixed(1)},{" "}
-                    {selectedNode.y.toFixed(1)})
-                  </div>
-                  <div>
-                    <strong>크기:</strong> {selectedNode.width.toFixed(1)} ×{" "}
-                    {selectedNode.height.toFixed(1)}
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSelectedNode(null)}
-                  style={{
-                    marginTop: 8,
-                    padding: "4px 8px",
-                    backgroundColor: "#6c757d",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 4,
-                    cursor: "pointer",
-                  }}
-                >
-                  선택 해제
-                </button>
-              </div>
-            )}
-            {svgNodes.length > 0 && (
-              <div
-                style={{
-                  marginTop: 16,
-                  padding: 16,
-                  backgroundColor: "#f8f9fa",
-                  border: "1px solid #dee2e6",
-                  borderRadius: 8,
-                }}
-              >
-                <h4>SVG 노드 목록 ({svgNodes.length}개)</h4>
-                <div
-                  style={{
-                    maxHeight: 200,
-                    overflowY: "auto",
-                    display: "grid",
-                    gridTemplateColumns:
-                      "repeat(auto-fill, minmax(150px, 1fr))",
-                    gap: 8,
-                    marginTop: 8,
-                  }}
-                >
-                  {svgNodes.map((node, index) => (
-                    <button
-                      key={`node-list-${node.id}-${index}`}
-                      onClick={() => setSelectedNode(node)}
-                      style={{
-                        padding: "4px 8px",
-                        backgroundColor:
-                          selectedNode?.id === node.id ? "#007bff" : "#e9ecef",
-                        color: selectedNode?.id === node.id ? "white" : "#333",
-                        border: "1px solid #dee2e6",
-                        borderRadius: 4,
-                        cursor: "pointer",
-                        fontSize: "12px",
-                        textAlign: "left",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                      title={`${node.id} (${node.element})`}
-                    >
-                      {node.id}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            {!mapLoading && (!filterBuilding || !filterFloor) && (
-              <div
-                style={{
-                  width: CANVAS_SIZE,
-                  height: CANVAS_SIZE,
-                  border: "1px solid #ddd",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#f8f9fa",
-                  color: "#666",
-                  textAlign: "center",
-                }}
-              >
-                건물과 층을 선택하면 맵이 표시됩니다.
-              </div>
-            )}
-            {!mapLoading && filterBuilding && filterFloor && !svgRaw && (
-              <div
-                style={{
-                  width: CANVAS_SIZE,
-                  height: CANVAS_SIZE,
-                  border: "1px solid #ddd",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#f8f9fa",
-                  color: "#666",
-                  textAlign: "center",
-                }}
-              >
-                해당 건물/층의 맵 파일을 찾을 수 없습니다.
-              </div>
-            )}
+            ))}
           </div>
+        )
+      })()
+    )}
+  </div>
+
+  {/* 선택된 노드 정보 및 전체 노드 목록 UI (기존과 동일) */}
+  {selectedNode && (
+    <div style={{ marginTop: 16, padding: 16, backgroundColor: "#f8f9fa", border: "1px solid #dee2e6", borderRadius: 8, maxWidth: CANVAS_SIZE }}>
+      <h4>선택된 노드 정보</h4>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: "14px" }}>
+        <div><strong>ID:</strong> {selectedNode.id}</div>
+        <div><strong>레이어:</strong> {selectedNode.layer}</div>
+        <div><strong>타입:</strong> {selectedNode.element}</div>
+        <div><strong>위치:</strong> ({selectedNode.x.toFixed(1)}, {selectedNode.y.toFixed(1)})</div>
+        <div><strong>크기:</strong> {selectedNode.width.toFixed(1)} × {selectedNode.height.toFixed(1)}</div>
+      </div>
+      <button onClick={() => setSelectedNode(null)} style={{ marginTop: 8, padding: "4px 8px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: 4, cursor: "pointer" }}>
+        선택 해제
+      </button>
+    </div>
+  )}
+  {svgNodes.length > 0 && (
+    <div style={{ marginTop: 16, padding: 16, backgroundColor: "#f8f9fa", border: "1px solid #dee2e6", borderRadius: 8 }}>
+      <h4>SVG 노드 목록 ({svgNodes.length}개)</h4>
+      <div style={{ maxHeight: 200, overflowY: "auto", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 8, marginTop: 8 }}>
+        {svgNodes.map((node, index) => (
+          <button
+            key={`node-list-${node.id}-${index}`}
+            onClick={() => setSelectedNode(node)}
+            style={{ padding: "4px 8px", backgroundColor: selectedNode?.id === node.id ? "#007bff" : "#e9ecef", color: selectedNode?.id === node.id ? "white" : "#333", border: "1px solid #dee2e6", borderRadius: 4, cursor: "pointer", fontSize: "12px", textAlign: "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+            title={`${node.id} (${node.element})`}
+          >
+            {node.id}
+          </button>
+        ))}
+      </div>
+    </div>
+  )}
+</div>
         </div>
       </div>
 

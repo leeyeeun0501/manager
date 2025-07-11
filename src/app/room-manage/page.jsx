@@ -19,17 +19,6 @@ export default function RoomManagePage() {
   const [filterBuilding, setFilterBuilding] = useState("")
   const [filterFloor, setFilterFloor] = useState("")
 
-  // 강의실 추가 팝업
-  const [addPopup, setAddPopup] = useState(null)
-  const [addForm, setAddForm] = useState({
-    room_name: "",
-    room_desc: "",
-    x: "",
-    y: "",
-  })
-  const [addMsg, setAddMsg] = useState("")
-  const [addLoading, setAddLoading] = useState(false)
-
   const [showEditRoomModal, setShowEditRoomModal] = useState(false)
   const [editRoom, setEditRoom] = useState(null)
   const [editRoomName, setEditRoomName] = useState("")
@@ -374,28 +363,6 @@ export default function RoomManagePage() {
     svgEl.removeAttribute("height")
 
     return doc.documentElement.outerHTML
-  }
-
-  // 캔버스 클릭 핸들러 - 강의실 추가용
-  const handleMapClick = (e) => {
-    if (!mapContainerRef.current) return
-
-    const rect = mapContainerRef.current.getBoundingClientRect()
-    const clickX = e.clientX - rect.left
-    const clickY = e.clientY - rect.top
-
-    // SVG 좌표계로 변환
-    const svgX = (clickX / rect.width) * svgViewBox.width + svgViewBox.x
-    const svgY = (clickY / rect.height) * svgViewBox.height + svgViewBox.y
-
-    setAddPopup({ x: e.clientX, y: e.clientY })
-    setAddForm({
-      room_name: "",
-      room_desc: "",
-      x: Math.round(svgX),
-      y: Math.round(svgY),
-    })
-    setAddMsg("")
   }
 
   // 1. 건물 목록만 최초 1회 받아오기
@@ -814,7 +781,6 @@ export default function RoomManagePage() {
                     cursor: "crosshair",
                     position: "relative",
                   }}
-                  onClick={handleMapClick}
                   dangerouslySetInnerHTML={{ __html: svgRaw }}
                 />
                 {/* 노드 오버레이 */}
@@ -960,97 +926,6 @@ export default function RoomManagePage() {
           </div>
         </div>
       </div>
-
-      {/* 강의실 추가 팝업 */}
-      {addPopup && (
-        <div
-          style={{
-            position: "fixed",
-            top: Math.min(addPopup.y + 10, window.innerHeight - 300),
-            left: Math.min(addPopup.x + 10, window.innerWidth - 280),
-            backgroundColor: "white",
-            border: "1px solid #ddd",
-            padding: 16,
-            borderRadius: 8,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-            zIndex: 1000,
-            minWidth: 250,
-          }}
-        >
-          <h4>강의실 추가</h4>
-          <form onSubmit={handleAddRoom}>
-            <div style={{ marginBottom: 8 }}>
-              <label>강의실명:</label>
-              <input
-                type="text"
-                value={addForm.room_name}
-                onChange={(e) =>
-                  setAddForm({ ...addForm, room_name: e.target.value })
-                }
-                required
-                style={{ width: "100%", padding: 4, marginTop: 4 }}
-              />
-            </div>
-            <div style={{ marginBottom: 8 }}>
-              <label>설명:</label>
-              <input
-                type="text"
-                value={addForm.room_desc}
-                onChange={(e) =>
-                  setAddForm({ ...addForm, room_desc: e.target.value })
-                }
-                style={{ width: "100%", padding: 4, marginTop: 4 }}
-              />
-            </div>
-            <div style={{ marginBottom: 8 }}>
-              <label>X 좌표: {addForm.x}</label>
-            </div>
-            <div style={{ marginBottom: 8 }}>
-              <label>Y 좌표: {addForm.y}</label>
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                type="submit"
-                disabled={addLoading}
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: "#28a745",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 4,
-                  cursor: addLoading ? "not-allowed" : "pointer",
-                }}
-              >
-                {addLoading ? "추가 중..." : "추가"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setAddPopup(null)}
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: "#6c757d",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 4,
-                  cursor: "pointer",
-                }}
-              >
-                취소
-              </button>
-            </div>
-          </form>
-          {addMsg && (
-            <p
-              style={{
-                marginTop: 8,
-                color: addMsg.includes("추가되었습니다") ? "green" : "red",
-              }}
-            >
-              {addMsg}
-            </p>
-          )}
-        </div>
-      )}
 
       {/* 강의실 수정 모달 */}
       {showEditRoomModal && (

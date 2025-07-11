@@ -247,23 +247,91 @@ export default function RoomManagePage() {
   }
 
   // SVG 좌표를 화면 좌표로 변환하는 함수
+  // SVG 좌표를 화면 좌표로 변환하는 함수 - 수정된 버전
   const svgToScreenCoords = (svgX, svgY) => {
     if (!mapContainerRef.current) return { x: 0, y: 0 }
 
-    const rect = mapContainerRef.current.getBoundingClientRect()
-    const screenX = ((svgX - svgViewBox.x) / svgViewBox.width) * rect.width
-    const screenY = ((svgY - svgViewBox.y) / svgViewBox.height) * rect.height
+    const container = mapContainerRef.current
+    const svgElement = container.querySelector("svg")
+
+    if (!svgElement) return { x: 0, y: 0 }
+
+    // SVG의 실제 렌더링 크기 (화면에서의 크기)
+    const containerRect = container.getBoundingClientRect()
+    const containerWidth = containerRect.width
+    const containerHeight = containerRect.height
+
+    // SVG의 viewBox 또는 실제 크기
+    const viewBox = svgElement.viewBox.baseVal
+    let svgWidth, svgHeight, svgMinX, svgMinY
+
+    if (viewBox && viewBox.width > 0 && viewBox.height > 0) {
+      // viewBox가 있는 경우
+      svgMinX = viewBox.x
+      svgMinY = viewBox.y
+      svgWidth = viewBox.width
+      svgHeight = viewBox.height
+    } else {
+      // viewBox가 없는 경우 SVG의 width, height 사용
+      svgMinX = 0
+      svgMinY = 0
+      svgWidth = parseFloat(svgElement.getAttribute("width")) || containerWidth
+      svgHeight =
+        parseFloat(svgElement.getAttribute("height")) || containerHeight
+    }
+
+    // 좌표 변환: SVG 좌표를 화면 좌표로
+    const scaleX = containerWidth / svgWidth
+    const scaleY = containerHeight / svgHeight
+
+    const screenX = (svgX - svgMinX) * scaleX
+    const screenY = (svgY - svgMinY) * scaleY
 
     return { x: screenX, y: screenY }
   }
 
-  // 렌더링할 노드 오버레이 컴포넌트
+  // 크기 변환 함수 추가
+  const svgToScreenSize = (svgWidth, svgHeight) => {
+    if (!mapContainerRef.current) return { width: 0, height: 0 }
+
+    const container = mapContainerRef.current
+    const svgElement = container.querySelector("svg")
+
+    if (!svgElement) return { width: 0, height: 0 }
+
+    const containerRect = container.getBoundingClientRect()
+    const containerWidth = containerRect.width
+    const containerHeight = containerRect.height
+
+    const viewBox = svgElement.viewBox.baseVal
+    let svgViewWidth, svgViewHeight
+
+    if (viewBox && viewBox.width > 0 && viewBox.height > 0) {
+      svgViewWidth = viewBox.width
+      svgViewHeight = viewBox.height
+    } else {
+      svgViewWidth =
+        parseFloat(svgElement.getAttribute("width")) || containerWidth
+      svgViewHeight =
+        parseFloat(svgElement.getAttribute("height")) || containerHeight
+    }
+
+    const scaleX = containerWidth / svgViewWidth
+    const scaleY = containerHeight / svgViewHeight
+
+    return {
+      width: svgWidth * scaleX,
+      height: svgHeight * scaleY,
+    }
+  }
+
+  // 렌더링할 노드 오버레이 컴포넌트 - 수정된 버전
   const renderNodeOverlays = () => {
     if (!mapContainerRef.current || svgNodes.length === 0) return null
 
     return svgNodes.map((node, index) => {
       const screenCoords = svgToScreenCoords(node.x, node.y)
-      const screenSize = svgToScreenCoords(node.width, node.height)
+      const screenSize = svgToScreenSize(node.width, node.height)
 
       return (
         <div
@@ -272,8 +340,8 @@ export default function RoomManagePage() {
             position: "absolute",
             left: screenCoords.x,
             top: screenCoords.y,
-            width: Math.max(screenSize.x, 20),
-            height: Math.max(screenSize.y, 20),
+            width: Math.max(screenSize.width, 20),
+            height: Math.max(screenSize.height, 20),
             border:
               selectedNode?.id === node.id
                 ? "2px solid #ff0000"
@@ -294,6 +362,7 @@ export default function RoomManagePage() {
             overflow: "hidden",
             zIndex: 10,
             transition: "all 0.2s ease",
+            pointerEvents: "auto", // 클릭 가능하도록
           }}
           onClick={(e) => handleNodeClick(node, e)}
           title={`ID: ${node.id}, Layer: ${node.layer}, Type: ${node.element}`}
@@ -773,18 +842,34 @@ export default function RoomManagePage() {
                   overflow: "hidden",
                 }}
               >
+                {/* SVG 컨테이너 */}
                 <div
                   ref={mapContainerRef}
                   style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
                     width: "100%",
                     height: "100%",
                     cursor: "crosshair",
-                    position: "relative",
+                    zIndex: 1,
                   }}
                   dangerouslySetInnerHTML={{ __html: svgRaw }}
                 />
-                {/* 노드 오버레이 */}
-                {renderNodeOverlays()}
+                {/* 노드 오버레이 - SVG와 같은 위치에 절대 위치로 배치 */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    pointerEvents: "none", // SVG 클릭 이벤트 방해하지 않도록
+                    zIndex: 2,
+                  }}
+                >
+                  {renderNodeOverlays()}
+                </div>
               </div>
             )}
             {selectedNode && (

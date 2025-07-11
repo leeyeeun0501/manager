@@ -52,7 +52,7 @@ export default function RoomManagePage() {
     height: 400,
   })
 
-  const CANVAS_SIZE = 400
+  const CANVAS_SIZE = 600
   const mapContainerRef = useRef(null)
 
   const normalizeRoom = (room) => {
@@ -62,6 +62,252 @@ export default function RoomManagePage() {
       name: room.name || room.Room_Name || "",
       description: room.description || room.Room_Description || "",
     }
+  }
+
+  const [svgNodes, setSvgNodes] = useState([]) // 파싱된 노드들
+  const [selectedNode, setSelectedNode] = useState(null) // 선택된 노드
+
+  // SVG 노드 파싱 함수
+  const parseSvgNodes = (svgXml) => {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(svgXml, "image/svg+xml")
+    const nodes = []
+
+    // 모든 요소를 순회하면서 id가 있는 요소들 찾기
+    const allElements = doc.querySelectorAll("*[id]")
+
+    allElements.forEach((element) => {
+      const id = element.getAttribute("id")
+      if (!id) return
+
+      // 요소의 위치 정보 가져오기
+      let x = 0,
+        y = 0,
+        width = 0,
+        height = 0
+
+      // 각 요소 타입별로 위치 정보 추출
+      switch (element.tagName.toLowerCase()) {
+        case "rect":
+          x = parseFloat(element.getAttribute("x") || 0)
+          y = parseFloat(element.getAttribute("y") || 0)
+          width = parseFloat(element.getAttribute("width") || 0)
+          height = parseFloat(element.getAttribute("height") || 0)
+          break
+        case "circle":
+          x = parseFloat(element.getAttribute("cx") || 0)
+          y = parseFloat(element.getAttribute("cy") || 0)
+          width = height = parseFloat(element.getAttribute("r") || 0) * 2
+          break
+        case "ellipse":
+          x = parseFloat(element.getAttribute("cx") || 0)
+          y = parseFloat(element.getAttribute("cy") || 0)
+          width = parseFloat(element.getAttribute("rx") || 0) * 2
+          height = parseFloat(element.getAttribute("ry") || 0) * 2
+          break
+        case "line":
+          x = parseFloat(element.getAttribute("x1") || 0)
+          y = parseFloat(element.getAttribute("y1") || 0)
+          const x2 = parseFloat(element.getAttribute("x2") || 0)
+          const y2 = parseFloat(element.getAttribute("y2") || 0)
+          width = Math.abs(x2 - x)
+          height = Math.abs(y2 - y)
+          break
+        case "polygon":
+        case "polyline":
+          const points = element.getAttribute("points") || ""
+          const pointsArray = points
+            .split(/[\s,]+/)
+            .filter((p) => p)
+            .map(Number)
+          if (pointsArray.length >= 2) {
+            const xCoords = pointsArray.filter((_, i) => i % 2 === 0)
+            const yCoords = pointsArray.filter((_, i) => i % 2 === 1)
+            x = Math.min(...xCoords)
+            y = Math.min(...yCoords)
+            width = Math.max(...xCoords) - x
+            height = Math.max(...yCoords) - y
+          }
+          break
+        case "path":
+          // path의 경우 getBBox()를 사용해야 하지만, 여기서는 간단히 처리
+          const d = element.getAttribute("d") || ""
+          const matches = d.match(/[ML]\s*([0-9.-]+)\s*,?\s*([0-9.-]+)/g)
+          if (matches && matches.length > 0) {
+            const coords = matches.map((m) => {
+              const nums = m
+                .replace(/[ML]\s*/, "")
+                .split(/[\s,]+/)
+                .map(Number)
+              return { x: nums[0] || 0, y: nums[1] || 0 }
+            })
+            const xCoords = coords.map((c) => c.x)
+            const yCoords = coords.map((c) => c.y)
+            x = Math.min(...xCoords)
+            y = Math.min(...yCoords)
+            width = Math.max(...xCoords) - x
+            height = Math.max(...yCoords) - y
+          }
+          break
+        case "text":
+          x = parseFloat(element.getAttribute("x") || 0)
+          y = parseFloat(element.getAttribute("y") || 0)
+          width = element.textContent ? element.textContent.length * 8 : 50 // 대략적인 텍스트 크기
+          height = 20
+          break
+        case "g":
+          // 그룹의 경우 transform 속성에서 translate 값 추출
+          const transform = element.getAttribute("transform") || ""
+          const translateMatch = transform.match(/translate\(([^)]+)\)/)
+          if (translateMatch) {
+            const translateValues = translateMatch[1]
+              .split(/[\s,]+/)
+              .map(Number)
+            x = translateValues[0] || 0
+            y = translateValues[1] || 0
+          }
+          width = height = 20 // 그룹은 기본 크기
+          break
+        default:
+          // 기본적으로 x, y 속성이 있는지 확인
+          x = parseFloat(element.getAttribute("x") || 0)
+          y = parseFloat(element.getAttribute("y") || 0)
+          width = parseFloat(element.getAttribute("width") || 20)
+          height = parseFloat(element.getAttribute("height") || 20)
+      }
+
+      nodes.push({
+        id,
+        x,
+        y,
+        width,
+        height,
+        element: element.tagName.toLowerCase(),
+        layer: element.closest("g")?.getAttribute("id") || "default",
+      })
+    })
+
+    return nodes
+  }
+
+  // SVG 로드 useEffect 수정 (기존 코드에서 수정)
+  useEffect(() => {
+    if (filterBuilding && filterFloor) {
+      setMapLoading(true)
+      fetch(
+        `/api/mapfile-image-route?building=${encodeURIComponent(
+          filterBuilding
+        )}&floor=${encodeURIComponent(filterFloor)}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          const fileList = Array.isArray(data) ? data : []
+          const svgUrl = fileList[0]?.File
+          if (svgUrl) {
+            fetch(svgUrl)
+              .then((res) => res.text())
+              .then((svgXml) => {
+                const processedSvg = processSvg(svgXml)
+                setSvgRaw(processedSvg)
+
+                // 노드 파싱 추가
+                const parsedNodes = parseSvgNodes(svgXml)
+                setSvgNodes(parsedNodes)
+                console.log("Parsed SVG nodes:", parsedNodes)
+              })
+              .catch(() => {
+                setSvgRaw("")
+                setSvgNodes([])
+              })
+          } else {
+            setSvgRaw("")
+            setSvgNodes([])
+          }
+        })
+        .catch(() => {
+          setSvgRaw("")
+          setSvgNodes([])
+        })
+        .finally(() => setMapLoading(false))
+    } else {
+      setSvgRaw("")
+      setSvgNodes([])
+    }
+  }, [filterBuilding, filterFloor])
+
+  // 노드 클릭 핸들러
+  const handleNodeClick = (node, event) => {
+    event.stopPropagation()
+    setSelectedNode(node)
+    console.log("Selected node:", node)
+  }
+
+  // SVG 좌표를 화면 좌표로 변환하는 함수
+  const svgToScreenCoords = (svgX, svgY) => {
+    if (!mapContainerRef.current) return { x: 0, y: 0 }
+
+    const rect = mapContainerRef.current.getBoundingClientRect()
+    const screenX = ((svgX - svgViewBox.x) / svgViewBox.width) * rect.width
+    const screenY = ((svgY - svgViewBox.y) / svgViewBox.height) * rect.height
+
+    return { x: screenX, y: screenY }
+  }
+
+  // 렌더링할 노드 오버레이 컴포넌트
+  const renderNodeOverlays = () => {
+    if (!mapContainerRef.current || svgNodes.length === 0) return null
+
+    return svgNodes.map((node, index) => {
+      const screenCoords = svgToScreenCoords(node.x, node.y)
+      const screenSize = svgToScreenCoords(node.width, node.height)
+
+      return (
+        <div
+          key={`node-${node.id}-${index}`}
+          style={{
+            position: "absolute",
+            left: screenCoords.x,
+            top: screenCoords.y,
+            width: Math.max(screenSize.x, 20),
+            height: Math.max(screenSize.y, 20),
+            border:
+              selectedNode?.id === node.id
+                ? "2px solid #ff0000"
+                : "1px solid #007bff",
+            backgroundColor:
+              selectedNode?.id === node.id
+                ? "rgba(255, 0, 0, 0.2)"
+                : "rgba(0, 123, 255, 0.1)",
+            cursor: "pointer",
+            borderRadius: "4px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "10px",
+            color: "#333",
+            fontWeight: "bold",
+            textAlign: "center",
+            overflow: "hidden",
+            zIndex: 10,
+            transition: "all 0.2s ease",
+          }}
+          onClick={(e) => handleNodeClick(node, e)}
+          title={`ID: ${node.id}, Layer: ${node.layer}, Type: ${node.element}`}
+        >
+          <span
+            style={{
+              fontSize: "8px",
+              maxWidth: "100%",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {node.id}
+          </span>
+        </div>
+      )
+    })
   }
 
   // 페이징
@@ -533,25 +779,135 @@ export default function RoomManagePage() {
                 맵을 클릭하면 해당 위치에 강의실을 추가할 수 있습니다.
               </div>
             )}
-
             {mapLoading && <p>맵 로딩 중...</p>}
-
             {!mapLoading && filterBuilding && filterFloor && svgRaw && (
               <div
-                ref={mapContainerRef}
                 style={{
+                  position: "relative",
                   width: CANVAS_SIZE,
                   height: CANVAS_SIZE,
                   border: "1px solid #ddd",
-                  cursor: "crosshair",
                   backgroundColor: "#f8f9fa",
                   overflow: "hidden",
                 }}
-                onClick={handleMapClick}
-                dangerouslySetInnerHTML={{ __html: svgRaw }}
-              />
+              >
+                <div
+                  ref={mapContainerRef}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    cursor: "crosshair",
+                    position: "relative",
+                  }}
+                  onClick={handleMapClick}
+                  dangerouslySetInnerHTML={{ __html: svgRaw }}
+                />
+                {/* 노드 오버레이 */}
+                {renderNodeOverlays()}
+              </div>
             )}
-
+            {selectedNode && (
+              <div
+                style={{
+                  marginTop: 16,
+                  padding: 16,
+                  backgroundColor: "#f8f9fa",
+                  border: "1px solid #dee2e6",
+                  borderRadius: 8,
+                  maxWidth: CANVAS_SIZE,
+                }}
+              >
+                <h4>선택된 노드 정보</h4>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 8,
+                    fontSize: "14px",
+                  }}
+                >
+                  <div>
+                    <strong>ID:</strong> {selectedNode.id}
+                  </div>
+                  <div>
+                    <strong>레이어:</strong> {selectedNode.layer}
+                  </div>
+                  <div>
+                    <strong>타입:</strong> {selectedNode.element}
+                  </div>
+                  <div>
+                    <strong>위치:</strong> ({selectedNode.x.toFixed(1)},{" "}
+                    {selectedNode.y.toFixed(1)})
+                  </div>
+                  <div>
+                    <strong>크기:</strong> {selectedNode.width.toFixed(1)} ×{" "}
+                    {selectedNode.height.toFixed(1)}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedNode(null)}
+                  style={{
+                    marginTop: 8,
+                    padding: "4px 8px",
+                    backgroundColor: "#6c757d",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 4,
+                    cursor: "pointer",
+                  }}
+                >
+                  선택 해제
+                </button>
+              </div>
+            )}
+            {svgNodes.length > 0 && (
+              <div
+                style={{
+                  marginTop: 16,
+                  padding: 16,
+                  backgroundColor: "#f8f9fa",
+                  border: "1px solid #dee2e6",
+                  borderRadius: 8,
+                }}
+              >
+                <h4>SVG 노드 목록 ({svgNodes.length}개)</h4>
+                <div
+                  style={{
+                    maxHeight: 200,
+                    overflowY: "auto",
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fill, minmax(150px, 1fr))",
+                    gap: 8,
+                    marginTop: 8,
+                  }}
+                >
+                  {svgNodes.map((node, index) => (
+                    <button
+                      key={`node-list-${node.id}-${index}`}
+                      onClick={() => setSelectedNode(node)}
+                      style={{
+                        padding: "4px 8px",
+                        backgroundColor:
+                          selectedNode?.id === node.id ? "#007bff" : "#e9ecef",
+                        color: selectedNode?.id === node.id ? "white" : "#333",
+                        border: "1px solid #dee2e6",
+                        borderRadius: 4,
+                        cursor: "pointer",
+                        fontSize: "12px",
+                        textAlign: "left",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                      title={`${node.id} (${node.element})`}
+                    >
+                      {node.id}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {!mapLoading && (!filterBuilding || !filterFloor) && (
               <div
                 style={{
@@ -569,7 +925,6 @@ export default function RoomManagePage() {
                 건물과 층을 선택하면 맵이 표시됩니다.
               </div>
             )}
-
             {!mapLoading && filterBuilding && filterFloor && !svgRaw && (
               <div
                 style={{

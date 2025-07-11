@@ -1,4 +1,16 @@
 /* classroom-manage.css */
+html,
+body {
+  overflow-x: hidden; /* 가로 스크롤바 완전히 숨기기 */
+  overflow-y: auto; /* 세로 스크롤은 필요시에만 */
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+}
 
 .room-manage-map-wrap {
   flex: 1;
@@ -6,7 +18,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 400px;
+  min-width: 600px;
 }
 
 .room-manage-map-wrap svg {
@@ -20,12 +32,15 @@
   display: flex;
   background: #f4f7fc;
   min-height: 100vh;
+  width: 100vw;
+  overflow-x: hidden;
 }
 
 .management-content {
   max-width: 100%;
   margin: 0 auto;
   padding: 0px 0 0 0;
+  overflow-x: hidden;
 }
 
 .room-manage-filter-row {
@@ -40,9 +55,9 @@
   align-items: flex-start;
   gap: 48px;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 20px auto 0;
-  overflow-x: auto;
+  overflow-x: hidden; /* 가로 스크롤 방지 */
 }
 
 .room-manage-table-wrap {
@@ -50,6 +65,7 @@
   min-width: 400px;
   max-width: 700px;
   margin-right: 0;
+  overflow-x: hidden;
 }
 
 .user-table.center-table {
@@ -61,9 +77,9 @@
 }
 
 .room-manage-canvas-outer {
-  flex: 0 0 420px;
-  min-width: 380px;
-  max-width: 500px;
+  flex: 0 0 620px;
+  min-width: 600px;
+  max-width: 700px;
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -139,8 +155,8 @@ select::-ms-expand {
 }
 
 .room-manage-canvas {
-  width: 400px;
-  height: 400px;
+  width: 600px;
+  height: 600px;
   background: #f5f6fa;
   border: 1.5px solid #e0e0e0;
   border-radius: 16px;
@@ -177,4 +193,22 @@ select::-ms-expand {
   padding: 16px;
   z-index: 10;
   min-width: 200px;
+}
+
+/* 스크롤바 스타일링 (WebKit 기반 브라우저) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }

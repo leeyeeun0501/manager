@@ -240,3 +240,40 @@ select::-ms-expand {
 .bordered-table tr:last-child td {
   border-bottom: 1.5px solid #e3eefd;
 }
+
+.room-manage-pagination-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  margin-top: 16px;
+  margin-bottom: 2px;
+}
+
+.room-manage-pagination-btn {
+  padding: 7px 18px;
+  border-radius: 9px;
+  border: 1.5px solid #b3d1fa;
+  background: #f5faff;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #2574f5;
+  transition: background 0.15s, border 0.15s;
+}
+
+.room-manage-pagination-btn:hover:not(:disabled) {
+  background: #eaf2fd;
+  border: 1.5px solid #2574f5;
+}
+
+.room-manage-pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.room-manage-pagination-info {
+  font-size: 1.07rem;
+  font-weight: 700;
+  color: #2574f5;
+}

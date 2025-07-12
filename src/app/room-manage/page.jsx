@@ -732,24 +732,19 @@ export default function RoomManagePage() {
                   </tbody>
                 </table>
                 {/* 페이지네이션 */}
-                <div
-                  style={{
-                    marginTop: 16,
-                    display: "flex",
-                    justifyContent: "center",
-                    gap: 12,
-                  }}
-                >
+                <div className="room-manage-pagination-row">
                   <button
+                    className="room-manage-pagination-btn"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                   >
                     이전
                   </button>
-                  <span>
+                  <span className="room-manage-pagination-info">
                     {currentPage} / {totalPages}
                   </span>
                   <button
+                    className="room-manage-pagination-btn"
                     onClick={() =>
                       setCurrentPage((p) => Math.min(totalPages, p + 1))
                     }

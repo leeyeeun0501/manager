@@ -680,13 +680,12 @@ export default function RoomManagePage() {
                       <th>층</th>
                       <th>강의실명</th>
                       <th>강의실 설명</th>
-                      <th>삭제</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pagedRooms.length === 0 ? (
                       <tr>
-                        <td colSpan={5}>강의실 데이터가 없습니다.</td>
+                        <td colSpan={4}>강의실 데이터가 없습니다.</td>
                       </tr>
                     ) : (
                       pagedRooms.map((room, idx) => (
@@ -725,27 +724,6 @@ export default function RoomManagePage() {
                               aria-label="강의실 정보 수정"
                             >
                               <MdEditSquare size={18} color="#007bff" />
-                            </button>
-                          </td>
-                          <td style={{ textAlign: "center" }}>
-                            <button
-                              style={{
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                                padding: 0,
-                              }}
-                              onClick={() =>
-                                handleDeleteRoom(
-                                  room.building,
-                                  room.floor,
-                                  room.name
-                                )
-                              }
-                              aria-label="강의실 삭제"
-                              title="삭제"
-                            >
-                              <MdDelete size={22} color="#e74c3c" />
                             </button>
                           </td>
                         </tr>

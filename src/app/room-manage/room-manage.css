@@ -62,8 +62,8 @@ body {
 
 .room-manage-table-wrap {
   flex: 1 1 0;
-  min-width: 400px;
-  max-width: 700px;
+  min-width: 700px;
+  max-width: 1200px;
   margin-right: 0;
   overflow-x: hidden;
 }
@@ -73,7 +73,7 @@ body {
   margin-right: 0;
   margin-top: 0;
   width: 100%;
-  max-width: 700px;
+  max-width: 1200px;
 }
 
 .room-manage-canvas-outer {

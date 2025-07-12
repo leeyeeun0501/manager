@@ -322,7 +322,7 @@ export default function BuildingPage() {
 
         {/* 표 */}
         <div className="building-table-wrap">
-          <table className="custom-table">
+          <table className="custom-table bordered-table">
             <thead>
               <tr>
                 <th>건물명</th>

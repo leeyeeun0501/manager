@@ -112,10 +112,6 @@ body {
   font-size: 1.05rem;
 }
 
-.user-table tr:nth-child(even) {
-  background: #fafafa;
-}
-
 .center-table {
   margin-left: auto;
   margin-right: auto;
@@ -211,4 +207,36 @@ select::-ms-expand {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+.bordered-table {
+  border-collapse: collapse;
+  width: 100%;
+  background: #fff;
+}
+
+.bordered-table th,
+.bordered-table td {
+  border: 1.5px solid #e3eefd;
+  padding: 15px 10px;
+  text-align: center;
+}
+
+.bordered-table th {
+  background: #eaf2fd;
+  font-weight: 800;
+  color: #2574f5;
+}
+
+.bordered-table tr {
+  background: #fff; /* 기본 흰색 */
+  transition: background 0.13s;
+}
+
+.bordered-table tr:hover {
+  background: #eaf2fd; /* hover 시 building-manage와 동일한 파란색 계열 */
+}
+
+.bordered-table tr:last-child td {
+  border-bottom: 1.5px solid #e3eefd;
 }

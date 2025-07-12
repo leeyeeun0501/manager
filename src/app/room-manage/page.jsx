@@ -673,7 +673,7 @@ export default function RoomManagePage() {
             {error && <p style={{ color: "red" }}>{error}</p>}
             {!loading && !error && (
               <>
-                <table className="user-table center-table">
+                <table className="user-table center-table bordered-table">
                   <thead>
                     <tr>
                       <th>건물명</th>

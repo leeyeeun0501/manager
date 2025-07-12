@@ -355,3 +355,25 @@ html {
   background: #e3ecfa;
   color: #1556b9;
 }
+
+.bordered-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.bordered-table th,
+.bordered-table td {
+  border: 1.5px solid #e3eefd;
+  padding: 15px 10px;
+  text-align: center;
+}
+
+.bordered-table th {
+  background: #eaf2fd;
+  font-weight: 800;
+  color: #2574f5;
+}
+
+.bordered-table tr:last-child td {
+  border-bottom: 1.5px solid #e3eefd;
+}

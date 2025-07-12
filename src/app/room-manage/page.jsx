@@ -53,8 +53,15 @@ export default function RoomManagePage() {
     }
   }
 
-  const [svgNodes, setSvgNodes] = useState([]) // 파싱된 노드들
-  const [selectedNode, setSelectedNode] = useState(null) // 선택된 노드
+  const [svgNodes, setSvgNodes] = useState([])
+  const [selectedNode, setSelectedNode] = useState(null)
+
+  // 페이징
+  const totalRooms = rooms.length
+  const totalPages = Math.ceil(totalRooms / itemsPerPage)
+  const startIdx = (currentPage - 1) * itemsPerPage
+  const endIdx = startIdx + itemsPerPage
+  const pagedRooms = rooms.slice(startIdx, endIdx)
 
   // SVG 노드 파싱 함수
   const parseSvgNodes = (svgXml) => {
@@ -191,54 +198,6 @@ export default function RoomManagePage() {
     return nodes
   }
 
-  // SVG 로드 useEffect 수정 (기존 코드에서 수정)
-  useEffect(() => {
-    if (filterBuilding && filterFloor) {
-      setMapLoading(true)
-      fetch(
-        `/api/mapfile-image-route?building=${encodeURIComponent(
-          filterBuilding
-        )}&floor=${encodeURIComponent(filterFloor)}`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          const fileList = Array.isArray(data) ? data : []
-          const svgUrl = fileList[0]?.File
-          if (svgUrl) {
-            fetch(svgUrl)
-              .then((res) => res.text())
-              .then((svgXml) => {
-                const processedSvg = processSvg(svgXml)
-                setSvgRaw(processedSvg)
-
-                // Navigation_Nodes 레이어 노드 파싱
-                const parsedNodes = parseSvgNodes(svgXml)
-                setSvgNodes(parsedNodes)
-                console.log(
-                  "Navigation_Nodes 레이어에서 파싱된 노드들:",
-                  parsedNodes
-                )
-              })
-              .catch(() => {
-                setSvgRaw("")
-                setSvgNodes([])
-              })
-          } else {
-            setSvgRaw("")
-            setSvgNodes([])
-          }
-        })
-        .catch(() => {
-          setSvgRaw("")
-          setSvgNodes([])
-        })
-        .finally(() => setMapLoading(false))
-    } else {
-      setSvgRaw("")
-      setSvgNodes([])
-    }
-  }, [filterBuilding, filterFloor])
-
   // 노드 클릭 핸들러
   const handleNodeClick = (node, event) => {
     event.stopPropagation()
@@ -247,7 +206,6 @@ export default function RoomManagePage() {
   }
 
   // SVG 좌표를 화면 좌표로 변환하는 함수
-  // SVG 좌표를 화면 좌표로 변환하는 함수 - 수정된 버전
   const svgToScreenCoords = (svgX, svgY) => {
     if (!mapContainerRef.current) return { x: 0, y: 0 }
 
@@ -381,13 +339,6 @@ export default function RoomManagePage() {
     })
   }
 
-  // 페이징
-  const totalRooms = rooms.length
-  const totalPages = Math.ceil(totalRooms / itemsPerPage)
-  const startIdx = (currentPage - 1) * itemsPerPage
-  const endIdx = startIdx + itemsPerPage
-  const pagedRooms = rooms.slice(startIdx, endIdx)
-
   // SVG 처리 및 viewBox 설정 - 개선된 버전
   const processSvg = (svgXml) => {
     const parser = new DOMParser()
@@ -431,68 +382,6 @@ export default function RoomManagePage() {
 
     return doc.documentElement.outerHTML
   }
-
-  // 1. 건물 목록만 최초 1회 받아오기
-  useEffect(() => {
-    fetchBuildings()
-    fetchRooms() // 전체 강의실 조회
-  }, [])
-
-  // 2. 건물 선택 시: 층 목록 + 해당 건물 전체 강의실 조회
-  useEffect(() => {
-    if (!filterBuilding) {
-      setFloorOptions([])
-      setFilterFloor("")
-      fetchRooms() // 전체 강의실
-      return
-    }
-    fetchFloors(filterBuilding)
-    fetchRooms(filterBuilding) // 해당 건물 전체 강의실
-    setFilterFloor("")
-  }, [filterBuilding])
-
-  // 3. 층 선택 시: 해당 건물, 해당 층 강의실만 조회
-  useEffect(() => {
-    if (filterBuilding && filterFloor) {
-      fetchRooms(filterBuilding, filterFloor)
-    }
-  }, [filterFloor, filterBuilding])
-
-  // SVG 로드
-  useEffect(() => {
-    if (filterBuilding && filterFloor) {
-      setMapLoading(true)
-      fetch(
-        `/api/mapfile-image-route?building=${encodeURIComponent(
-          filterBuilding
-        )}&floor=${encodeURIComponent(filterFloor)}`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          const fileList = Array.isArray(data) ? data : []
-          const svgUrl = fileList[0]?.File
-          if (svgUrl) {
-            fetch(svgUrl)
-              .then((res) => res.text())
-              .then((svgXml) => {
-                const processedSvg = processSvg(svgXml)
-                setSvgRaw(processedSvg)
-              })
-              .catch(() => {
-                setSvgRaw("")
-              })
-          } else {
-            setSvgRaw("")
-          }
-        })
-        .catch(() => {
-          setSvgRaw("")
-        })
-        .finally(() => setMapLoading(false))
-    } else {
-      setSvgRaw("")
-    }
-  }, [filterBuilding, filterFloor])
 
   // 건물 목록
   const fetchBuildings = async () => {
@@ -557,42 +446,6 @@ export default function RoomManagePage() {
       setRooms([])
     } finally {
       setLoading(false)
-    }
-  }
-
-  // 강의실 추가 폼 제출 핸들러
-  const handleAddRoom = async (e) => {
-    e.preventDefault()
-    setAddMsg("")
-    setAddLoading(true)
-    try {
-      const res = await fetch(
-        `/api/room-route/${encodeURIComponent(
-          filterBuilding
-        )}/${encodeURIComponent(filterFloor)}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            room_name: addForm.room_name,
-            room_desc: addForm.room_desc,
-            x: addForm.x,
-            y: addForm.y,
-          }),
-        }
-      )
-      const data = await res.json()
-      if (!res.ok) {
-        setAddMsg(data.error || "방 추가 실패")
-      } else {
-        setAddMsg("강의실이 추가되었습니다!")
-        setAddPopup(null)
-        fetchRooms(filterBuilding, filterFloor)
-      }
-    } catch {
-      setAddMsg("서버 오류가 발생했습니다.")
-    } finally {
-      setAddLoading(false)
     }
   }
 
@@ -664,6 +517,116 @@ export default function RoomManagePage() {
       setEditRoomLoading(false)
     }
   }
+
+  // 1. 건물 목록만 최초 1회 받아오기
+  useEffect(() => {
+    fetchBuildings()
+    fetchRooms() // 전체 강의실 조회
+  }, [])
+
+  // 2. 건물 선택 시: 층 목록 + 해당 건물 전체 강의실 조회
+  useEffect(() => {
+    if (!filterBuilding) {
+      setFloorOptions([])
+      setFilterFloor("")
+      fetchRooms() // 전체 강의실
+      return
+    }
+    fetchFloors(filterBuilding)
+    fetchRooms(filterBuilding) // 해당 건물 전체 강의실
+    setFilterFloor("")
+  }, [filterBuilding])
+
+  // 3. 층 선택 시: 해당 건물, 해당 층 강의실만 조회
+  useEffect(() => {
+    if (filterBuilding && filterFloor) {
+      fetchRooms(filterBuilding, filterFloor)
+    }
+  }, [filterFloor, filterBuilding])
+
+  // SVG 로드 useEffect 수정
+  useEffect(() => {
+    if (filterBuilding && filterFloor) {
+      setMapLoading(true)
+      fetch(
+        `/api/mapfile-image-route?building=${encodeURIComponent(
+          filterBuilding
+        )}&floor=${encodeURIComponent(filterFloor)}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          const fileList = Array.isArray(data) ? data : []
+          const svgUrl = fileList[0]?.File
+          if (svgUrl) {
+            fetch(svgUrl)
+              .then((res) => res.text())
+              .then((svgXml) => {
+                const processedSvg = processSvg(svgXml)
+                setSvgRaw(processedSvg)
+
+                // Navigation_Nodes 레이어 노드 파싱
+                const parsedNodes = parseSvgNodes(svgXml)
+                setSvgNodes(parsedNodes)
+                console.log(
+                  "Navigation_Nodes 레이어에서 파싱된 노드들:",
+                  parsedNodes
+                )
+              })
+              .catch(() => {
+                setSvgRaw("")
+                setSvgNodes([])
+              })
+          } else {
+            setSvgRaw("")
+            setSvgNodes([])
+          }
+        })
+        .catch(() => {
+          setSvgRaw("")
+          setSvgNodes([])
+        })
+        .finally(() => setMapLoading(false))
+    } else {
+      setSvgRaw("")
+      setSvgNodes([])
+    }
+  }, [filterBuilding, filterFloor])
+
+  // SVG 로드
+  useEffect(() => {
+    if (filterBuilding && filterFloor) {
+      setMapLoading(true)
+      fetch(
+        `/api/mapfile-image-route?building=${encodeURIComponent(
+          filterBuilding
+        )}&floor=${encodeURIComponent(filterFloor)}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          const fileList = Array.isArray(data) ? data : []
+          const svgUrl = fileList[0]?.File
+          if (svgUrl) {
+            fetch(svgUrl)
+              .then((res) => res.text())
+              .then((svgXml) => {
+                const processedSvg = processSvg(svgXml)
+                setSvgRaw(processedSvg)
+              })
+              .catch(() => {
+                setSvgRaw("")
+              })
+          } else {
+            setSvgRaw("")
+          }
+        })
+        .catch(() => {
+          setSvgRaw("")
+        })
+        .finally(() => setMapLoading(false))
+    } else {
+      setSvgRaw("")
+    }
+  }, [filterBuilding, filterFloor])
 
   return (
     <div className="management-root">

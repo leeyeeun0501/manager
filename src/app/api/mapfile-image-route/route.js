@@ -1,4 +1,4 @@
-//mapfile-image-route
+// mapfile-image-route
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 
@@ -47,42 +47,64 @@ export async function GET(request) {
   }
 }
 
-// 카테고리 추가 (POST)
+// 노드 엣지 연결 (POST)
 export async function POST(request) {
-  const body = await request.json()
-  const { building, floor, category, x, y } = body
+  try {
+    const body = await request.json()
+    const {
+      from_building,
+      from_floor,
+      from_node,
+      to_building,
+      to_floor,
+      to_node,
+    } = body
 
-  if (
-    !building ||
-    !floor ||
-    !category ||
-    typeof x !== "number" ||
-    typeof y !== "number"
-  ) {
-    return NextResponse.json(
-      { success: false, error: "필수 항목 누락" },
-      { status: 400 }
-    )
-  }
+    // 필수 값 체크
+    if (
+      !from_building ||
+      !from_floor ||
+      !from_node ||
+      !to_building ||
+      !to_floor ||
+      !to_node
+    ) {
+      return new Response(JSON.stringify({ error: "필수 값 누락" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
 
-  const res = await fetch(
-    `${API_BASE}/category/${encodeURIComponent(building)}/${encodeURIComponent(
-      floor
-    )}`,
-    {
+    // 실제 연결 처리 API 호출 (예시)
+    const connectRes = await fetch(`${API_BASE}/port/room/connect`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ category, x, y }),
-    }
-  )
+      body: JSON.stringify({
+        from_building,
+        from_floor,
+        from_node,
+        to_building,
+        to_floor,
+        to_node,
+      }),
+    })
 
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}))
-    return NextResponse.json(
-      { success: false, error: data.error || "외부 서버 오류" },
-      { status: res.status }
+    if (!connectRes.ok) {
+      return new Response(JSON.stringify({ error: "노드 연결 실패" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
+
+    const result = await connectRes.json()
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    })
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: "서버 에러", detail: err.message }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     )
   }
-
-  return NextResponse.json({ success: true })
 }

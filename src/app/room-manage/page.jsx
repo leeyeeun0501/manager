@@ -201,8 +201,18 @@ export default function RoomManagePage() {
   // 노드 클릭 핸들러
   const handleNodeClick = (node, event) => {
     event.stopPropagation()
-    setSelectedNode(node)
-    console.log("Selected node:", node)
+    if (edgeConnectMode) {
+      setEdgeToNode({ ...node, building: filterBuilding, floor: filterFloor })
+      setEdgeConnectMode(false)
+    } else {
+      setSelectedNode(node)
+      setEdgeModalNode({
+        ...node,
+        building: filterBuilding,
+        floor: filterFloor,
+      })
+      setShowEdgeModal(true)
+    }
   }
 
   // SVG 좌표를 화면 좌표로 변환하는 함수
@@ -281,62 +291,6 @@ export default function RoomManagePage() {
       width: svgWidth * scaleX,
       height: svgHeight * scaleY,
     }
-  }
-
-  // 렌더링할 노드 오버레이 컴포넌트 - 수정된 버전
-  const renderNodeOverlays = () => {
-    if (!mapContainerRef.current || svgNodes.length === 0) return null
-
-    return svgNodes.map((node, index) => {
-      const screenCoords = svgToScreenCoords(node.x, node.y)
-      const screenSize = svgToScreenSize(node.width, node.height)
-
-      return (
-        <div
-          key={`node-${node.id}-${index}`}
-          style={{
-            position: "absolute",
-            left: screenCoords.x,
-            top: screenCoords.y,
-            width: Math.max(screenSize.width, 20),
-            height: Math.max(screenSize.height, 20),
-            border:
-              selectedNode?.id === node.id
-                ? "2px solid #ff0000"
-                : "1px solid #007bff",
-            backgroundColor:
-              selectedNode?.id === node.id
-                ? "rgba(255, 0, 0, 0.2)"
-                : "rgba(0, 123, 255, 0.1)",
-            cursor: "pointer",
-            borderRadius: "4px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "10px",
-            color: "#333",
-            fontWeight: "bold",
-            textAlign: "center",
-            overflow: "hidden",
-            zIndex: 10,
-            transition: "all 0.2s ease",
-            pointerEvents: "auto", // 클릭 가능하도록
-          }}
-          onClick={(e) => handleNodeClick(node, e)}
-          title={`ID: ${node.id}, Layer: ${node.layer}, Type: ${node.element}`}
-        >
-          <span
-            style={{
-              fontSize: "8px",
-              maxWidth: "100%",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          ></span>
-        </div>
-      )
-    })
   }
 
   // SVG 처리 및 viewBox 설정 - 개선된 버전
@@ -449,37 +403,6 @@ export default function RoomManagePage() {
     }
   }
 
-  // 방 삭제 핸들러
-  const handleDeleteRoom = async (building, floor, room_name) => {
-    if (
-      !window.confirm(
-        `정말로 ${building} ${floor}층 ${room_name} 방을 삭제하시겠습니까?`
-      )
-    )
-      return
-    try {
-      const res = await fetch(
-        `/api/room-route/${encodeURIComponent(building)}/${encodeURIComponent(
-          floor
-        )}`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ room_name }),
-        }
-      )
-      const text = await res.text()
-      if (res.status === 200) {
-        fetchRooms(filterBuilding, filterFloor)
-        alert(text)
-      } else {
-        alert(text)
-      }
-    } catch (err) {
-      alert("방 삭제 중 오류가 발생했습니다.")
-    }
-  }
-
   // 강의실 수정 핸들러
   const handleEditRoom = async () => {
     setEditRoomError("")
@@ -517,6 +440,14 @@ export default function RoomManagePage() {
       setEditRoomLoading(false)
     }
   }
+
+  const [edgeConnectMode, setEdgeConnectMode] = useState(false)
+  const [edgeFromNode, setEdgeFromNode] = useState(null)
+  const [edgeToNode, setEdgeToNode] = useState(null)
+  const [showEdgeModal, setShowEdgeModal] = useState(false)
+  const [edgeModalNode, setEdgeModalNode] = useState(null)
+  const [edgeConnectLoading, setEdgeConnectLoading] = useState(false)
+  const [edgeConnectError, setEdgeConnectError] = useState("")
 
   // 1. 건물 목록만 최초 1회 받아오기
   useEffect(() => {
@@ -627,6 +558,44 @@ export default function RoomManagePage() {
       setSvgRaw("")
     }
   }, [filterBuilding, filterFloor])
+
+  useEffect(() => {
+    if (edgeFromNode && edgeToNode) {
+      // 연결 요청
+      const connectEdge = async () => {
+        setEdgeConnectLoading(true)
+        setEdgeConnectError("")
+        try {
+          const res = await fetch("/api/mapfile-image-route", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              from_building: edgeFromNode.building,
+              from_floor: edgeFromNode.floor,
+              from_node: edgeFromNode.id,
+              to_building: edgeToNode.building,
+              to_floor: edgeToNode.floor,
+              to_node: edgeToNode.id,
+            }),
+          })
+          if (!res.ok) {
+            const data = await res.json()
+            setEdgeConnectError(data.error || "엣지 연결 실패")
+          } else {
+            alert("노드가 성공적으로 연결되었습니다.")
+            // 필요하다면 연결 정보 새로고침 등 추가
+          }
+        } catch (err) {
+          setEdgeConnectError("서버 오류: " + err.message)
+        } finally {
+          setEdgeFromNode(null)
+          setEdgeToNode(null)
+          setEdgeConnectLoading(false)
+        }
+      }
+      connectEdge()
+    }
+  }, [edgeFromNode, edgeToNode])
 
   return (
     <div className="management-root">
@@ -921,6 +890,112 @@ export default function RoomManagePage() {
               </div>
             )}
           </div>
+
+          {showEdgeModal && edgeModalNode && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                background: "rgba(0,0,0,0.4)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 1001,
+              }}
+              onClick={() => setShowEdgeModal(false)} // 바깥 클릭 시 닫힘
+            >
+              <div
+                style={{
+                  background: "white",
+                  borderRadius: 10,
+                  minWidth: 280,
+                  maxWidth: 350,
+                  padding: 28,
+                  boxShadow: "0 6px 32px rgba(0,0,0,0.18)",
+                  position: "relative",
+                }}
+                onClick={(e) => e.stopPropagation()} // 모달 내부 클릭 시 닫힘 방지
+              >
+                <h4 style={{ marginTop: 0 }}>노드 정보</h4>
+                <div>ID: {edgeModalNode.id}</div>
+                <div>건물: {edgeModalNode.building}</div>
+                <div>층: {edgeModalNode.floor}</div>
+                <div>타입: {edgeModalNode.element}</div>
+                <button
+                  onClick={() => {
+                    setEdgeFromNode(edgeModalNode)
+                    setShowEdgeModal(false)
+                    setEdgeConnectMode(true)
+                    setEdgeToNode(null)
+                  }}
+                  style={{
+                    marginTop: 16,
+                    background: "#007bff",
+                    color: "#fff",
+                    padding: "8px 18px",
+                    border: "none",
+                    borderRadius: 5,
+                    cursor: "pointer",
+                  }}
+                >
+                  엣지 연결 시작
+                </button>
+                <button
+                  onClick={() => setShowEdgeModal(false)}
+                  style={{
+                    marginLeft: 10,
+                    background: "#6c757d",
+                    color: "#fff",
+                    padding: "8px 18px",
+                    border: "none",
+                    borderRadius: 5,
+                    cursor: "pointer",
+                  }}
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+          )}
+
+          {edgeConnectMode && edgeFromNode && (
+            <div className="edge-connect-banner">
+              <span>
+                <b>
+                  {edgeFromNode.building} {edgeFromNode.floor} {edgeFromNode.id}
+                </b>
+                에서 연결할 노드를 선택하세요.
+              </span>
+              <button
+                onClick={() => {
+                  setEdgeConnectMode(false)
+                  setEdgeFromNode(null)
+                  setEdgeToNode(null)
+                }}
+                style={{
+                  marginLeft: 12,
+                  background: "#dc3545",
+                  color: "#fff",
+                  padding: "4px 12px",
+                }}
+              >
+                취소
+              </button>
+            </div>
+          )}
+
+          {edgeConnectLoading && (
+            <div className="edge-connect-loading">엣지 연결 중...</div>
+          )}
+
+          {edgeConnectError && (
+            <div className="edge-connect-error" style={{ color: "red" }}>
+              {edgeConnectError}
+            </div>
+          )}
         </div>
       </div>
 

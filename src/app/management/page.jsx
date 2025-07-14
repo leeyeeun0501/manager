@@ -41,20 +41,36 @@ export default function ManagementPage() {
       })
   }, [])
 
-  // 로그인 사용자 위치 마커 데이터
   useEffect(() => {
-    fetch("/api/user/location")
+    fetch("/api/login-route")
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) setUserMarkers(data)
+        if (Array.isArray(data)) {
+          // Last_Location이 있는 사용자만, x/y → lat/lng 변환
+          const markers = data
+            .filter(
+              (u) =>
+                u.Last_Location &&
+                typeof u.Last_Location.x === "number" &&
+                typeof u.Last_Location.y === "number"
+            )
+            .map((u) => ({
+              id: u.Id,
+              name: u.Name,
+              last_location: {
+                lat: u.Last_Location.x,
+                lng: u.Last_Location.y,
+              },
+            }))
+          setUserMarkers(markers)
+        }
       })
   }, [])
 
   return (
     <div className={styles["management-root"]}>
-      <Menu open={menuOpen} setOpen={setMenuOpen} />
+      <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <main className={styles["management-content"]}>
-        {/* 대시보드 요약 */}
         <div className={styles["dashboard-summary-row"]}>
           <div className={styles["dashboard-summary-box"]}>
             <div className={styles["summary-label"]}>건물 수</div>
@@ -69,7 +85,7 @@ export default function ManagementPage() {
             <div className={styles["summary-value"]}>{summary.user}</div>
           </div>
         </div>
-        {/* 네모칸(네이버 지도) */}
+        {/* 사용자 위치 마커 지도 */}
         <NaverMapSimple markers={userMarkers} />
       </main>
     </div>

@@ -48,7 +48,6 @@ export async function POST(request) {
 // 사용자 위치 검색 (GET)
 export async function GET(request) {
   try {
-    // 외부 서버에서 islogin이 true인 사용자만 반환
     const res = await fetch(`${AUTH_API_BASE}/user/islogin`, { method: "GET" })
     if (!res.ok) {
       return NextResponse.json(
@@ -59,12 +58,22 @@ export async function GET(request) {
     const data = await res.json()
     const users = data.users || data
 
-    // islogin 필터링 없이 필요한 필드만 추출
-    const result = users.map((u) => ({
-      id: u.id,
-      name: u.name,
-      last_location: u.last_location,
-    }))
+    // Last_Location이 있는 사용자만 변환
+    const result = users
+      .filter(
+        (u) =>
+          u.Last_Location &&
+          typeof u.Last_Location.x === "number" &&
+          typeof u.Last_Location.y === "number"
+      )
+      .map((u) => ({
+        Id: u.Id,
+        Name: u.Name,
+        Last_Location: {
+          x: u.Last_Location.x,
+          y: u.Last_Location.y,
+        },
+      }))
 
     return NextResponse.json(result)
   } catch (err) {

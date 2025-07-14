@@ -198,21 +198,22 @@ export default function RoomManagePage() {
     return nodes
   }
 
-  // 노드 클릭 핸들러
+  // 노드 클릭 핸들러 (수정)
   const handleNodeClick = (node, event) => {
     event.stopPropagation()
     if (edgeConnectMode) {
-      setEdgeToNode({ ...node, building: filterBuilding, floor: filterFloor })
-      setEdgeConnectMode(false)
-    } else {
-      setSelectedNode(node)
-      setEdgeModalNode({
-        ...node,
-        building: filterBuilding,
-        floor: filterFloor,
-      })
-      setShowEdgeModal(true)
+      // 엣지 연결 모드: 두 번째 노드 선택
+      if (edgeFromNode && node.id !== edgeFromNode.id) {
+        setEdgeToNode(node)
+        setEdgeStep(2)
+      }
+      // 같은 노드 클릭 시 무시
+      return
     }
+    // 일반 모드: 노드 선택시 모달
+    setSelectedNode(node)
+    setEdgeModalNode({ ...node, building: filterBuilding, floor: filterFloor })
+    setShowEdgeModal(true)
   }
 
   // SVG 처리 및 viewBox 설정 - 개선된 버전
@@ -374,27 +375,7 @@ export default function RoomManagePage() {
   const [edgeConnectError, setEdgeConnectError] = useState("")
   const [showNodePopup, setShowNodePopup] = useState(false)
   const [popupNode, setPopupNode] = useState(null)
-
-  // 네비 노드 버튼 클릭 → 팝업 표시
-  const handleNodeButtonClick = (node) => {
-    setPopupNode(node)
-    setShowNodePopup(true)
-  }
-
-  // 팝업 내 '엣지 연결' 버튼
-  const handleEdgeConnectStart = () => {
-    setEdgeStep(1)
-    setEdgeFromNode(popupNode)
-    setShowNodePopup(false)
-  }
-
-  // 엣지 연결 단계에서 다음 노드 선택
-  const handleEdgeToNodeSelect = (node) => {
-    if (edgeStep === 1 && node.id !== edgeFromNode.id) {
-      setEdgeToNode(node)
-      setEdgeStep(2)
-    }
-  }
+  const [showEdgeConnectModal, setShowEdgeConnectModal] = useState(false)
 
   // 1. 건물 목록만 최초 1회 받아오기
   useEffect(() => {
@@ -472,7 +453,13 @@ export default function RoomManagePage() {
 
   // 엣지 연결 API 호출
   useEffect(() => {
-    if (edgeStep === 2 && edgeFromNode && edgeToNode) {
+    if (
+      edgeConnectMode &&
+      edgeStep === 2 &&
+      edgeFromNode &&
+      edgeToNode &&
+      edgeFromNode.id !== edgeToNode.id
+    ) {
       const connectEdge = async () => {
         setEdgeConnectLoading(true)
         setEdgeConnectError("")
@@ -502,11 +489,19 @@ export default function RoomManagePage() {
           setEdgeToNode(null)
           setEdgeStep(0)
           setEdgeConnectLoading(false)
+          setEdgeConnectMode(false)
         }
       }
       connectEdge()
     }
-  }, [edgeStep, edgeFromNode, edgeToNode, filterBuilding, filterFloor])
+  }, [
+    edgeStep,
+    edgeFromNode,
+    edgeToNode,
+    filterBuilding,
+    filterFloor,
+    edgeConnectMode,
+  ])
 
   return (
     <div className="management-root">
@@ -831,10 +826,9 @@ export default function RoomManagePage() {
                 onClick={(e) => e.stopPropagation()} // 모달 내부 클릭 시 닫힘 방지
               >
                 <h4 style={{ marginTop: 0 }}>노드 정보</h4>
-                <div>ID: {edgeModalNode.id}</div>
                 <div>건물: {edgeModalNode.building}</div>
                 <div>층: {edgeModalNode.floor}</div>
-                <div>타입: {edgeModalNode.element}</div>
+                <div>ID: {edgeModalNode.id}</div>
                 <button
                   onClick={() => {
                     setEdgeFromNode(edgeModalNode)
@@ -872,36 +866,58 @@ export default function RoomManagePage() {
             </div>
           )}
 
-          {edgeConnectMode && edgeFromNode && (
-            <div className="edge-connect-banner">
-              <span>
-                <b>
-                  {edgeFromNode.building} {edgeFromNode.floor} {edgeFromNode.id}
-                </b>
-                에서 연결할 노드를 선택하세요.
-              </span>
-              <button
-                onClick={() => {
-                  setEdgeConnectMode(false)
-                  setEdgeFromNode(null)
-                  setEdgeToNode(null)
-                }}
+          {/* 두 번째 노드 선택 안내 모달 */}
+          {showEdgeConnectModal && edgeFromNode && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                background: "rgba(0,0,0,0.4)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 2000,
+              }}
+            >
+              <div
                 style={{
-                  marginLeft: 12,
-                  background: "#dc3545",
-                  color: "#fff",
-                  padding: "4px 12px",
+                  background: "#fff",
+                  padding: "32px 24px",
+                  borderRadius: "10px",
+                  boxShadow: "0 4px 32px rgba(0,0,0,0.15)",
+                  minWidth: "320px",
+                  textAlign: "center",
                 }}
               >
-                취소
-              </button>
+                <h3>엣지 연결</h3>
+                <div style={{ marginBottom: 8, fontWeight: 500 }}>
+                  {filterBuilding} {filterFloor} {edgeFromNode.id}에서 연결할
+                  노드를 선택하세요.
+                </div>
+                <div style={{ color: "#007bff", marginBottom: 10 }}>
+                  지도에서 <b>다른 노드</b>를 클릭하세요.
+                </div>
+                <button
+                  style={{ marginTop: 12 }}
+                  onClick={() => {
+                    setShowEdgeConnectModal(false)
+                    setEdgeStep(0)
+                    setEdgeFromNode(null)
+                    setEdgeToNode(null)
+                  }}
+                >
+                  취소
+                </button>
+              </div>
             </div>
           )}
-
+          {/* 엣지 연결 로딩/에러 안내 */}
           {edgeConnectLoading && (
             <div className="edge-connect-loading">엣지 연결 중...</div>
           )}
-
           {edgeConnectError && (
             <div className="edge-connect-error" style={{ color: "red" }}>
               {edgeConnectError}
@@ -909,7 +925,6 @@ export default function RoomManagePage() {
           )}
         </div>
       </div>
-
       {/* 강의실 수정 모달 */}
       {showEditRoomModal && (
         <div

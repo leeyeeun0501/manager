@@ -45,6 +45,7 @@ export async function POST(request) {
   }
 }
 
+// 사용자 위치 검색 (GET)
 export async function GET(request) {
   try {
     // 외부 서버에서 전체 사용자 정보 받아오기
@@ -64,6 +65,7 @@ export async function GET(request) {
       .filter((u) => u.islogin)
       .map((u) => ({
         id: u.id,
+        name: u.name,
         last_location: u.last_location,
       }))
 

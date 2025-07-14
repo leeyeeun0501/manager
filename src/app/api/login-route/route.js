@@ -45,10 +45,33 @@ export async function POST(request) {
   }
 }
 
-// GET 등 다른 메서드는 허용하지 않음 -> 사실 뭔지 모르겠음
-export async function GET() {
-  return NextResponse.json(
-    { error: "허용되지 않은 요청입니다." },
-    { status: 405 }
-  )
+export async function GET(request) {
+  try {
+    // 외부 서버에서 전체 사용자 정보 받아오기
+    const res = await fetch(`${AUTH_API_BASE}/user/location`, { method: "GET" })
+    if (!res.ok) {
+      return NextResponse.json(
+        { success: false, error: "외부 서버 오류" },
+        { status: res.status }
+      )
+    }
+    // users 배열이 data.users 또는 data에 있을 수 있음
+    const data = await res.json()
+    const users = data.users || data
+
+    // islogin이 true인 사용자만 id, last_location만 추출
+    const result = users
+      .filter((u) => u.islogin)
+      .map((u) => ({
+        id: u.id,
+        last_location: u.last_location,
+      }))
+
+    return NextResponse.json(result)
+  } catch (err) {
+    return NextResponse.json(
+      { success: false, error: "서버 오류" },
+      { status: 500 }
+    )
+  }
 }

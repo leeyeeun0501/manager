@@ -1,8 +1,8 @@
-// management (메인 화면)
 "use client"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
-import styles from "./management.module.css" // css module로 변경
+import styles from "./management.module.css"
+import NaverMapSimple from "./navermap"
 
 export default function ManagementPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -11,6 +11,7 @@ export default function ManagementPage() {
     classroom: 0,
     user: 0,
   })
+  const [userMarkers, setUserMarkers] = useState([])
 
   // 건물, 강의실, 사용자 수
   useEffect(() => {
@@ -22,7 +23,6 @@ export default function ManagementPage() {
           building: Array.isArray(data.names) ? data.names.length : 0,
         }))
       })
-
     fetch("/api/room-route")
       .then((res) => res.json())
       .then((data) => {
@@ -31,7 +31,6 @@ export default function ManagementPage() {
           classroom: Array.isArray(data.rooms) ? data.rooms.length : 0,
         }))
       })
-
     fetch("/api/user-route")
       .then((res) => res.json())
       .then((data) => {
@@ -42,25 +41,37 @@ export default function ManagementPage() {
       })
   }, [])
 
+  // 로그인 사용자 위치 마커 데이터
+  useEffect(() => {
+    fetch("/api/user/location")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setUserMarkers(data)
+      })
+  }, [])
+
   return (
     <div className={styles["management-root"]}>
-      <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <div className={styles["management-content"]}>
+      <Menu open={menuOpen} setOpen={setMenuOpen} />
+      <main className={styles["management-content"]}>
+        {/* 대시보드 요약 */}
         <div className={styles["dashboard-summary-row"]}>
           <div className={styles["dashboard-summary-box"]}>
-            <div className={styles["summary-label"]}>총 건물 수</div>
+            <div className={styles["summary-label"]}>건물 수</div>
             <div className={styles["summary-value"]}>{summary.building}</div>
           </div>
           <div className={styles["dashboard-summary-box"]}>
-            <div className={styles["summary-label"]}>총 강의실 수</div>
+            <div className={styles["summary-label"]}>강의실 수</div>
             <div className={styles["summary-value"]}>{summary.classroom}</div>
           </div>
           <div className={styles["dashboard-summary-box"]}>
-            <div className={styles["summary-label"]}>등록 사용자</div>
+            <div className={styles["summary-label"]}>사용자 수</div>
             <div className={styles["summary-value"]}>{summary.user}</div>
           </div>
         </div>
-      </div>
+        {/* 네모칸(네이버 지도) */}
+        <NaverMapSimple markers={userMarkers} />
+      </main>
     </div>
   )
 }

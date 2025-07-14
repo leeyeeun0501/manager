@@ -48,26 +48,23 @@ export async function POST(request) {
 // 사용자 위치 검색 (GET)
 export async function GET(request) {
   try {
-    // 외부 서버에서 전체 사용자 정보 받아오기
-    const res = await fetch(`${AUTH_API_BASE}/user/location`, { method: "GET" })
+    // 외부 서버에서 islogin이 true인 사용자만 반환
+    const res = await fetch(`${AUTH_API_BASE}/user/islogin`, { method: "GET" })
     if (!res.ok) {
       return NextResponse.json(
         { success: false, error: "외부 서버 오류" },
         { status: res.status }
       )
     }
-    // users 배열이 data.users 또는 data에 있을 수 있음
     const data = await res.json()
     const users = data.users || data
 
-    // islogin이 true인 사용자만 id, last_location만 추출
-    const result = users
-      .filter((u) => u.islogin)
-      .map((u) => ({
-        id: u.id,
-        name: u.name,
-        last_location: u.last_location,
-      }))
+    // islogin 필터링 없이 필요한 필드만 추출
+    const result = users.map((u) => ({
+      id: u.id,
+      name: u.name,
+      last_location: u.last_location,
+    }))
 
     return NextResponse.json(result)
   } catch (err) {

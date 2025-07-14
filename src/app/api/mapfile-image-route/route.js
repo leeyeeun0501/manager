@@ -15,36 +15,31 @@ export async function GET(request) {
     })
   }
 
-  const imageRes = await fetch(
+  // 서버에서 이미지 URL + 노드/엣지 정보가 같이 담긴 JSON을 반환한다고 가정
+  const res = await fetch(
     `${API_BASE}/floor/${encodeURIComponent(floor)}/${encodeURIComponent(
       building
     )}`
   )
 
-  if (!imageRes.ok) {
-    return new NextResponse("도면 이미지를 불러올 수 없습니다.", {
-      status: 404,
-    })
+  if (!res.ok) {
+    return new Response(
+      JSON.stringify({ error: "도면 이미지를 불러올 수 없습니다." }),
+      {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      }
+    )
   }
 
-  const contentType = imageRes.headers.get("content-type") || "image/png"
-  const arrayBuffer = await imageRes.arrayBuffer()
-  if (
-    contentType.includes("svg") ||
-    contentType.includes("xml") ||
-    contentType.startsWith("text/")
-  ) {
-    const text = new TextDecoder("utf-8").decode(arrayBuffer)
-    return new NextResponse(text, {
-      status: 200,
-      headers: { "Content-Type": contentType },
-    })
-  } else {
-    return new NextResponse(Buffer.from(arrayBuffer), {
-      status: 200,
-      headers: { "Content-Type": contentType },
-    })
-  }
+  // JSON으로 파싱
+  const data = await res.json()
+
+  // 그대로 반환
+  return new Response(JSON.stringify(data), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  })
 }
 
 // 노드 엣지 연결 (POST)

@@ -104,7 +104,7 @@ body {
 .building-table-wrap {
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(37, 116, 245, 0.07);
+  box-shadow: none;
   padding: 0;
   margin-bottom: 24px;
   margin-top: 10px;

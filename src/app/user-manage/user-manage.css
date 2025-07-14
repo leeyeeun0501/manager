@@ -48,10 +48,6 @@
   font-size: 1.05rem;
 }
 
-.user-table tr:nth-child(even) {
-  background: #fafafa;
-}
-
 .email-trash-cell {
   position: relative;
   text-align: left;
@@ -88,4 +84,8 @@
   text-align: center;
   padding: 8px 4px;
   position: relative;
+}
+
+.user-table tr:hover {
+  background: #f1f7ff;
 }

@@ -44,15 +44,13 @@ export default function RoomManagePage() {
   })
 
   // 엣지 연결 관련 상태
-  const [edgeStep, setEdgeStep] = useState(0) // 0: 선택 전, 1: from 선택, 2: to 선택
+  const [edgeStep, setEdgeStep] = useState(0)
   const [edgeConnectMode, setEdgeConnectMode] = useState(false)
   const [edgeFromNode, setEdgeFromNode] = useState(null)
   const [edgeToNode, setEdgeToNode] = useState(null)
   const [showEdgeModal, setShowEdgeModal] = useState(false)
   const [edgeModalNode, setEdgeModalNode] = useState(null)
   const [edgeConnectLoading, setEdgeConnectLoading] = useState(false)
-  const [showNodePopup, setShowNodePopup] = useState(false)
-  const [popupNode, setPopupNode] = useState(null)
   const [showEdgeConnectModal, setShowEdgeConnectModal] = useState(false)
 
   // 팝업 메시지 상태
@@ -178,11 +176,10 @@ export default function RoomManagePage() {
         case "text":
           x = parseFloat(element.getAttribute("x") || 0)
           y = parseFloat(element.getAttribute("y") || 0)
-          width = element.textContent ? element.textContent.length * 8 : 50 // 대략적인 텍스트 크기
+          width = element.textContent ? element.textContent.length * 8 : 50
           height = 20
           break
         case "g":
-          // 그룹의 경우 transform 속성에서 translate 값 추출
           const transform = element.getAttribute("transform") || ""
           const translateMatch = transform.match(/translate\(([^)]+)\)/)
           if (translateMatch) {
@@ -192,10 +189,9 @@ export default function RoomManagePage() {
             x = translateValues[0] || 0
             y = translateValues[1] || 0
           }
-          width = height = 20 // 그룹은 기본 크기
+          width = height = 20
           break
         default:
-          // 기본적으로 x, y 속성이 있는지 확인
           x = parseFloat(element.getAttribute("x") || 0)
           y = parseFloat(element.getAttribute("y") || 0)
           width = parseFloat(element.getAttribute("width") || 20)
@@ -382,7 +378,7 @@ export default function RoomManagePage() {
     }
   }
 
-  // 엣지 연결 함수 (한 번만!)
+  // 엣지 연결 함수
   const connectEdge = async () => {
     setEdgeConnectLoading(true)
     try {
@@ -655,13 +651,6 @@ export default function RoomManagePage() {
           </div>
           {/* 맵 */}
           <div className="room-manage-map-wrap">
-            {filterBuilding && filterFloor && (
-              <div style={{ marginBottom: 10, fontSize: 14, color: "#666" }}>
-                맵의 노드를 클릭하여 정보를 확인하거나 강의실로 추가할 수
-                있습니다.
-              </div>
-            )}
-
             {/* 맵을 표시할 캔버스 영역 */}
             <div
               style={{
@@ -926,10 +915,6 @@ export default function RoomManagePage() {
                 </button>
               </div>
             </div>
-          )}
-          {/* 엣지 연결 로딩 안내 */}
-          {edgeConnectLoading && (
-            <div className="edge-connect-loading">엣지 연결 중...</div>
           )}
           {/* 토스트 메시지 UI */}
           {toastVisible && (

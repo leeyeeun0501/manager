@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect } from "react"
 import Menu from "../components/menu"
 import "./room-manage.css"
-import { MdEditSquare, MdDelete } from "react-icons/md"
+import { MdEditSquare } from "react-icons/md"
 
 export default function RoomManagePage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -215,84 +215,6 @@ export default function RoomManagePage() {
     }
   }
 
-  // SVG 좌표를 화면 좌표로 변환하는 함수
-  const svgToScreenCoords = (svgX, svgY) => {
-    if (!mapContainerRef.current) return { x: 0, y: 0 }
-
-    const container = mapContainerRef.current
-    const svgElement = container.querySelector("svg")
-
-    if (!svgElement) return { x: 0, y: 0 }
-
-    // SVG의 실제 렌더링 크기 (화면에서의 크기)
-    const containerRect = container.getBoundingClientRect()
-    const containerWidth = containerRect.width
-    const containerHeight = containerRect.height
-
-    // SVG의 viewBox 또는 실제 크기
-    const viewBox = svgElement.viewBox.baseVal
-    let svgWidth, svgHeight, svgMinX, svgMinY
-
-    if (viewBox && viewBox.width > 0 && viewBox.height > 0) {
-      // viewBox가 있는 경우
-      svgMinX = viewBox.x
-      svgMinY = viewBox.y
-      svgWidth = viewBox.width
-      svgHeight = viewBox.height
-    } else {
-      // viewBox가 없는 경우 SVG의 width, height 사용
-      svgMinX = 0
-      svgMinY = 0
-      svgWidth = parseFloat(svgElement.getAttribute("width")) || containerWidth
-      svgHeight =
-        parseFloat(svgElement.getAttribute("height")) || containerHeight
-    }
-
-    // 좌표 변환: SVG 좌표를 화면 좌표로
-    const scaleX = containerWidth / svgWidth
-    const scaleY = containerHeight / svgHeight
-
-    const screenX = (svgX - svgMinX) * scaleX
-    const screenY = (svgY - svgMinY) * scaleY
-
-    return { x: screenX, y: screenY }
-  }
-
-  // 크기 변환 함수 추가
-  const svgToScreenSize = (svgWidth, svgHeight) => {
-    if (!mapContainerRef.current) return { width: 0, height: 0 }
-
-    const container = mapContainerRef.current
-    const svgElement = container.querySelector("svg")
-
-    if (!svgElement) return { width: 0, height: 0 }
-
-    const containerRect = container.getBoundingClientRect()
-    const containerWidth = containerRect.width
-    const containerHeight = containerRect.height
-
-    const viewBox = svgElement.viewBox.baseVal
-    let svgViewWidth, svgViewHeight
-
-    if (viewBox && viewBox.width > 0 && viewBox.height > 0) {
-      svgViewWidth = viewBox.width
-      svgViewHeight = viewBox.height
-    } else {
-      svgViewWidth =
-        parseFloat(svgElement.getAttribute("width")) || containerWidth
-      svgViewHeight =
-        parseFloat(svgElement.getAttribute("height")) || containerHeight
-    }
-
-    const scaleX = containerWidth / svgViewWidth
-    const scaleY = containerHeight / svgViewHeight
-
-    return {
-      width: svgWidth * scaleX,
-      height: svgHeight * scaleY,
-    }
-  }
-
   // SVG 처리 및 viewBox 설정 - 개선된 버전
   const processSvg = (svgXml) => {
     const parser = new DOMParser()
@@ -441,6 +363,8 @@ export default function RoomManagePage() {
     }
   }
 
+  // 추가: 엣지 연결 단계 관리
+  const [edgeStep, setEdgeStep] = useState(0) // 0: 선택 전, 1: from 선택, 2: to 선택
   const [edgeConnectMode, setEdgeConnectMode] = useState(false)
   const [edgeFromNode, setEdgeFromNode] = useState(null)
   const [edgeToNode, setEdgeToNode] = useState(null)
@@ -448,6 +372,29 @@ export default function RoomManagePage() {
   const [edgeModalNode, setEdgeModalNode] = useState(null)
   const [edgeConnectLoading, setEdgeConnectLoading] = useState(false)
   const [edgeConnectError, setEdgeConnectError] = useState("")
+  const [showNodePopup, setShowNodePopup] = useState(false)
+  const [popupNode, setPopupNode] = useState(null)
+
+  // 네비 노드 버튼 클릭 → 팝업 표시
+  const handleNodeButtonClick = (node) => {
+    setPopupNode(node)
+    setShowNodePopup(true)
+  }
+
+  // 팝업 내 '엣지 연결' 버튼
+  const handleEdgeConnectStart = () => {
+    setEdgeStep(1)
+    setEdgeFromNode(popupNode)
+    setShowNodePopup(false)
+  }
+
+  // 엣지 연결 단계에서 다음 노드 선택
+  const handleEdgeToNodeSelect = (node) => {
+    if (edgeStep === 1 && node.id !== edgeFromNode.id) {
+      setEdgeToNode(node)
+      setEdgeStep(2)
+    }
+  }
 
   // 1. 건물 목록만 최초 1회 받아오기
   useEffect(() => {
@@ -475,7 +422,7 @@ export default function RoomManagePage() {
     }
   }, [filterFloor, filterBuilding])
 
-  // SVG 로드 useEffect 수정
+  // SVG 로드 useEffect
   useEffect(() => {
     if (filterBuilding && filterFloor) {
       setMapLoading(true)
@@ -523,45 +470,9 @@ export default function RoomManagePage() {
     }
   }, [filterBuilding, filterFloor])
 
-  // SVG 로드
+  // 엣지 연결 API 호출
   useEffect(() => {
-    if (filterBuilding && filterFloor) {
-      setMapLoading(true)
-      fetch(
-        `/api/mapfile-image-route?building=${encodeURIComponent(
-          filterBuilding
-        )}&floor=${encodeURIComponent(filterFloor)}`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          const fileList = Array.isArray(data) ? data : []
-          const svgUrl = fileList[0]?.File
-          if (svgUrl) {
-            fetch(svgUrl)
-              .then((res) => res.text())
-              .then((svgXml) => {
-                const processedSvg = processSvg(svgXml)
-                setSvgRaw(processedSvg)
-              })
-              .catch(() => {
-                setSvgRaw("")
-              })
-          } else {
-            setSvgRaw("")
-          }
-        })
-        .catch(() => {
-          setSvgRaw("")
-        })
-        .finally(() => setMapLoading(false))
-    } else {
-      setSvgRaw("")
-    }
-  }, [filterBuilding, filterFloor])
-
-  useEffect(() => {
-    if (edgeFromNode && edgeToNode) {
-      // 연결 요청
+    if (edgeStep === 2 && edgeFromNode && edgeToNode) {
       const connectEdge = async () => {
         setEdgeConnectLoading(true)
         setEdgeConnectError("")
@@ -570,11 +481,11 @@ export default function RoomManagePage() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              from_building: edgeFromNode.building,
-              from_floor: edgeFromNode.floor,
+              from_building: filterBuilding,
+              from_floor: filterFloor,
               from_node: edgeFromNode.id,
-              to_building: edgeToNode.building,
-              to_floor: edgeToNode.floor,
+              to_building: filterBuilding,
+              to_floor: filterFloor,
               to_node: edgeToNode.id,
             }),
           })
@@ -583,19 +494,19 @@ export default function RoomManagePage() {
             setEdgeConnectError(data.error || "엣지 연결 실패")
           } else {
             alert("노드가 성공적으로 연결되었습니다.")
-            // 필요하다면 연결 정보 새로고침 등 추가
           }
         } catch (err) {
           setEdgeConnectError("서버 오류: " + err.message)
         } finally {
           setEdgeFromNode(null)
           setEdgeToNode(null)
+          setEdgeStep(0)
           setEdgeConnectLoading(false)
         }
       }
       connectEdge()
     }
-  }, [edgeFromNode, edgeToNode])
+  }, [edgeStep, edgeFromNode, edgeToNode, filterBuilding, filterFloor])
 
   return (
     <div className="management-root">
@@ -941,7 +852,7 @@ export default function RoomManagePage() {
                     cursor: "pointer",
                   }}
                 >
-                  엣지 연결 시작
+                  엣지 연결
                 </button>
                 <button
                   onClick={() => setShowEdgeModal(false)}

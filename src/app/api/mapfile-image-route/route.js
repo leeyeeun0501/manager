@@ -76,7 +76,7 @@ export async function POST(request) {
     }
 
     // 실제 연결 처리 API 호출 (예시)
-    const connectRes = await fetch(`${API_BASE}/port/room/connect`, {
+    const connectRes = await fetch(`${API_BASE}/room/connect`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

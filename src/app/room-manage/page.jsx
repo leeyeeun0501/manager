@@ -748,57 +748,6 @@ export default function RoomManagePage() {
                   )
                 })()}
             </div>
-
-            {/* 선택된 노드 정보 및 전체 노드 목록 UI */}
-            {selectedNode && (
-              <div className="selected-node-info">
-                <h4>선택된 노드 정보</h4>
-                <div className="node-info-grid">
-                  <div>
-                    <strong>ID:</strong> {selectedNode.id}
-                  </div>
-                  <div>
-                    <strong>레이어:</strong> {selectedNode.layer}
-                  </div>
-                  <div>
-                    <strong>타입:</strong> {selectedNode.element}
-                  </div>
-                  <div>
-                    <strong>위치:</strong> ({selectedNode.x.toFixed(1)},{" "}
-                    {selectedNode.y.toFixed(1)})
-                  </div>
-                  <div>
-                    <strong>크기:</strong> {selectedNode.width.toFixed(1)} ×{" "}
-                    {selectedNode.height.toFixed(1)}
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSelectedNode(null)}
-                  className="deselect-button"
-                >
-                  선택 해제
-                </button>
-              </div>
-            )}
-            {svgNodes.length > 0 && (
-              <div className="node-list-container">
-                <h4>SVG 노드 목록 ({svgNodes.length}개)</h4>
-                <div className="node-list-grid">
-                  {svgNodes.map((node, index) => (
-                    <button
-                      key={`node-list-${node.id}-${index}`}
-                      onClick={() => setSelectedNode(node)}
-                      className={`node-list-button ${
-                        selectedNode?.id === node.id ? "selected" : ""
-                      }`}
-                      title={`${node.id} (${node.element})`}
-                    >
-                      {node.id}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
           {showEdgeModal && edgeModalNode && (
             <div

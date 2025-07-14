@@ -1,5 +1,5 @@
-// login
 "use client"
+import "../globals.css"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import styles from "./login.module.css"
@@ -11,7 +11,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  // 로그인 핸들러
   const handleLogin = async (e) => {
     e.preventDefault()
     setError("")
@@ -38,22 +37,9 @@ export default function LoginPage() {
     }
   }
 
-  // 회원가입 페이지 이동
   const goToSignup = (e) => {
     e.preventDefault()
     router.push("/signup")
-  }
-
-  // 나중에 추가 수정
-  // 아이디/비밀번호 찾기 이동
-  const goToFindId = (e) => {
-    e.preventDefault()
-    router.push("/find-id")
-  }
-
-  const goToFindPw = (e) => {
-    e.preventDefault()
-    router.push("/find-password")
   }
 
   return (
@@ -90,20 +76,9 @@ export default function LoginPage() {
           </button>
           {error && <div className={styles["login-error"]}>{error}</div>}
         </form>
-        <div
-          style={{
-            marginTop: "16px",
-            fontSize: "14px",
-            color: "#888",
-            textAlign: "center",
-          }}
-        >
+        <div className={styles["login-link-box"]}>
           계정이 없으신가요?{" "}
-          <span
-            className={styles["login-link"]}
-            style={{ cursor: "pointer" }}
-            onClick={goToSignup}
-          >
+          <span className={styles["login-link"]} onClick={goToSignup}>
             회원가입
           </span>
         </div>

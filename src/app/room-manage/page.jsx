@@ -6,6 +6,7 @@ import "./room-manage.css"
 import { MdEditSquare } from "react-icons/md"
 
 export default function RoomManagePage() {
+  // 1. 모든 useState 선언을 최상단에!
   const [menuOpen, setMenuOpen] = useState(false)
   const [rooms, setRooms] = useState([])
   const [loading, setLoading] = useState(true)
@@ -19,6 +20,7 @@ export default function RoomManagePage() {
   const [filterBuilding, setFilterBuilding] = useState("")
   const [filterFloor, setFilterFloor] = useState("")
 
+  // 강의실 수정 모달 관련
   const [showEditRoomModal, setShowEditRoomModal] = useState(false)
   const [editRoom, setEditRoom] = useState(null)
   const [editRoomName, setEditRoomName] = useState("")
@@ -41,20 +43,36 @@ export default function RoomManagePage() {
     height: 400,
   })
 
+  // 엣지 연결 관련 상태
+  const [edgeStep, setEdgeStep] = useState(0) // 0: 선택 전, 1: from 선택, 2: to 선택
+  const [edgeConnectMode, setEdgeConnectMode] = useState(false)
+  const [edgeFromNode, setEdgeFromNode] = useState(null)
+  const [edgeToNode, setEdgeToNode] = useState(null)
+  const [showEdgeModal, setShowEdgeModal] = useState(false)
+  const [edgeModalNode, setEdgeModalNode] = useState(null)
+  const [edgeConnectLoading, setEdgeConnectLoading] = useState(false)
+  const [showNodePopup, setShowNodePopup] = useState(false)
+  const [popupNode, setPopupNode] = useState(null)
+  const [showEdgeConnectModal, setShowEdgeConnectModal] = useState(false)
+
+  // 팝업 메시지 상태
+  const [toastMessage, setToastMessage] = useState("")
+  const [toastVisible, setToastVisible] = useState(false)
+
+  // SVG 노드
+  const [svgNodes, setSvgNodes] = useState([])
+  const [selectedNode, setSelectedNode] = useState(null)
+
+  // 기타
   const CANVAS_SIZE = 600
   const mapContainerRef = useRef(null)
 
-  const normalizeRoom = (room) => {
-    return {
-      building: room.building || room.Building_Name || "",
-      floor: room.floor || room.Floor_Number || "",
-      name: room.name || room.Room_Name || "",
-      description: room.description || room.Room_Description || "",
-    }
+  // 토스트 메시지 함수
+  const showToast = (msg, duration = 3000) => {
+    setToastMessage(msg)
+    setToastVisible(true)
+    setTimeout(() => setToastVisible(false), duration)
   }
-
-  const [svgNodes, setSvgNodes] = useState([])
-  const [selectedNode, setSelectedNode] = useState(null)
 
   // 페이징
   const totalRooms = rooms.length
@@ -198,7 +216,7 @@ export default function RoomManagePage() {
     return nodes
   }
 
-  // 노드 클릭 핸들러 (수정)
+  // 노드 클릭 핸들러
   const handleNodeClick = (node, event) => {
     event.stopPropagation()
     if (edgeConnectMode) {
@@ -216,7 +234,7 @@ export default function RoomManagePage() {
     setShowEdgeModal(true)
   }
 
-  // SVG 처리 및 viewBox 설정 - 개선된 버전
+  // SVG 처리 및 viewBox 설정
   const processSvg = (svgXml) => {
     const parser = new DOMParser()
     const doc = parser.parseFromString(svgXml, "image/svg+xml")
@@ -328,7 +346,6 @@ export default function RoomManagePage() {
 
   // 강의실 수정 핸들러
   const handleEditRoom = async () => {
-    setEditRoomError("")
     if (!editRoom) return
     setEditRoomLoading(true)
     try {
@@ -348,7 +365,7 @@ export default function RoomManagePage() {
       )
       const data = await res.json()
       if (!res.ok) {
-        setEditRoomError(data.error || "수정 실패")
+        showToast(data.error || "수정 실패")
         return
       }
       fetchRooms(filterBuilding, filterFloor)
@@ -357,53 +374,105 @@ export default function RoomManagePage() {
       setEditRoomName("")
       setEditRoomDesc("")
       setEditRoomOldName("")
+      showToast("강의실 정보가 수정되었습니다.")
     } catch {
-      setEditRoomError("수정 중 오류가 발생했습니다.")
+      showToast("수정 중 오류가 발생했습니다.")
     } finally {
       setEditRoomLoading(false)
     }
   }
 
-  // 추가: 엣지 연결 단계 관리
-  const [edgeStep, setEdgeStep] = useState(0) // 0: 선택 전, 1: from 선택, 2: to 선택
-  const [edgeConnectMode, setEdgeConnectMode] = useState(false)
-  const [edgeFromNode, setEdgeFromNode] = useState(null)
-  const [edgeToNode, setEdgeToNode] = useState(null)
-  const [showEdgeModal, setShowEdgeModal] = useState(false)
-  const [edgeModalNode, setEdgeModalNode] = useState(null)
-  const [edgeConnectLoading, setEdgeConnectLoading] = useState(false)
-  const [edgeConnectError, setEdgeConnectError] = useState("")
-  const [showNodePopup, setShowNodePopup] = useState(false)
-  const [popupNode, setPopupNode] = useState(null)
-  const [showEdgeConnectModal, setShowEdgeConnectModal] = useState(false)
+  // 엣지 연결 함수 (한 번만!)
+  const connectEdge = async () => {
+    setEdgeConnectLoading(true)
+    try {
+      const res = await fetch("/api/mapfile-image-route", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from_building: filterBuilding,
+          from_floor: filterFloor,
+          from_node: edgeFromNode?.id,
+          to_building: filterBuilding,
+          to_floor: filterFloor,
+          to_node: edgeToNode?.id,
+        }),
+      })
 
-  // 1. 건물 목록만 최초 1회 받아오기
+      // 응답 상태 및 body를 로그로 확인
+      const text = await res.text()
+      console.log("status:", res.status, "body:", text)
+
+      let data = {}
+      try {
+        data = JSON.parse(text)
+      } catch (e) {}
+
+      if (!res.ok) {
+        showToast(data.error || "엣지 연결 실패")
+        return
+      }
+
+      showToast("노드가 성공적으로 연결되었습니다.")
+    } catch (err) {
+      showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
+    } finally {
+      setEdgeFromNode(null)
+      setEdgeToNode(null)
+      setEdgeStep(0)
+      setEdgeConnectLoading(false)
+      setEdgeConnectMode(false)
+    }
+  }
+
+  // 엣지 연결 useEffect
+  useEffect(() => {
+    if (
+      edgeConnectMode &&
+      edgeStep === 2 &&
+      edgeFromNode &&
+      edgeToNode &&
+      edgeFromNode.id !== edgeToNode.id
+    ) {
+      connectEdge()
+    }
+    // eslint-disable-next-line
+  }, [
+    edgeStep,
+    edgeFromNode,
+    edgeToNode,
+    filterBuilding,
+    filterFloor,
+    edgeConnectMode,
+  ])
+
+  // 최초 건물 목록/강의실 목록
   useEffect(() => {
     fetchBuildings()
-    fetchRooms() // 전체 강의실 조회
+    fetchRooms()
   }, [])
 
-  // 2. 건물 선택 시: 층 목록 + 해당 건물 전체 강의실 조회
+  // 건물 선택 시
   useEffect(() => {
     if (!filterBuilding) {
       setFloorOptions([])
       setFilterFloor("")
-      fetchRooms() // 전체 강의실
+      fetchRooms()
       return
     }
     fetchFloors(filterBuilding)
-    fetchRooms(filterBuilding) // 해당 건물 전체 강의실
+    fetchRooms(filterBuilding)
     setFilterFloor("")
   }, [filterBuilding])
 
-  // 3. 층 선택 시: 해당 건물, 해당 층 강의실만 조회
+  // 층 선택 시
   useEffect(() => {
     if (filterBuilding && filterFloor) {
       fetchRooms(filterBuilding, filterFloor)
     }
   }, [filterFloor, filterBuilding])
 
-  // SVG 로드 useEffect
+  // SVG 로드
   useEffect(() => {
     if (filterBuilding && filterFloor) {
       setMapLoading(true)
@@ -422,14 +491,8 @@ export default function RoomManagePage() {
               .then((svgXml) => {
                 const processedSvg = processSvg(svgXml)
                 setSvgRaw(processedSvg)
-
-                // Navigation_Nodes 레이어 노드 파싱
                 const parsedNodes = parseSvgNodes(svgXml)
                 setSvgNodes(parsedNodes)
-                console.log(
-                  "Navigation_Nodes 레이어에서 파싱된 노드들:",
-                  parsedNodes
-                )
               })
               .catch(() => {
                 setSvgRaw("")
@@ -451,58 +514,17 @@ export default function RoomManagePage() {
     }
   }, [filterBuilding, filterFloor])
 
-  // 엣지 연결 API 호출
-  useEffect(() => {
-    if (
-      edgeConnectMode &&
-      edgeStep === 2 &&
-      edgeFromNode &&
-      edgeToNode &&
-      edgeFromNode.id !== edgeToNode.id
-    ) {
-      const connectEdge = async () => {
-        setEdgeConnectLoading(true)
-        setEdgeConnectError("")
-        try {
-          const res = await fetch("/api/mapfile-image-route", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              from_building: filterBuilding,
-              from_floor: filterFloor,
-              from_node: edgeFromNode.id,
-              to_building: filterBuilding,
-              to_floor: filterFloor,
-              to_node: edgeToNode.id,
-            }),
-          })
-          if (!res.ok) {
-            const data = await res.json()
-            setEdgeConnectError(data.error || "엣지 연결 실패")
-          } else {
-            alert("노드가 성공적으로 연결되었습니다.")
-          }
-        } catch (err) {
-          setEdgeConnectError("서버 오류: " + err.message)
-        } finally {
-          setEdgeFromNode(null)
-          setEdgeToNode(null)
-          setEdgeStep(0)
-          setEdgeConnectLoading(false)
-          setEdgeConnectMode(false)
-        }
-      }
-      connectEdge()
+  // 강의실 데이터 normalize
+  function normalizeRoom(room) {
+    return {
+      building: room.building || room.Building_Name || "",
+      floor: room.floor || room.Floor_Number || "",
+      name: room.name || room.Room_Name || "",
+      description: room.description || room.Room_Description || "",
     }
-  }, [
-    edgeStep,
-    edgeFromNode,
-    edgeToNode,
-    filterBuilding,
-    filterFloor,
-    edgeConnectMode,
-  ])
+  }
 
+  // --- return ---
   return (
     <div className="management-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
@@ -631,7 +653,6 @@ export default function RoomManagePage() {
               </>
             )}
           </div>
-
           {/* 맵 */}
           <div className="room-manage-map-wrap">
             {filterBuilding && filterFloor && (
@@ -709,16 +730,10 @@ export default function RoomManagePage() {
                           key={`node-overlay-${node.id}-${index}`}
                           style={{
                             position: "absolute",
-
-                            // ★★★ 여기가 최종 수정된 핵심입니다! ★★★
-                            // SVG 중심 좌표(node.x, node.y)를 div의 좌상단 좌표로 보정
                             left: `${node.x - node.width / 2}px`,
                             top: `${node.y - node.height / 2}px`,
-
                             width: `${node.width}px`,
                             height: `${node.height}px`,
-
-                            // 시각적 스타일
                             border:
                               selectedNode?.id === node.id
                                 ? "2px solid #ff4757"
@@ -745,7 +760,7 @@ export default function RoomManagePage() {
                 })()}
             </div>
 
-            {/* 선택된 노드 정보 및 전체 노드 목록 UI (기존과 동일) */}
+            {/* 선택된 노드 정보 및 전체 노드 목록 UI */}
             {selectedNode && (
               <div className="selected-node-info">
                 <h4>선택된 노드 정보</h4>
@@ -796,7 +811,6 @@ export default function RoomManagePage() {
               </div>
             )}
           </div>
-
           {showEdgeModal && edgeModalNode && (
             <div
               style={{
@@ -811,7 +825,7 @@ export default function RoomManagePage() {
                 justifyContent: "center",
                 zIndex: 1001,
               }}
-              onClick={() => setShowEdgeModal(false)} // 바깥 클릭 시 닫힘
+              onClick={() => setShowEdgeModal(false)}
             >
               <div
                 style={{
@@ -823,7 +837,7 @@ export default function RoomManagePage() {
                   boxShadow: "0 6px 32px rgba(0,0,0,0.18)",
                   position: "relative",
                 }}
-                onClick={(e) => e.stopPropagation()} // 모달 내부 클릭 시 닫힘 방지
+                onClick={(e) => e.stopPropagation()}
               >
                 <h4 style={{ marginTop: 0 }}>노드 정보</h4>
                 <div>건물: {edgeModalNode.building}</div>
@@ -865,7 +879,6 @@ export default function RoomManagePage() {
               </div>
             </div>
           )}
-
           {/* 두 번째 노드 선택 안내 모달 */}
           {showEdgeConnectModal && edgeFromNode && (
             <div
@@ -914,13 +927,28 @@ export default function RoomManagePage() {
               </div>
             </div>
           )}
-          {/* 엣지 연결 로딩/에러 안내 */}
+          {/* 엣지 연결 로딩 안내 */}
           {edgeConnectLoading && (
             <div className="edge-connect-loading">엣지 연결 중...</div>
           )}
-          {edgeConnectError && (
-            <div className="edge-connect-error" style={{ color: "red" }}>
-              {edgeConnectError}
+          {/* 토스트 메시지 UI */}
+          {toastVisible && (
+            <div
+              style={{
+                position: "fixed",
+                top: 30,
+                left: "50%",
+                transform: "translateX(-50%)",
+                backgroundColor: "#333",
+                color: "#fff",
+                padding: "12px 24px",
+                borderRadius: 8,
+                zIndex: 3000,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                fontWeight: "bold",
+              }}
+            >
+              {toastMessage}
             </div>
           )}
         </div>

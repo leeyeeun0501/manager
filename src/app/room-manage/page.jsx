@@ -80,6 +80,7 @@ export default function RoomManagePage() {
   const pagedRooms = rooms.slice(startIdx, endIdx)
 
   const [roomNodes, setRoomNodes] = useState({})
+  const [edges, setEdges] = useState([])
 
   // SVG 노드 파싱 함수
   const parseSvgNodes = (svgXml) => {
@@ -481,11 +482,23 @@ export default function RoomManagePage() {
       )
         .then((res) => res.json())
         .then((data) => {
-          // data: { File: svgUrl, nodes: { ... } }
           const fileList = Array.isArray(data) ? data : [data]
           const svgUrl = fileList[0]?.File
           const nodesInfo = fileList[0]?.nodes || {}
-          console.log("node 정보:", nodesInfo)
+          // edges가 있으면 사용, 없으면 nodesInfo에서 만들어줌
+          let edgesInfo = fileList[0]?.edges
+          if (!edgesInfo) {
+            edgesInfo = []
+            Object.entries(nodesInfo).forEach(([from, arr]) => {
+              arr.forEach((edgeObj) => {
+                const to =
+                  typeof edgeObj === "string"
+                    ? edgeObj
+                    : edgeObj.node || edgeObj.to
+                if (to) edgesInfo.push({ from, to })
+              })
+            })
+          }
 
           if (svgUrl) {
             fetch(svgUrl)
@@ -493,30 +506,35 @@ export default function RoomManagePage() {
               .then((svgXml) => {
                 const processedSvg = processSvg(svgXml)
                 setSvgRaw(processedSvg)
-                setRoomNodes(nodesInfo) // ★★★ 이 줄 추가!
+                setRoomNodes(nodesInfo)
+                setEdges(edgesInfo)
                 const parsedNodes = parseSvgNodes(svgXml)
                 setSvgNodes(parsedNodes)
               })
               .catch(() => {
                 setSvgRaw("")
                 setRoomNodes({})
+                setEdges([])
                 setSvgNodes([])
               })
           } else {
             setSvgRaw("")
             setRoomNodes({})
+            setEdges([])
             setSvgNodes([])
           }
         })
         .catch(() => {
           setSvgRaw("")
           setRoomNodes({})
+          setEdges([]) // ★★★ 추가
           setSvgNodes([])
         })
         .finally(() => setMapLoading(false))
     } else {
       setSvgRaw("")
       setRoomNodes({})
+      setEdges([]) // ★★★ 추가
       setSvgNodes([])
     }
   }, [filterBuilding, filterFloor])
@@ -529,6 +547,13 @@ export default function RoomManagePage() {
       name: room.name || room.Room_Name || "",
       description: room.description || room.Room_Description || "",
     }
+  }
+
+  // 예: "W19@1@101" → "101"
+  function getNodeSuffix(id) {
+    if (!id) return ""
+    const parts = id.split("@")
+    return parts[parts.length - 1]
   }
 
   // --- return ---
@@ -569,7 +594,6 @@ export default function RoomManagePage() {
           </select>
         </div>
 
-        {/* 표와 맵을 한 줄에 나란히 */}
         <div className="room-manage-main-row">
           {/* 표 */}
           <div className="room-manage-table-wrap">
@@ -662,7 +686,6 @@ export default function RoomManagePage() {
           </div>
           {/* 맵 */}
           <div className="room-manage-map-wrap">
-            {/* 맵을 표시할 캔버스 영역 */}
             <div
               style={{
                 position: "relative",
@@ -673,7 +696,6 @@ export default function RoomManagePage() {
                 overflow: "hidden",
               }}
             >
-              {/* 로딩 및 데이터 없음 처리 */}
               {mapLoading && (
                 <div className="room-manage-canvas-placeholder">
                   맵 로딩 중...
@@ -690,7 +712,7 @@ export default function RoomManagePage() {
                 </div>
               )}
 
-              {/* SVG와 노드를 함께 렌더링하는 핵심 컨테이너 */}
+              {/* SVG와 노드, 엣지 표시 */}
               {!mapLoading &&
                 svgRaw &&
                 (() => {
@@ -700,6 +722,13 @@ export default function RoomManagePage() {
                   )
                   const offsetX = (CANVAS_SIZE - svgViewBox.width * scale) / 2
                   const offsetY = (CANVAS_SIZE - svgViewBox.height * scale) / 2
+
+                  // id의 마지막 부분만 추출하는 함수
+                  function getNodeSuffix(id) {
+                    if (!id) return ""
+                    const parts = id.split("@")
+                    return parts[parts.length - 1]
+                  }
 
                   return (
                     <div
@@ -712,7 +741,7 @@ export default function RoomManagePage() {
                         position: "relative",
                       }}
                     >
-                      {/* 레이어 1: SVG 배경 */}
+                      {/* SVG 배경 */}
                       <div
                         style={{
                           position: "absolute",
@@ -723,7 +752,7 @@ export default function RoomManagePage() {
                         }}
                         dangerouslySetInnerHTML={{ __html: svgRaw }}
                       />
-                      {/* 레이어 2: 엣지(선) */}
+                      {/* 네비 노드 연결선 (엣지) */}
                       <svg
                         style={{
                           position: "absolute",
@@ -735,41 +764,31 @@ export default function RoomManagePage() {
                           zIndex: 2,
                         }}
                       >
-                        {svgNodes.length > 0 &&
-                          Object.entries(roomNodes).flatMap(
-                            ([fromId, edges]) => {
-                              const fromNode = svgNodes.find(
-                                (n) => n.id === fromId
-                              )
-                              if (!fromNode || !Array.isArray(edges)) return []
-                              return edges
-                                .map((edge, idx) => {
-                                  // 연결 대상 id 추출 (node 필드에서)
-                                  const toId =
-                                    typeof edge === "string"
-                                      ? edge
-                                      : edge.node || edge.to // edge.node가 우선, 없으면 edge.to
-                                  const toNode = svgNodes.find(
-                                    (n) => n.id === toId
-                                  )
-                                  if (!toNode) return null
-                                  return (
-                                    <line
-                                      key={`edge-${fromId}-${toId}-${idx}`}
-                                      x1={fromNode.x}
-                                      y1={fromNode.y}
-                                      x2={toNode.x}
-                                      y2={toNode.y}
-                                      stroke="#2574f5"
-                                      strokeWidth={3}
-                                      opacity={0.65}
-                                      markerEnd="url(#arrowhead)"
-                                    />
-                                  )
-                                })
-                                .filter(Boolean)
-                            }
-                          )}
+                        {/* edges 배열이 있다면, id 파싱 후 연결선 표시 */}
+                        {edges &&
+                          edges.map((edge, idx) => {
+                            const fromSuffix = getNodeSuffix(edge.from)
+                            const toSuffix = getNodeSuffix(edge.to)
+                            const fromNode = svgNodes.find(
+                              (node) => getNodeSuffix(node.id) === fromSuffix
+                            )
+                            const toNode = svgNodes.find(
+                              (node) => getNodeSuffix(node.id) === toSuffix
+                            )
+                            if (!fromNode || !toNode) return null
+                            return (
+                              <line
+                                key={idx}
+                                x1={fromNode.x}
+                                y1={fromNode.y}
+                                x2={toNode.x}
+                                y2={toNode.y}
+                                stroke="red"
+                                strokeWidth={2}
+                                opacity={0.85}
+                              />
+                            )
+                          })}
                         <defs>
                           <marker
                             id="arrowhead"
@@ -788,7 +807,7 @@ export default function RoomManagePage() {
                           </marker>
                         </defs>
                       </svg>
-                      {/* 레이어 3: 네비 노드 오버레이(버튼) */}
+                      {/* 네비 노드 오버레이(버튼) */}
                       {svgNodes.map((node, index) => (
                         <div
                           key={`node-overlay-${node.id}-${index}`}
@@ -818,7 +837,7 @@ export default function RoomManagePage() {
                           onClick={(e) => handleNodeClick(node, e)}
                           title={`ID: ${node.id}`}
                         ></div>
-                      ))}{" "}
+                      ))}
                     </div>
                   )
                 })()}

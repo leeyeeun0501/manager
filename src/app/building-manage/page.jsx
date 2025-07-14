@@ -253,7 +253,7 @@ export default function BuildingPage() {
 
   return (
     <div className="building-root">
-      <span className="building-title">층 관리 페이지</span>
+      <span className="building-header">층 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className="building-content">
         {/* 건물/층 선택 콤보박스 */}

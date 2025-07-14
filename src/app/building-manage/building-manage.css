@@ -12,18 +12,34 @@ html {
 }
 
 .building-header {
-  width: 100%;
-  background: #f7f9fc;
-  padding: 40px 0 24px 0;
-  border-bottom: 1.5px solid #e6eaf3;
+  width: 100vw;
+  height: 72px; /* 헤더 높이 */
+  background: #f4f7fc;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* 왼쪽 정렬 */
+  font-size: 2rem;
+  font-weight: bold;
+  color: #000000; /* 검은색 */
+  position: relative;
+  z-index: 10;
+  padding-left: 100px; /* 왼쪽 여백 추가 (원하는 만큼 조절) */
 }
 
 .building-title {
   font-size: 2.1rem;
   font-weight: 700;
   color: #222;
-  margin-left: 85px;
-  letter-spacing: -0.5px;
+  margin: 0;
+  padding: 0;
+  background: #f4f7fc; /* 본문과 같은 배경색 */
+  display: block;
+}
+
+body {
+  background: #f4f7fc;
+  margin: 0;
+  padding: 0;
 }
 
 .building-content {
@@ -79,6 +95,7 @@ html {
   transition: background 0.15s, box-shadow 0.15s;
   letter-spacing: 0.03em;
 }
+
 .add-floor-btn:hover {
   background: #2574f5;
   box-shadow: 0 4px 18px rgba(37, 116, 245, 0.14);

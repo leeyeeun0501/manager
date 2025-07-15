@@ -82,6 +82,14 @@ export default function RoomManagePage() {
   const [roomNodes, setRoomNodes] = useState({})
   const [edges, setEdges] = useState([])
 
+  const [stairsList, setStairsList] = useState([])
+  const [stairsLoading, setStairsLoading] = useState(false)
+  const [stairsError, setStairsError] = useState("")
+  const [stairsBuilding, setStairsBuilding] = useState("")
+  const [showStairsSelectModal, setShowStairsSelectModal] = useState(false)
+  const [selectedStairsNode, setSelectedStairsNode] = useState(null)
+  const [targetStairId, setTargetStairId] = useState("")
+
   // SVG 노드 파싱 함수
   const parseSvgNodes = (svgXml) => {
     const parser = new DOMParser()
@@ -418,7 +426,7 @@ export default function RoomManagePage() {
     }
   }
 
-  // 엣지 연결 함수 (자동 리프레시 적용)
+  // 엣지 연결 함수
   const connectEdge = async () => {
     setEdgeConnectLoading(true)
     try {
@@ -463,7 +471,7 @@ export default function RoomManagePage() {
     }
   }
 
-  // edgeModalNode.id: 현재 선택된 노드의 id
+  // 현재 선택된 노드의 id
   const connectedNodes = edges
     .filter((e) => getNodeSuffix(e.from) === getNodeSuffix(edgeModalNode?.id))
     .map((e) => ({
@@ -623,6 +631,35 @@ export default function RoomManagePage() {
       setSvgNodes([])
     }
   }, [filterBuilding, filterFloor])
+
+  // 다른 층 계단 연결
+  useEffect(() => {
+    if (!stairsBuilding) {
+      setStairsList([])
+      return
+    }
+
+    setStairsLoading(true)
+    setStairsError("")
+    fetch("/api/stairs-route", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ building: stairsBuilding }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && Array.isArray(data.stairs)) {
+          setStairsList(data.stairs)
+        } else {
+          setStairsList([])
+          setStairsError(data.error || "계단 정보를 불러오지 못했습니다.")
+        }
+      })
+      .catch(() => setStairsError("계단 정보를 불러오지 못했습니다."))
+      .finally(() => setStairsLoading(false))
+  }, [stairsBuilding])
 
   // 강의실 데이터 normalize
   function normalizeRoom(room) {
@@ -1094,6 +1131,162 @@ export default function RoomManagePage() {
                     }}
                   >
                     엣지 연결
+                  </button>
+                  {/*  계단 노드에서만 노출되는 버튼 */}
+                  {edgeModalNode.id?.includes("stairs") && (
+                    <button
+                      onClick={() => {
+                        setStairsBuilding(edgeModalNode.building)
+                        setShowStairsSelectModal(true)
+                        setShowEdgeModal(false)
+                        setSelectedStairsNode(edgeModalNode)
+                      }}
+                      style={{
+                        padding: "10px 22px",
+                        borderRadius: 24,
+                        border: "none",
+                        fontSize: 15,
+                        fontWeight: 600,
+                        background: "#1976d2",
+                        color: "#fff",
+                        cursor: "pointer",
+                      }}
+                    >
+                      다른 층으로 이동
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          {/* ▶ stairs 연결 선택 모달 */}
+          {showStairsSelectModal && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                background: "rgba(0,0,0,0.14)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 1500,
+              }}
+              onClick={() => setShowStairsSelectModal(false)}
+            >
+              <div
+                style={{
+                  background: "#fff",
+                  borderRadius: 18,
+                  minWidth: 320,
+                  maxWidth: "95vw",
+                  padding: "32px 28px 24px 28px",
+                  boxShadow: "0 2px 16px rgba(0,0,0,0.13)",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: 17,
+                    color: "#1976d2",
+                    marginBottom: 16,
+                    textAlign: "center",
+                    borderBottom: "2px solid #1976d2",
+                    paddingBottom: 7,
+                  }}
+                >
+                  다른 층 계단과 연결
+                </div>
+                {stairsLoading ? (
+                  <div style={{ textAlign: "center", margin: 18 }}>
+                    계단 목록을 불러오는 중...
+                  </div>
+                ) : stairsError ? (
+                  <div
+                    style={{
+                      color: "#e74c3c",
+                      textAlign: "center",
+                      margin: 12,
+                    }}
+                  >
+                    {stairsError}
+                  </div>
+                ) : (
+                  <select
+                    value={targetStairId || ""}
+                    onChange={(e) => setTargetStairId(e.target.value)}
+                    style={{
+                      width: "100%",
+                      height: 46,
+                      fontSize: 15,
+                      border: "1.3px solid #b3d1fa",
+                      borderRadius: 11,
+                      padding: "6px 15px",
+                      marginBottom: 20,
+                      outline: "none",
+                    }}
+                  >
+                    <option value="">연결할 계단 선택</option>
+                    {stairsList
+                      .filter(
+                        (stair) => stair.id !== (selectedStairsNode?.id || "")
+                      ) // 자기 자신은 제외
+                      .map((stair) => (
+                        <option key={stair.id} value={stair.id}>
+                          {stair.floor}층 - {stair.id}
+                        </option>
+                      ))}
+                  </select>
+                )}
+                <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: "9px 0",
+                      borderRadius: 19,
+                      border: "none",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      background: "#eee",
+                      color: "#222",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      setShowStairsSelectModal(false)
+                      setTargetStairId("")
+                      setSelectedStairsNode(null)
+                    }}
+                  >
+                    취소
+                  </button>
+                  <button
+                    style={{
+                      flex: 1,
+                      padding: "9px 0",
+                      borderRadius: 19,
+                      border: "none",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      background: "#2574f5",
+                      color: "#fff",
+                      cursor: targetStairId ? "pointer" : "not-allowed",
+                      opacity: targetStairId ? 1 : 0.5,
+                    }}
+                    disabled={!targetStairId}
+                    onClick={() => {
+                      // 연결 처리 함수 실행. 아래 함수를 실제로 구현해야 함
+                      handleConnectStairsEdge(selectedStairsNode, targetStairId)
+                      setShowStairsSelectModal(false)
+                      setTargetStairId("")
+                      setSelectedStairsNode(null)
+                    }}
+                  >
+                    연결
                   </button>
                 </div>
               </div>

@@ -15,7 +15,7 @@ export async function GET(request) {
     }
 
     const res = await fetch(
-      `${API_BASE}/room/stairs?building=${encodeURIComponent(building)}`,
+      `${API_BASE}/room/stairs/${encodeURIComponent(building)}`,
       {
         method: "GET",
         headers: {

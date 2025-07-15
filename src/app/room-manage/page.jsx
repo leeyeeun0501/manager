@@ -497,10 +497,10 @@ export default function RoomManagePage() {
         body: JSON.stringify({
           from_building: filterBuilding,
           from_floor: filterFloor,
-          from_node: edgeModalNode.id, // 현재 모달의 노드 id
+          from_node: getNodeSuffix(edgeModalNode.id),
           to_building: filterBuilding,
           to_floor: filterFloor,
-          to_node: targetNodeId, // 버튼 눌린 노드 id
+          to_node: getNodeSuffix(targetNodeId),
         }),
       })
 

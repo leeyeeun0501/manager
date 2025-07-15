@@ -279,7 +279,7 @@ export default function BuildingPage() {
               }}
               style={{ minWidth: 150 }}
             >
-              <option value="">건물 선택</option>
+              <option value="">전체 건물</option>
               {buildingOptions.map((b, idx) => (
                 <option key={b || idx} value={b}>
                   {b}

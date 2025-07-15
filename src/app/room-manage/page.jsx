@@ -647,7 +647,7 @@ export default function RoomManagePage() {
       <div className={styles["room-content"]}>
         <div className={styles["room-manage-filter-row"]}>
           <select
-            className={styles["room-select"]}
+            className={styles["building-select"]}
             value={filterBuilding}
             onChange={(e) => setFilterBuilding(e.target.value)}
           >
@@ -659,7 +659,7 @@ export default function RoomManagePage() {
             ))}
           </select>
           <select
-            className={styles["room-select"]}
+            className={styles["floor-select"]}
             value={filterFloor}
             onChange={(e) => setFilterFloor(e.target.value)}
             disabled={!filterBuilding}

@@ -60,7 +60,7 @@
   width: 100%;
   max-width: 1400px;
   margin: 20px auto 0;
-  overflow-x: hidden; /* 가로 스크롤 방지 */
+  overflow-x: hidden;
 }
 
 .room-manage-table-wrap {
@@ -183,12 +183,12 @@
 }
 
 .bordered-table tr {
-  background: #fff; /* 기본 흰색 */
+  background: #fff;
   transition: background 0.13s;
 }
 
 .bordered-table tr:hover {
-  background: #eaf2fd; /* hover 시 building-manage와 동일한 파란색 계열 */
+  background: #eaf2fd;
 }
 
 .bordered-table tr:last-child td {
@@ -232,7 +232,6 @@
   color: #2574f5;
 }
 
-/* 예시: 전역 CSS에 추가 */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -266,4 +265,23 @@
   z-index: 2;
   width: 100%;
   pointer-events: none;
+}
+
+.building-select,
+.floor-select {
+  height: 46px;
+  min-width: 150px;
+  font-size: 1.07rem;
+  border-radius: 10px;
+  border: 1.5px solid #b3d1fa;
+  background: #fff;
+  color: #222;
+  padding: 0 18px;
+  outline: none;
+  transition: border 0.15s;
+}
+
+.building-select:focus,
+.floor-select:focus {
+  border: 1.5px solid #2574f5;
 }

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
 import styles from "./management.module.css"
 import NaverMapSimple from "./navermap"
+import "../globals.css"
 
 export default function ManagementPage() {
   const [menuOpen, setMenuOpen] = useState(false)

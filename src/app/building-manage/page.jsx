@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
-import "./building-manage.css"
+import styles from "./building-manage.module.css"
 import { FaTrashAlt, FaPaperclip } from "react-icons/fa"
 
 export default function BuildingPage() {
@@ -252,7 +252,7 @@ export default function BuildingPage() {
   }
 
   return (
-    <div className="building-root">
+    <div className={styles["building-root"]}>
       <span className="building-header">층 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className="building-content">

@@ -82,10 +82,10 @@ export default function UserManagePage() {
   }
 
   return (
-    <div className="management-root">
+    <div className="user-root">
+      <span className="user-header">사용자 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <div className="management-content">
-        <h2 className="management-title">사용자 관리</h2>
+      <div className="user-content">
         {loading ? (
           <div>로딩 중...</div>
         ) : error ? (

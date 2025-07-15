@@ -1,4 +1,5 @@
 "use client"
+import "../globals.css"
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
 import styles from "./building-manage.module.css"
@@ -253,9 +254,9 @@ export default function BuildingPage() {
 
   return (
     <div className={styles["building-root"]}>
-      <span className="building-header">층 관리 페이지</span>
+      <span className={styles["building-header"]}>층 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <div className="building-content">
+      <div className={styles["building-content"]}>
         {/* 건물/층 선택 콤보박스 */}
         <div
           style={{
@@ -269,7 +270,7 @@ export default function BuildingPage() {
           {/* 건물/층 콤보 박스 */}
           <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
             <select
-              className="building-select"
+              className={styles["building-select"]}
               value={selectedBuilding}
               onChange={(e) => {
                 setSelectedBuilding(e.target.value)
@@ -286,7 +287,7 @@ export default function BuildingPage() {
               ))}
             </select>
             <select
-              className="floor-select"
+              className={styles["floor-select"]}
               value={selectedFloor}
               onChange={(e) => {
                 setSelectedFloor(e.target.value)
@@ -312,7 +313,7 @@ export default function BuildingPage() {
 
           {/* 층 추가 버튼 */}
           <button
-            className="add-floor-btn"
+            className={styles["add-floor-btn"]}
             onClick={() => setShowAddFloor(true)}
             type="button"
           >
@@ -321,8 +322,10 @@ export default function BuildingPage() {
         </div>
 
         {/* 표 */}
-        <div className="building-table-wrap">
-          <table className="custom-table bordered-table">
+        <div className={styles["building-table-wrap"]}>
+          <table
+            className={`${styles["custom-table"]} ${styles["bordered-table"]}`}
+          >
             <thead>
               <tr>
                 <th>건물명</th>
@@ -404,7 +407,7 @@ export default function BuildingPage() {
                     </td>
                     <td>
                       <button
-                        className="delete-btn"
+                        className={styles["delete-btn"]}
                         onClick={() =>
                           handleDeleteFloor(row.building, row.floor)
                         }
@@ -436,19 +439,19 @@ export default function BuildingPage() {
         </div>
 
         {/* 페이지네이션 */}
-        <div className="building-pagination-row">
+        <div className={styles["building-pagination-row"]}>
           <button
-            className="building-pagination-btn"
+            className={styles["building-pagination-btn"]}
             onClick={() => setFloorPage((p) => Math.max(1, p - 1))}
             disabled={floorPage === 1}
           >
             이전
           </button>
-          <span className="building-pagination-info">
+          <span className={styles["building-pagination-info"]}>
             {floorPage} / {floorTotalPages}
           </span>
           <button
-            className="building-pagination-btn"
+            className={styles["building-pagination-btn"]}
             onClick={() =>
               setFloorPage((p) => Math.min(floorTotalPages, p + 1))
             }

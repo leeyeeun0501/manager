@@ -472,21 +472,49 @@ export default function RoomManagePage() {
 
   // edgeModalNode.id: 현재 선택된 노드의 id
   const connectedNodes = edges
-    .filter(
-      (e) =>
-        getNodeSuffix(e.from) === getNodeSuffix(edgeModalNode?.id) ||
-        getNodeSuffix(e.to) === getNodeSuffix(edgeModalNode?.id)
-    )
-    .map((e) => {
-      const isFrom = getNodeSuffix(e.from) === getNodeSuffix(edgeModalNode?.id)
-      const otherNodeId = isFrom ? e.to : e.from
-      return {
-        ...e,
-        otherNodeId,
-        otherNodeSuffix: getNodeSuffix(otherNodeId),
-      }
-    })
+    .filter((e) => getNodeSuffix(e.from) === getNodeSuffix(edgeModalNode?.id))
+    .map((e) => ({
+      ...e,
+      otherNodeId: e.to,
+      otherNodeSuffix: getNodeSuffix(e.to),
+    }))
 
+  // 엣지 연결 해제 함수
+  const handleDisconnectEdge = async (targetNodeId) => {
+    if (
+      !edgeModalNode?.id ||
+      !targetNodeId ||
+      !filterBuilding ||
+      !filterFloor
+    ) {
+      showToast("건물명, 층, 노드 정보가 올바르지 않습니다.")
+      return
+    }
+    try {
+      const res = await fetch("/api/mapfile-image-route", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from_building: filterBuilding,
+          from_floor: filterFloor,
+          from_node: edgeModalNode.id, // 현재 모달의 노드 id
+          to_building: filterBuilding,
+          to_floor: filterFloor,
+          to_node: targetNodeId, // 버튼 눌린 노드 id
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        showToast(data.error || "연결 해제 실패")
+        return
+      }
+      showToast("연결이 해제되었습니다.")
+      reloadMapData()
+    } catch (err) {
+      showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
+    }
+  }
   // 엣지 연결 useEffect
   useEffect(() => {
     if (
@@ -948,8 +976,8 @@ export default function RoomManagePage() {
                   ) : (
                     connectedNodes.map((edge, idx) => (
                       <button
-                        key={`${edge.from}-${edge.to}-${idx}`}
-                        onClick={() => handleDisconnectEdge(edge)}
+                        key={`${edge.otherNodeId}-${idx}`}
+                        onClick={() => handleDisconnectEdge(edge.otherNodeId)}
                         style={{
                           background: "#ffa500",
                           color: "#fff",

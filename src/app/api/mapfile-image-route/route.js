@@ -132,7 +132,7 @@ export async function DELETE(request) {
     }
 
     // 실제 연결 처리 API 호출 (예시)
-    const connectRes = await fetch(`${API_BASE}/room/connect`, {
+    const connectRes = await fetch(`${API_BASE}/room/disconnect`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

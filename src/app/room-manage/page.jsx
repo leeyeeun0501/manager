@@ -646,10 +646,10 @@ export default function RoomManagePage() {
   }
 
   return (
-    <div className="management-root">
+    <div className="room-root">
+      <span className="room-header">강의실 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <div className="management-content">
-        <h1>강의실 관리</h1>
+      <div className="room-content">
         <div className="room-manage-filter-row">
           <select
             value={filterBuilding}

@@ -4,7 +4,7 @@ import { API_BASE } from "../apibase"
 
 export async function GET(request) {
   try {
-    const reqBody = await request.json() // body에 building이 있음
+    const reqBody = await request.json()
     const { building } = reqBody
 
     if (!building) {
@@ -14,9 +14,8 @@ export async function GET(request) {
       )
     }
 
-    // 외부 API에 building 파라미터를 이용해 stairs만 요청
     const res = await fetch(`${API_BASE}/room/stairs`, {
-      method: "POST",
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },

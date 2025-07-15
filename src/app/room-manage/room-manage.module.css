@@ -280,8 +280,3 @@
   outline: none;
   transition: border 0.15s;
 }
-
-.building-select:focus,
-.floor-select:focus {
-  border: 1.5px solid #2574f5;
-}

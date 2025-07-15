@@ -1169,91 +1169,170 @@ export default function RoomManagePage() {
           )}
         </div>
       </div>
-      {/* 강의실 수정 모달 */}
+      {/* 강의실 정보 수정 모달 */}
       {showEditRoomModal && (
         <div
           style={{
             position: "fixed",
             top: 0,
             left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(0,0,0,0.5)",
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(0,0,0,0.14)",
+            zIndex: 10000,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 1000,
           }}
         >
           <div
             style={{
-              backgroundColor: "white",
-              padding: 24,
-              borderRadius: 8,
-              minWidth: 300,
-              maxWidth: 500,
+              background: "#fff",
+              borderRadius: 18,
+              minWidth: 380,
+              maxWidth: "95vw",
+              padding: "36px 32px 28px 32px",
+              boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "stretch",
+              position: "relative",
             }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <h3>강의실 정보 수정</h3>
-            <div style={{ marginBottom: 16 }}>
-              <label>강의실명:</label>
+            {/* 상단 파란 컬러 타이틀 */}
+            <div
+              style={{
+                fontWeight: 700,
+                fontSize: 18,
+                color: "#1976d2",
+                marginBottom: 18,
+                textAlign: "center",
+                borderBottom: "2px solid #1976d2",
+                paddingBottom: 6,
+                letterSpacing: "-0.5px",
+              }}
+            >
+              강의실 정보 수정
+            </div>
+            {/* 입력 폼 */}
+            <form
+              onSubmit={handleEditRoom}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 16,
+              }}
+            >
               <input
                 type="text"
                 value={editRoomName}
                 onChange={(e) => setEditRoomName(e.target.value)}
-                style={{ width: "100%", padding: 8, marginTop: 4 }}
+                placeholder="강의실명"
+                required
+                style={{
+                  width: "90%",
+                  height: 48,
+                  padding: "0 12px",
+                  borderRadius: 14,
+                  border: "1.5px solid #b3d1fa",
+                  fontSize: 16,
+                  background: "#fff",
+                  color: "#222",
+                  fontFamily: "inherit",
+                  outline: "none",
+                  boxSizing: "border-box",
+                  margin: "0 auto",
+                  display: "block",
+                }}
               />
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <label>설명:</label>
               <input
                 type="text"
                 value={editRoomDesc}
                 onChange={(e) => setEditRoomDesc(e.target.value)}
-                style={{ width: "100%", padding: 8, marginTop: 4 }}
+                placeholder="설명"
+                required
+                style={{
+                  width: "90%",
+                  height: 48,
+                  padding: "0 12px",
+                  borderRadius: 14,
+                  border: "1.5px solid #b3d1fa",
+                  fontSize: 16,
+                  background: "#fff",
+                  color: "#222",
+                  fontFamily: "inherit",
+                  outline: "none",
+                  boxSizing: "border-box",
+                  margin: "0 auto",
+                  display: "block",
+                }}
               />
-            </div>
-            {editRoomError && (
-              <p style={{ color: "red", marginBottom: 16 }}>{editRoomError}</p>
-            )}
-            <div
-              style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}
-            >
-              <button
-                onClick={() => {
-                  setShowEditRoomModal(false)
-                  setEditRoom(null)
-                  setEditRoomName("")
-                  setEditRoomDesc("")
-                  setEditRoomOldName("")
-                  setEditRoomError("")
-                }}
+              {editRoomError && (
+                <div
+                  style={{
+                    color: "#e74c3c",
+                    fontSize: 15,
+                    margin: "4px 0",
+                  }}
+                >
+                  {editRoomError}
+                </div>
+              )}
+              <div
                 style={{
-                  padding: "8px 16px",
-                  backgroundColor: "#6c757d",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 4,
-                  cursor: "pointer",
+                  display: "flex",
+                  gap: 10,
+                  marginTop: 14,
+                  width: "100%",
+                  justifyContent: "flex-end",
                 }}
               >
-                취소
-              </button>
-              <button
-                onClick={handleEditRoom}
-                disabled={editRoomLoading}
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: "#007bff",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 4,
-                  cursor: editRoomLoading ? "not-allowed" : "pointer",
-                }}
-              >
-                {editRoomLoading ? "수정 중..." : "수정"}
-              </button>
-            </div>
+                <button
+                  type="button"
+                  style={{
+                    flex: 1,
+                    padding: "10px 0",
+                    borderRadius: 24,
+                    border: "none",
+                    fontSize: 15,
+                    fontWeight: 600,
+                    background: "#eee",
+                    color: "#333",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    setShowEditRoomModal(false)
+                    setEditRoom(null)
+                    setEditRoomName("")
+                    setEditRoomDesc("")
+                    setEditRoomOldName("")
+                    setEditRoomError("")
+                  }}
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  disabled={editRoomLoading}
+                  style={{
+                    flex: 1,
+                    padding: "10px 0",
+                    borderRadius: 24,
+                    border: "none",
+                    fontSize: 15,
+                    fontWeight: 600,
+                    background: "#2574f5",
+                    color: "#fff",
+                    cursor: editRoomLoading ? "not-allowed" : "pointer",
+                    opacity: editRoomLoading ? 0.6 : 1,
+                  }}
+                >
+                  {editRoomLoading ? "수정 중..." : "수정"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

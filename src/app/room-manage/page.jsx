@@ -470,6 +470,23 @@ export default function RoomManagePage() {
     }
   }
 
+  // edgeModalNode.id: 현재 선택된 노드의 id
+  const connectedNodes = edges
+    .filter(
+      (e) =>
+        getNodeSuffix(e.from) === getNodeSuffix(edgeModalNode?.id) ||
+        getNodeSuffix(e.to) === getNodeSuffix(edgeModalNode?.id)
+    )
+    .map((e) => {
+      const isFrom = getNodeSuffix(e.from) === getNodeSuffix(edgeModalNode?.id)
+      const otherNodeId = isFrom ? e.to : e.from
+      return {
+        ...e,
+        otherNodeId,
+        otherNodeSuffix: getNodeSuffix(otherNodeId),
+      }
+    })
+
   // 엣지 연결 useEffect
   useEffect(() => {
     if (
@@ -593,6 +610,12 @@ export default function RoomManagePage() {
       name: room.name || room.Room_Name || "",
       description: room.description || room.Room_Description || "",
     }
+  }
+
+  function getNodeSuffix(id) {
+    if (!id) return ""
+    const parts = id.split("@")
+    return parts[parts.length - 1]
   }
 
   // --- return ---
@@ -914,6 +937,37 @@ export default function RoomManagePage() {
                 <div>건물: {edgeModalNode.building}</div>
                 <div>층: {edgeModalNode.floor}</div>
                 <div>ID: {edgeModalNode.id}</div>
+
+                {/* ✅ 여기에 연결된 노드 목록 추가 */}
+                <div style={{ marginTop: 16 }}>
+                  <div style={{ fontWeight: "bold", marginBottom: 6 }}>
+                    연결된 노드
+                  </div>
+                  {connectedNodes.length === 0 ? (
+                    <div style={{ color: "#888" }}>연결된 노드 없음</div>
+                  ) : (
+                    connectedNodes.map((edge, idx) => (
+                      <button
+                        key={`${edge.from}-${edge.to}-${idx}`}
+                        onClick={() => handleDisconnectEdge(edge)}
+                        style={{
+                          background: "#ffa500",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 8,
+                          padding: "4px 12px",
+                          marginRight: 8,
+                          marginBottom: 8,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {edge.otherNodeSuffix} 엣지 연결 해제
+                      </button>
+                    ))
+                  )}
+                </div>
+
+                {/* 기존 버튼들 */}
                 <button
                   onClick={() => {
                     setEdgeFromNode(edgeModalNode)

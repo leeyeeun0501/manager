@@ -517,6 +517,29 @@ export default function RoomManagePage() {
     }
   }
 
+  const handleEdgeConnect = (fromNode, toNode) => {
+    console.log("엣지 연결:", fromNode, "→", toNode)
+
+    // 예시: 엣지 리스트에 추가
+    setEdges((prev) => [
+      ...prev,
+      {
+        id: `edge-${fromNode.id}-${toNode.id}`,
+        source: fromNode.id,
+        target: toNode.id,
+        type: "stairs", // 예: 계단 연결이면 stairs 타입
+      },
+    ])
+
+    // 필요시 API 요청도 여기에
+    // fetch('/api/edge-connect', { method: "POST", body: JSON.stringify(...) })
+  }
+
+  const closeStairsEdgeModal = () => {
+    setShowStairsSelectModal(false)
+    setSelectedStairsNode(null)
+  }
+
   // 엣지 연결
   useEffect(() => {
     if (
@@ -1275,28 +1298,31 @@ export default function RoomManagePage() {
                     취소
                   </button>
                   <button
+                    onClick={() => {
+                      if (!selectedStairsNode || !targetStairId) return
+
+                      handleEdgeConnect(selectedStairsNode, {
+                        id: targetStairId,
+                        building: stairsBuilding,
+                      })
+
+                      setTargetStairId("")
+                      setShowStairsSelectModal(false)
+                      setSelectedStairsNode(null)
+                    }}
+                    disabled={!targetStairId}
                     style={{
-                      flex: 1,
-                      padding: "9px 0",
-                      borderRadius: 19,
+                      padding: "10px 22px",
+                      borderRadius: 24,
                       border: "none",
                       fontSize: 15,
                       fontWeight: 600,
-                      background: "#2574f5",
+                      background: "#0070f3",
                       color: "#fff",
-                      cursor: targetStairId ? "pointer" : "not-allowed",
-                      opacity: targetStairId ? 1 : 0.5,
-                    }}
-                    disabled={!targetStairId}
-                    onClick={() => {
-                      // 연결 처리 함수 실행. 아래 함수를 실제로 구현해야 함
-                      handleConnectStairsEdge(selectedStairsNode, targetStairId)
-                      setShowStairsSelectModal(false)
-                      setTargetStairId("")
-                      setSelectedStairsNode(null)
+                      cursor: "pointer",
                     }}
                   >
-                    연결
+                    엣지 연결
                   </button>
                 </div>
               </div>

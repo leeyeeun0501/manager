@@ -703,6 +703,44 @@ export default function RoomManagePage() {
     return parts[parts.length - 1]
   }
 
+  async function connectEdgeToStairs(
+    fromNode,
+    toStairId,
+    stairsBuilding,
+    filterBuilding,
+    filterFloor
+  ) {
+    try {
+      const res = await fetch("/api/mapfile-image-route", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from_building: stairsBuilding,
+          from_floor: fromNode.floor, // 계단노드가 floor 속성 없을 시 filterFloor 사용
+          from_node: fromNode.id,
+          to_building: stairsBuilding, // 보통 같은 건물, 다르면 변경
+          to_floor: toStairId.split("@")[1], // 계단 id에서 층정보 추출
+          to_node: toStairId,
+        }),
+      })
+
+      const text = await res.text()
+      let data = {}
+      try {
+        data = JSON.parse(text)
+      } catch {}
+      if (!res.ok) {
+        showToast(data.error || "엣지 연결 실패")
+        return
+      }
+
+      showToast("노드가 성공적으로 연결되었습니다.")
+      reloadMapData && reloadMapData() // 연결 성공 시 지도 데이터 갱신
+    } catch (err) {
+      showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
+    }
+  }
+
   return (
     <div className={styles["room-root"]}>
       <span className={styles["room-header"]}>강의실 관리 페이지</span>
@@ -1264,10 +1302,9 @@ export default function RoomManagePage() {
                     {stairsList
                       .filter((id) => id !== (selectedStairsNode?.id || ""))
                       .map((id) => {
-                        const parts = id.split("@") // ['W17-동관', '3', 'to-w15-stairs']
-                        const floor = parts[1] || "" // '3'
-                        const stairName = parts[2] || "" // 'to-w15-stairs'
-
+                        const parts = id.split("@")
+                        const floor = parts[1] || ""
+                        const stairName = parts[2] || ""
                         return (
                           <option key={id} value={id}>
                             {floor}층 - {stairName}
@@ -1298,13 +1335,17 @@ export default function RoomManagePage() {
                     취소
                   </button>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (!selectedStairsNode || !targetStairId) return
 
-                      handleEdgeConnect(selectedStairsNode, {
-                        id: targetStairId,
-                        building: stairsBuilding,
-                      })
+                      // 엣지 연결 서버 요청
+                      await connectEdgeToStairs(
+                        selectedStairsNode,
+                        targetStairId,
+                        stairsBuilding,
+                        filterBuilding,
+                        filterFloor
+                      )
 
                       setTargetStairId("")
                       setShowStairsSelectModal(false)

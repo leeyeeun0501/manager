@@ -1,5 +1,4 @@
 // mapfile-image-route
-import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 
 // 전체 데이터 조회 (GET)
@@ -73,6 +72,68 @@ export async function POST(request) {
     // 실제 연결 처리 API 호출 (예시)
     const connectRes = await fetch(`${API_BASE}/room/connect`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from_building,
+        from_floor,
+        from_node,
+        to_building,
+        to_floor,
+        to_node,
+      }),
+    })
+
+    if (!connectRes.ok) {
+      return new Response(JSON.stringify({ error: "노드 연결 실패" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
+
+    const result = await connectRes.json()
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    })
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: "서버 에러", detail: err.message }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    )
+  }
+}
+
+// 노드 엣지 연결 해제 (DELETE)
+export async function DELETE(request) {
+  try {
+    const body = await request.json()
+    const {
+      from_building,
+      from_floor,
+      from_node,
+      to_building,
+      to_floor,
+      to_node,
+    } = body
+
+    // 필수 값 체크
+    if (
+      !from_building ||
+      !from_floor ||
+      !from_node ||
+      !to_building ||
+      !to_floor ||
+      !to_node
+    ) {
+      return new Response(JSON.stringify({ error: "필수 값 누락" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
+
+    // 실제 연결 처리 API 호출 (예시)
+    const connectRes = await fetch(`${API_BASE}/room/connect`, {
+      method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         from_building,

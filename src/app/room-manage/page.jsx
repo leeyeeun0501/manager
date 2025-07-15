@@ -381,7 +381,51 @@ export default function RoomManagePage() {
     }
   }
 
-  // 엣지 연결 함수
+  // 데이터 재로딩 함수 예시 (컴포넌트 내에 정의)
+  const reloadMapData = () => {
+    if (filterBuilding && filterFloor) {
+      setMapLoading(true)
+      fetch(
+        `/api/mapfile-image-route?building=${encodeURIComponent(
+          filterBuilding
+        )}&floor=${encodeURIComponent(filterFloor)}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          const fileList = Array.isArray(data) ? data : [data]
+          const svgUrl = fileList[0]?.File
+          const nodesInfo = fileList[0]?.nodes || {}
+          let edgesInfo = fileList[0]?.edges
+          if (!edgesInfo) {
+            edgesInfo = []
+            Object.entries(nodesInfo).forEach(([from, arr]) => {
+              arr.forEach((edgeObj) => {
+                const to =
+                  typeof edgeObj === "string"
+                    ? edgeObj
+                    : edgeObj.node || edgeObj.to
+                if (to) edgesInfo.push({ from, to })
+              })
+            })
+          }
+          if (svgUrl) {
+            fetch(svgUrl)
+              .then((res) => res.text())
+              .then((svgXml) => {
+                const processedSvg = processSvg(svgXml)
+                setSvgRaw(processedSvg)
+                setRoomNodes(nodesInfo)
+                setEdges(edgesInfo)
+                const parsedNodes = parseSvgNodes(svgXml)
+                setSvgNodes(parsedNodes)
+              })
+          }
+        })
+        .finally(() => setMapLoading(false))
+    }
+  }
+
+  // 엣지 연결 함수 (자동 리프레시 적용)
   const connectEdge = async () => {
     setEdgeConnectLoading(true)
     try {
@@ -413,6 +457,8 @@ export default function RoomManagePage() {
       }
 
       showToast("노드가 성공적으로 연결되었습니다.")
+      // ★★★ 엣지 연결 성공 시 지도/엣지/노드 재로딩
+      reloadMapData()
     } catch (err) {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
     } finally {
@@ -547,13 +593,6 @@ export default function RoomManagePage() {
       name: room.name || room.Room_Name || "",
       description: room.description || room.Room_Description || "",
     }
-  }
-
-  // 예: "W19@1@101" → "101"
-  function getNodeSuffix(id) {
-    if (!id) return ""
-    const parts = id.split("@")
-    return parts[parts.length - 1]
   }
 
   // --- return ---

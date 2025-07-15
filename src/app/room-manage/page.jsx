@@ -627,7 +627,7 @@ export default function RoomManagePage() {
     } else {
       setSvgRaw("")
       setRoomNodes({})
-      setEdges([]) // ★★★ 추가
+      setEdges([])
       setSvgNodes([])
     }
   }, [filterBuilding, filterFloor])
@@ -644,17 +644,20 @@ export default function RoomManagePage() {
 
     fetch(`/api/stairs-route?building=${encodeURIComponent(stairsBuilding)}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data && Array.isArray(data.stairs)) {
+        if (Array.isArray(data)) {
+          setStairsList(data)
+          console.log("stairsList(배열):", data) // 여기서 배열 형태 확인
+        } else if (data && Array.isArray(data.stairs)) {
           setStairsList(data.stairs)
+          console.log("stairsList(.stairs):", data.stairs)
         } else {
           setStairsList([])
           setStairsError(data.error || "계단 정보를 불러오지 못했습니다.")
+          console.log("stairsList(빈 데이터):", data) // 에러 상황도 확인
         }
       })
       .catch(() => setStairsError("계단 정보를 불러오지 못했습니다."))
@@ -1236,14 +1239,18 @@ export default function RoomManagePage() {
                   >
                     <option value="">연결할 계단 선택</option>
                     {stairsList
-                      .filter(
-                        (stair) => stair.id !== (selectedStairsNode?.id || "")
-                      ) // 자기 자신은 제외
-                      .map((stair) => (
-                        <option key={stair.id} value={stair.id}>
-                          {stair.floor}층 - {stair.id}
-                        </option>
-                      ))}
+                      .filter((id) => id !== (selectedStairsNode?.id || ""))
+                      .map((id) => {
+                        const parts = id.split("@") // ['W17-동관', '3', 'to-w15-stairs']
+                        const floor = parts[1] || "" // '3'
+                        const stairName = parts[2] || "" // 'to-w15-stairs'
+
+                        return (
+                          <option key={id} value={id}>
+                            {floor}층 - {stairName}
+                          </option>
+                        )
+                      })}
                   </select>
                 )}
                 <div style={{ display: "flex", gap: 12, marginTop: 4 }}>

@@ -6,7 +6,6 @@ import "./room-manage.css"
 import { MdEditSquare } from "react-icons/md"
 
 export default function RoomManagePage() {
-  // 1. 모든 useState 선언을 최상단에!
   const [menuOpen, setMenuOpen] = useState(false)
   const [rooms, setRooms] = useState([])
   const [loading, setLoading] = useState(true)
@@ -646,7 +645,6 @@ export default function RoomManagePage() {
     return parts[parts.length - 1]
   }
 
-  // --- return ---
   return (
     <div className="management-root">
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
@@ -952,7 +950,7 @@ export default function RoomManagePage() {
               <div
                 style={{
                   background: "white",
-                  borderRadius: 10,
+                  borderRadius: 24,
                   minWidth: 280,
                   maxWidth: 350,
                   padding: 28,
@@ -961,11 +959,68 @@ export default function RoomManagePage() {
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <h4 style={{ marginTop: 0 }}>노드 정보</h4>
-                <div>건물: {edgeModalNode.building}</div>
-                <div>층: {edgeModalNode.floor}</div>
-                <div>ID: {edgeModalNode.id}</div>
-
+                <h4
+                  style={{
+                    marginTop: 0,
+                    marginBottom: 18,
+                    textAlign: "center",
+                    color: "#2586e5",
+                    fontWeight: 700,
+                    fontSize: 20,
+                    borderBottom: "2px solid #2586e5",
+                    display: "inline-block",
+                    paddingBottom: 4,
+                    lineHeight: 1.2,
+                    width: "100%",
+                  }}
+                >
+                  노드 정보
+                </h4>
+                <div
+                  style={{
+                    fontSize: 15,
+                    color: "#333",
+                    fontWeight: 500,
+                    lineHeight: 1.5,
+                    fontFamily: "Pretendard, 'Apple SD Gothic Neo', sans-serif",
+                    marginBottom: 2,
+                  }}
+                >
+                  <strong>건물:</strong>
+                  <span style={{ fontWeight: 400, marginLeft: 4 }}>
+                    {edgeModalNode.building}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    fontSize: 15,
+                    color: "#333",
+                    fontWeight: 500,
+                    lineHeight: 1.5,
+                    fontFamily: "Pretendard, 'Apple SD Gothic Neo', sans-serif",
+                    marginBottom: 2,
+                  }}
+                >
+                  <strong>층:</strong>
+                  <span style={{ fontWeight: 400, marginLeft: 4 }}>
+                    {edgeModalNode.floor}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    fontSize: 15,
+                    color: "#333",
+                    fontWeight: 500,
+                    lineHeight: 1.5,
+                    fontFamily: "Pretendard, 'Apple SD Gothic Neo', sans-serif",
+                    marginBottom: 2,
+                  }}
+                >
+                  <strong>ID:</strong>
+                  <span style={{ fontWeight: 400, marginLeft: 4 }}>
+                    {edgeModalNode.id}
+                  </span>
+                </div>
                 {/* ✅ 여기에 연결된 노드 목록 추가 */}
                 <div style={{ marginTop: 16 }}>
                   <div style={{ fontWeight: "bold", marginBottom: 6 }}>
@@ -979,14 +1034,17 @@ export default function RoomManagePage() {
                         key={`${edge.otherNodeId}-${idx}`}
                         onClick={() => handleDisconnectEdge(edge.otherNodeId)}
                         style={{
-                          background: "#ffa500",
-                          color: "#fff",
+                          padding: "8px 18px", // 중간 크기 패딩
+                          borderRadius: 20, // 적당한 둥글기
                           border: "none",
-                          borderRadius: 8,
-                          padding: "4px 12px",
+                          fontSize: 14, // 중간 폰트 크기
+                          fontWeight: 550, // 적당한 두께
+                          background: "#ffa500", // 해제/삭제 계열 색상
+                          color: "#fff",
+                          cursor: "pointer",
                           marginRight: 8,
                           marginBottom: 8,
-                          cursor: "pointer",
+                          marginTop: 3,
                         }}
                       >
                         {edge.otherNodeSuffix} 엣지 연결 해제
@@ -994,41 +1052,51 @@ export default function RoomManagePage() {
                     ))
                   )}
                 </div>
-
                 {/* 기존 버튼들 */}
-                <button
-                  onClick={() => {
-                    setEdgeFromNode(edgeModalNode)
-                    setShowEdgeModal(false)
-                    setEdgeConnectMode(true)
-                    setEdgeToNode(null)
-                  }}
+                <div
                   style={{
+                    display: "flex",
+                    gap: 10,
+                    justifyContent: "flex-end",
                     marginTop: 16,
-                    background: "#007bff",
-                    color: "#fff",
-                    padding: "8px 18px",
-                    border: "none",
-                    borderRadius: 5,
-                    cursor: "pointer",
                   }}
                 >
-                  엣지 연결
-                </button>
-                <button
-                  onClick={() => setShowEdgeModal(false)}
-                  style={{
-                    marginLeft: 10,
-                    background: "#6c757d",
-                    color: "#fff",
-                    padding: "8px 18px",
-                    border: "none",
-                    borderRadius: 5,
-                    cursor: "pointer",
-                  }}
-                >
-                  닫기
-                </button>
+                  <button
+                    onClick={() => setShowEdgeModal(false)}
+                    style={{
+                      padding: "10px 22px",
+                      borderRadius: 24,
+                      border: "none",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      background: "#eee",
+                      color: "#333",
+                      cursor: "pointer",
+                    }}
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEdgeFromNode(edgeModalNode)
+                      setShowEdgeModal(false)
+                      setEdgeConnectMode(true)
+                      setEdgeToNode(null)
+                    }}
+                    style={{
+                      padding: "10px 22px",
+                      borderRadius: 24,
+                      border: "none",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      background: "#0070f3",
+                      color: "#fff",
+                      cursor: "pointer",
+                    }}
+                  >
+                    엣지 연결
+                  </button>
+                </div>
               </div>
             </div>
           )}

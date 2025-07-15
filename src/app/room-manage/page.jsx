@@ -641,12 +641,12 @@ export default function RoomManagePage() {
 
     setStairsLoading(true)
     setStairsError("")
-    fetch("/api/stairs-route", {
+
+    fetch(`/api/stairs-route?building=${encodeURIComponent(stairsBuilding)}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ building: stairsBuilding }),
     })
       .then((res) => res.json())
       .then((data) => {
@@ -1133,13 +1133,16 @@ export default function RoomManagePage() {
                     엣지 연결
                   </button>
                   {/*  계단 노드에서만 노출되는 버튼 */}
-                  {edgeModalNode.id?.includes("stairs") && (
+                  {edgeModalNode?.id?.includes("stairs") && (
                     <button
                       onClick={() => {
+                        console.log(
+                          "클릭됨: building =",
+                          edgeModalNode.building
+                        )
                         setStairsBuilding(edgeModalNode.building)
-                        setShowStairsSelectModal(true)
-                        setShowEdgeModal(false)
                         setSelectedStairsNode(edgeModalNode)
+                        setShowStairsSelectModal(true)
                       }}
                       style={{
                         padding: "10px 22px",
@@ -1159,7 +1162,7 @@ export default function RoomManagePage() {
               </div>
             </div>
           )}
-          {/* ▶ stairs 연결 선택 모달 */}
+          {/*  stairs 연결 선택 모달 */}
           {showStairsSelectModal && (
             <div
               style={{
@@ -1200,7 +1203,7 @@ export default function RoomManagePage() {
                     paddingBottom: 7,
                   }}
                 >
-                  다른 층 계단과 연결
+                  다른 층 계단 연결
                 </div>
                 {stairsLoading ? (
                   <div style={{ textAlign: "center", margin: 18 }}>

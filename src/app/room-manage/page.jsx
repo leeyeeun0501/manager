@@ -1,8 +1,9 @@
 // room-manage/page.jsx
 "use client"
+import "../globals.css"
 import React, { useRef, useState, useEffect } from "react"
 import Menu from "../components/menu"
-import "./room-manage.css"
+import styles from "./room-manage.module.css"
 import { MdEditSquare } from "react-icons/md"
 
 export default function RoomManagePage() {
@@ -646,12 +647,13 @@ export default function RoomManagePage() {
   }
 
   return (
-    <div className="room-root">
-      <span className="room-header">강의실 관리 페이지</span>
+    <div className={styles["room-root"]}>
+      <span className={styles["room-header"]}>강의실 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <div className="room-content">
-        <div className="room-manage-filter-row">
+      <div className={styles["room-content"]}>
+        <div className={styles["room-manage-filter-row"]}>
           <select
+            className={styles["room-select"]}
             value={filterBuilding}
             onChange={(e) => setFilterBuilding(e.target.value)}
           >
@@ -663,6 +665,7 @@ export default function RoomManagePage() {
             ))}
           </select>
           <select
+            className={styles["room-select"]}
             value={filterFloor}
             onChange={(e) => setFilterFloor(e.target.value)}
             disabled={!filterBuilding}
@@ -682,14 +685,16 @@ export default function RoomManagePage() {
           </select>
         </div>
 
-        <div className="room-manage-main-row">
+        <div className={styles["room-manage-main-row"]}>
           {/* 표 */}
-          <div className="room-manage-table-wrap">
+          <div className={styles["room-manage-table-wrap"]}>
             {loading && <p>로딩 중...</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {!loading && !error && (
               <>
-                <table className="user-table center-table bordered-table">
+                <table
+                  className={`${styles["user-table"]} ${styles["center-table"]} ${styles["bordered-table"]}`}
+                >
                   <thead>
                     <tr>
                       <th>건물명</th>
@@ -748,19 +753,19 @@ export default function RoomManagePage() {
                   </tbody>
                 </table>
                 {/* 페이지네이션 */}
-                <div className="room-manage-pagination-row">
+                <div className={styles["room-manage-pagination-row"]}>
                   <button
-                    className="room-manage-pagination-btn"
+                    className={styles["room-manage-pagination-btn"]}
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                   >
                     이전
                   </button>
-                  <span className="room-manage-pagination-info">
+                  <span className={styles["room-manage-pagination-info"]}>
                     {currentPage} / {totalPages}
                   </span>
                   <button
-                    className="room-manage-pagination-btn"
+                    className={styles["room-manage-pagination-btn"]}
                     onClick={() =>
                       setCurrentPage((p) => Math.min(totalPages, p + 1))
                     }
@@ -773,7 +778,7 @@ export default function RoomManagePage() {
             )}
           </div>
           {/* 맵 */}
-          <div className="room-manage-map-wrap">
+          <div className={styles["room-manage-map-wrap"]}>
             <div
               style={{
                 position: "relative",
@@ -785,17 +790,17 @@ export default function RoomManagePage() {
               }}
             >
               {mapLoading && (
-                <div className="room-manage-canvas-placeholder">
+                <div className={styles["room-manage-canvas-placeholder"]}>
                   맵 로딩 중...
                 </div>
               )}
               {!mapLoading && (!filterBuilding || !filterFloor) && (
-                <div className="room-manage-canvas-placeholder">
+                <div className={styles["room-manage-canvas-placeholder"]}>
                   건물과 층을 선택하면 맵이 표시됩니다.
                 </div>
               )}
               {!mapLoading && filterBuilding && filterFloor && !svgRaw && (
-                <div className="room-manage-canvas-placeholder">
+                <div className={styles["room-manage-canvas-placeholder"]}>
                   해당 건물/층의 맵 파일을 찾을 수 없습니다.
                 </div>
               )}

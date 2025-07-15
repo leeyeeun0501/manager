@@ -1,17 +1,3 @@
-/* classroom-manage.css */
-html,
-body {
-  overflow-x: hidden; /* 가로 스크롤바 완전히 숨기기 */
-  overflow-y: auto; /* 세로 스크롤은 필요시에만 */
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  width: 100vw;
-  height: 100vh;
-}
-
 .room-manage-map-wrap {
   flex: 1;
   display: flex;
@@ -134,37 +120,6 @@ body {
   width: 900px;
 }
 
-select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 1rem;
-  color: #333;
-  cursor: pointer;
-  width: 100px;
-  transition: border-color 0.3s ease;
-  margin-right: 12px;
-}
-
-select:hover,
-select:focus {
-  border-color: #007bff;
-  outline: none;
-}
-
-select::-ms-expand {
-  display: none;
-}
-
-.select-container {
-  display: inline-block;
-  position: relative;
-}
-
 .room-manage-canvas {
   width: 600px;
   height: 600px;
@@ -204,24 +159,6 @@ select::-ms-expand {
   padding: 16px;
   z-index: 10;
   min-width: 200px;
-}
-
-/* 스크롤바 스타일링 (WebKit 기반 브라우저) */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
 }
 
 .bordered-table {

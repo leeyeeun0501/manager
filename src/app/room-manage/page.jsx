@@ -219,15 +219,12 @@ export default function RoomManagePage() {
   const handleNodeClick = (node, event) => {
     event.stopPropagation()
     if (edgeConnectMode) {
-      // 엣지 연결 모드: 두 번째 노드 선택
       if (edgeFromNode && node.id !== edgeFromNode.id) {
         setEdgeToNode(node)
         setEdgeStep(2)
       }
-      // 같은 노드 클릭 시 무시
       return
     }
-    // 일반 모드: 노드 선택시 모달
     setSelectedNode(node)
     setEdgeModalNode({ ...node, building: filterBuilding, floor: filterFloor })
     setShowEdgeModal(true)
@@ -241,7 +238,6 @@ export default function RoomManagePage() {
 
     if (!svgEl) return svgXml
 
-    // 기존 viewBox가 있다면 사용
     const existingViewBox = svgEl.getAttribute("viewBox")
     if (existingViewBox) {
       const parts = existingViewBox.split(/[\s,]+/).map(Number)
@@ -256,11 +252,9 @@ export default function RoomManagePage() {
       }
     }
 
-    // width, height 속성에서 크기 가져오기
     const width = parseFloat(svgEl.getAttribute("width")) || 400
     const height = parseFloat(svgEl.getAttribute("height")) || 400
 
-    // viewBox 설정
     const viewBoxStr = `0 0 ${width} ${height}`
     svgEl.setAttribute("viewBox", viewBoxStr)
     setSvgViewBox({
@@ -270,7 +264,6 @@ export default function RoomManagePage() {
       height: height,
     })
 
-    // 불필요한 width, height 속성 제거하여 반응형으로 만들기
     svgEl.removeAttribute("width")
     svgEl.removeAttribute("height")
 
@@ -381,7 +374,7 @@ export default function RoomManagePage() {
     }
   }
 
-  // 데이터 재로딩 함수 예시 (컴포넌트 내에 정의)
+  // 데이터 재로딩 함수
   const reloadMapData = () => {
     if (filterBuilding && filterFloor) {
       setMapLoading(true)
@@ -515,7 +508,8 @@ export default function RoomManagePage() {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
     }
   }
-  // 엣지 연결 useEffect
+
+  // 엣지 연결
   useEffect(() => {
     if (
       edgeConnectMode &&
@@ -1026,7 +1020,7 @@ export default function RoomManagePage() {
                     {edgeModalNode.id}
                   </span>
                 </div>
-                {/* ✅ 여기에 연결된 노드 목록 추가 */}
+                {/* 연결된 노드 목록 추가 */}
                 <div style={{ marginTop: 16 }}>
                   <div style={{ fontWeight: "bold", marginBottom: 6 }}>
                     연결된 노드

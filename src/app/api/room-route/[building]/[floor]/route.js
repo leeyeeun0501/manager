@@ -73,19 +73,21 @@ export async function POST(req, { params }) {
   }
 }
 
-// 강의실명/강의실 설명 수정 (PUT)
-// 근데 강의실명은 수정 못함
+// 강의실 설명 수정 (PUT)
 export async function PUT(req, context) {
-  const params = context.params ? await context.params : {}
+  const params = context.params ?? {}
   const { building, floor } = params
+
   try {
     const body = await req.json()
-    const { old_room_name, room_name, room_desc } = body
+    const { room_name, room_desc } = body
 
-    if (!old_room_name || !room_name) {
+    // 필수 항목 검사
+    if (!room_name || !room_desc) {
       return NextResponse.json({ error: "필수 항목 누락" }, { status: 400 })
     }
 
+    // 서버로 PUT 요청
     const res = await fetch(
       `${API_BASE}/room/${encodeURIComponent(building)}/${encodeURIComponent(
         floor
@@ -93,11 +95,7 @@ export async function PUT(req, context) {
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          old_room_name,
-          room_name,
-          room_desc,
-        }),
+        body: JSON.stringify({ room_name, room_desc }),
       }
     )
 
@@ -112,9 +110,10 @@ export async function PUT(req, context) {
       )
     }
 
+    // 성공 응답 처리
     const data = await res.json().catch(() => ({}))
     return NextResponse.json({
-      message: data.message || "수정이 완료되었습니다",
+      message: data.message || "강의실 설명이 수정되었습니다",
     })
   } catch (err) {
     return NextResponse.json({ error: "서버 오류" }, { status: 500 })

@@ -339,10 +339,12 @@ export default function RoomManagePage() {
     }
   }
 
-  // 강의실 수정 핸들러
-  const handleEditRoom = async () => {
+  // 강의실 설명 수정 핸들러
+  const handleEditRoom = async (e) => {
+    e.preventDefault()
     if (!editRoom) return
     setEditRoomLoading(true)
+
     try {
       const res = await fetch(
         `/api/room-route/${encodeURIComponent(
@@ -352,23 +354,28 @@ export default function RoomManagePage() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            old_room_name: editRoomOldName,
             room_name: editRoomName,
             room_desc: editRoomDesc,
           }),
         }
       )
+
       const data = await res.json()
+
       if (!res.ok) {
         showToast(data.error || "수정 실패")
         return
       }
+
+      // 강의실 목록 데이터 다시 불러오기
       fetchRooms(filterBuilding, filterFloor)
+
+      // 상태 초기화 및 모달 닫기
       setShowEditRoomModal(false)
       setEditRoom(null)
       setEditRoomName("")
       setEditRoomDesc("")
-      setEditRoomOldName("")
+
       showToast("강의실 정보가 수정되었습니다.")
     } catch {
       showToast("수정 중 오류가 발생했습니다.")

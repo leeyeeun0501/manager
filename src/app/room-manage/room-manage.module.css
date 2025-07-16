@@ -39,11 +39,18 @@
   margin-bottom: 0;
 }
 
+.room-content,
+.room-manage-table-wrap {
+  overflow-x: auto;
+  min-width: 2000px;
+  width: 100%;
+}
+
 .room-content {
   max-width: 100%;
   margin: 0 auto;
   padding: 0px 0 0 0;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 .room-manage-filter-row {
@@ -60,7 +67,7 @@
   width: 100%;
   max-width: 1400px;
   margin: 20px auto 0;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 .room-manage-table-wrap {
@@ -68,7 +75,7 @@
   min-width: 700px;
   max-width: 1200px;
   margin-right: 0;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 .user-table.center-table {

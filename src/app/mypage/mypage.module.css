@@ -2,7 +2,7 @@
 
 .mypage-container {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: #f4f7fc;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -80,7 +80,7 @@
 }
 
 .mypage-btn-sub {
-  background: #bbb;
+  background: #eee;
   color: #333;
   font-weight: 500;
 }

@@ -689,18 +689,22 @@ export default function RoomManagePage() {
     return parts[parts.length - 1]
   }
 
-  async function connectEdgeToStairs(fromNode, toStairId, stairsBuilding) {
+  async function connectEdgeToStairs(fromNode, toNodeInfo) {
+    const { building: toBuilding, floor: toFloor, node: toNode } = toNodeInfo
+
     try {
       const res = await fetch("/api/map-route", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          from_building: stairsBuilding,
+          // ✅ 건물 → 층 → 아이디 순서
+          from_building: fromNode.building,
           from_floor: fromNode.floor,
           from_node: fromNode.id,
-          to_building: stairsBuilding,
-          to_floor: toStairId.split("@")[1],
-          to_node: toStairId,
+
+          to_building: toBuilding,
+          to_floor: toFloor,
+          to_node: toNode,
         }),
       })
 
@@ -709,15 +713,25 @@ export default function RoomManagePage() {
       try {
         data = JSON.parse(text)
       } catch {}
+
       if (!res.ok) {
         showToast(data.error || "엣지 연결 실패")
         return
       }
 
       showToast("노드가 성공적으로 연결되었습니다.")
-      reloadMapData && reloadMapData() // 연결 성공 시 지도 데이터 갱신
+      reloadMapData && reloadMapData()
     } catch (err) {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
+    }
+  }
+
+  const parseNodeInfo = (fullId) => {
+    const parts = fullId.split("@")
+    return {
+      building: parts[0], // W17-동관
+      floor: parts[1], // 2
+      node: parts[2], // left-stairs
     }
   }
 
@@ -1212,7 +1226,6 @@ export default function RoomManagePage() {
             </div>
           )}
           {/* stairs 연결 선택 모달 */}
-          {/* stairs 연결 선택 모달 */}
           {showStairsSelectModal && (
             <div
               style={{
@@ -1405,12 +1418,11 @@ export default function RoomManagePage() {
                     onClick={async () => {
                       if (!selectedStairsNode || !targetStairId) return
 
+                      const parsedTarget = parseNodeInfo(targetStairId) // 건물, 층, 아이디 파싱
+
                       await connectEdgeToStairs(
-                        selectedStairsNode,
-                        targetStairId,
-                        stairsBuilding,
-                        filterBuilding,
-                        filterFloor
+                        selectedStairsNode, // fromNode
+                        parsedTarget // toNodeInfo
                       )
 
                       setTargetStairId("")

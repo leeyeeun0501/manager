@@ -26,7 +26,7 @@
   color: #222;
   margin: 0;
   padding: 0;
-  background: #f4f7fc; /* 본문과 같은 배경색 */
+  background: #f4f7fc;
   display: block;
 }
 
@@ -303,14 +303,14 @@
   border-radius: 8px;
   border: 1.5px solid #b3d1fa;
   padding: 8px 12px;
-  background: #fff; /* ← 완전 흰색으로 변경! */
+  background: #fff;
   transition: border 0.13s;
 }
 
 .add-floor-modal-row input[type="file"] {
   flex: 1 1 0;
   font-size: 1rem;
-  background: #fff; /* ← 완전 흰색으로 변경! */
+  background: #fff;
 }
 
 .add-floor-modal-error {

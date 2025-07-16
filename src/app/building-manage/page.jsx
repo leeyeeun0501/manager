@@ -1,3 +1,4 @@
+// building-manage
 "use client"
 import "../globals.css"
 import React, { useEffect, useState, useRef } from "react"
@@ -25,9 +26,6 @@ export default function BuildingPage() {
   const [addFloorError, setAddFloorError] = useState("")
   const addFloorFileRef = useRef(null)
 
-  const [mapModalOpen, setMapModalOpen] = useState(false)
-  const [mapModalFile, setMapModalFile] = useState("")
-
   // 건물 옵션
   const buildingOptions = buildingInfos.map((b) => b.name)
 
@@ -42,6 +40,9 @@ export default function BuildingPage() {
   const [addFileLoading, setAddFileLoading] = useState(false)
   const addFileRef = useRef(null)
 
+  // 모달
+  const [mapModalOpen, setMapModalOpen] = useState(false)
+  const [mapModalFile, setMapModalFile] = useState("")
   const [fileAddModal, setFileAddModal] = useState({
     open: false,
     building: "",
@@ -61,7 +62,7 @@ export default function BuildingPage() {
     floorPage * pageSize
   )
 
-  // 층 콤보박스 옵션: floors에서 추출
+  // 층 콤보박스 옵션
   const floorNames = Array.from(
     new Set(floors.map((f) => String(f.floor)).filter(Boolean))
   ).sort((a, b) => Number(a) - Number(b))
@@ -142,7 +143,7 @@ export default function BuildingPage() {
     }
   }
 
-  // 건물 목록 fetch
+  // 건물 목록
   useEffect(() => {
     async function fetchBuildings() {
       try {
@@ -162,7 +163,7 @@ export default function BuildingPage() {
     fetchBuildings()
   }, [])
 
-  // floors fetch (전체/건물별)
+  // (전체/건물별) 층 정보
   useEffect(() => {
     async function fetchFloors() {
       let url = "/api/floor-route"
@@ -717,9 +718,8 @@ export default function BuildingPage() {
                     fontWeight: 600,
                     marginBottom: 12,
                     textAlign: "center",
-                    whiteSpace: "nowrap", // 한 줄로!
+                    whiteSpace: "nowrap",
                     overflow: "hidden",
-                    textOverflow: "ellipsis", // 너무 길면 ... 처리
                   }}
                 >
                   건물명: {editMapBuilding} / 층수: {editMapFloor}
@@ -789,7 +789,6 @@ export default function BuildingPage() {
                     }
                     alert("도면이 성공적으로 수정되었습니다!")
                     setMapModalOpen(false)
-                    // 도면 수정 후, 필요하다면 목록 새로고침 등 추가
                   } catch (err) {
                     setEditMapError("도면 수정 중 오류가 발생했습니다.")
                   }
@@ -928,7 +927,6 @@ export default function BuildingPage() {
                     }
                     alert("도면이 성공적으로 추가되었습니다!")
                     setFileAddModal({ open: false, building: "", floor: "" })
-                    // 새로고침
                     if (selectedBuilding === fileAddModal.building) {
                       const floorsRes = await fetch(
                         `/api/floor-route?building=${encodeURIComponent(

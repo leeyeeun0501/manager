@@ -1,4 +1,5 @@
 // mapfile-manage
+// 아직 안 씀
 "use client"
 import React, { useRef, useState, useEffect } from "react"
 import Menu from "../components/menu"
@@ -26,14 +27,13 @@ export default function MapfileManagePage() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [showDeletePopup, setShowDeletePopup] = useState(false)
 
-  // 건물 목록 fetch
+  // 건물 목록
   useEffect(() => {
     async function fetchBuildingNames() {
       try {
         const res = await fetch("/api/building-route?type=names")
         if (!res.ok) throw new Error("Failed to fetch building names")
         const data = await res.json()
-        // [{ Building_Name: "W19" }, ...] 형태
         const names = (data.names || [])
           .filter((b) => b && b.Building_Name)
           .map((b) => b.Building_Name)
@@ -45,7 +45,7 @@ export default function MapfileManagePage() {
     fetchBuildingNames()
   }, [])
 
-  // 건물 선택 시 해당 건물의 층 번호 목록만 fetch
+  // 건물 선택 시 해당 건물의 층 번호 목록
   useEffect(() => {
     if (!selectedBuilding) {
       setFloors([])
@@ -62,7 +62,6 @@ export default function MapfileManagePage() {
         )
         if (!res.ok) throw new Error("Failed to fetch floors")
         const data = await res.json()
-        // data.floors: ["1", "2", ...]
         setFloors(Array.isArray(data.floors) ? data.floors : [])
         setSelectedFloor("")
         setFloorPage(1)
@@ -109,7 +108,7 @@ export default function MapfileManagePage() {
         return
       }
       const blob = await res.json()
-      const objectUrl = blob.File;
+      const objectUrl = blob.File
       setImgUrl(objectUrl)
 
       // 2. 카테고리 위치 fetch
@@ -133,7 +132,7 @@ export default function MapfileManagePage() {
     setLoading(false)
   }
 
-  // 이미지 클릭 시 좌표 얻기 (비율로)
+  // 이미지 클릭 시 좌표
   const handleImageClick = (e) => {
     if (!imgRef.current) return
     const rect = imgRef.current.getBoundingClientRect()
@@ -141,10 +140,9 @@ export default function MapfileManagePage() {
     const y = e.clientY - rect.top
     const imgWidth = imgRef.current.clientWidth
     const imgHeight = imgRef.current.clientHeight
-    // 0~1 사이 비율로 변환
     const ratioX = x / imgWidth
     const ratioY = y / imgHeight
-    setPopup({ x: ratioX, y: ratioY }) // 비율로 저장
+    setPopup({ x: ratioX, y: ratioY })
     setSelectedCategory("")
     setSubmitMsg("")
   }
@@ -157,7 +155,6 @@ export default function MapfileManagePage() {
       setSubmitMsg("카테고리를 선택하세요.")
       return
     }
-    // 비율 좌표 그대로 전송
     const res = await fetch("/api/mapfile-image-route", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -165,8 +162,8 @@ export default function MapfileManagePage() {
         building: selectedBuilding,
         floor: selectedFloor,
         category: selectedCategory,
-        x: popup.x, // 비율 좌표
-        y: popup.y, // 비율 좌표
+        x: popup.x,
+        y: popup.y,
       }),
     })
     const data = await res.json()

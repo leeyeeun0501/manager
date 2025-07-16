@@ -48,7 +48,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     }
   }, [menuOpen])
 
-  // 최초 nodes, edges 모두 fetch
+  // 최초 nodes, edges
   useEffect(() => {
     fetchNodes()
     fetchEdges()
@@ -154,13 +154,12 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     if (!window.naver || !mapInstance.current) return
     if (!nodes || nodes.length === 0) return
 
-    // 모든 노드의 x, y 평균값 계산
     const xs = nodes.map((n) => n.x).filter((x) => typeof x === "number")
     const ys = nodes.map((n) => n.y).filter((y) => typeof y === "number")
     if (xs.length === 0 || ys.length === 0) return
   }, [nodes])
 
-  // 마커/원/이벤트 등록 (nodes, edges, recentlyAddedNode가 바뀔 때마다)
+  // 마커/원/이벤트 등록
   useEffect(() => {
     const naver = window.naver
     const map = mapInstance.current
@@ -426,7 +425,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       return
     }
 
-    // === 지도 위치/줌 저장 (여기서 반드시 먼저 저장!) ===
     const map = mapInstance.current
     if (map) {
       const center = map.getCenter()
@@ -438,7 +436,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       localStorage.setItem("naverMapZoom", zoom)
     }
 
-    // 이하 기존 코드
     let finalNodeName = nodeName
     if (type === "node") {
       finalNodeName = getNextONodeName()
@@ -513,7 +510,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     }
   }
 
-  // --- 엣지 연결 함수: 1:1 연결만 허용 ---
+  // 엣지 연결 함수
   async function handleEdgeConnect(from, to) {
     if (!from?.node_name || !to?.node_name) {
       alert("노드 정보가 올바르지 않습니다.")
@@ -551,7 +548,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     }
   }
 
-  // --- 엣지 연결 해제 함수 ---
+  // 엣지 연결 해제 함수
   async function handleEdgeDisconnect(from_node, to_node) {
     if (!from_node || !to_node) {
       alert("노드 정보가 올바르지 않습니다.")

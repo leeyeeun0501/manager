@@ -21,6 +21,7 @@ export default function SignupPage() {
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
+  // 회원가입 핸들러
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")

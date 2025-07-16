@@ -1,4 +1,4 @@
-// room-manage/page.jsx
+// room-manage
 "use client"
 import "../globals.css"
 import React, { useRef, useState, useEffect } from "react"
@@ -96,7 +96,6 @@ export default function RoomManagePage() {
     const doc = parser.parseFromString(svgXml, "image/svg+xml")
     const nodes = []
 
-    // Navigation_Nodes 레이어 찾기
     const navigationLayer =
       doc.querySelector('g[id="Navigation_Nodes"]') ||
       doc.querySelector('g[id="navigation_nodes"]') ||
@@ -108,20 +107,17 @@ export default function RoomManagePage() {
       return []
     }
 
-    // Navigation_Nodes 레이어 내의 id가 있는 요소들만 찾기
     const allElements = navigationLayer.querySelectorAll("*[id]")
 
     allElements.forEach((element) => {
       const id = element.getAttribute("id")
       if (!id) return
 
-      // 요소의 위치 정보 가져오기
       let x = 0,
         y = 0,
         width = 0,
         height = 0
 
-      // 각 요소 타입별로 위치 정보 추출
       switch (element.tagName.toLowerCase()) {
         case "rect":
           x = parseFloat(element.getAttribute("x") || 0)
@@ -165,7 +161,6 @@ export default function RoomManagePage() {
           }
           break
         case "path":
-          // path의 경우 getBBox()를 사용해야 하지만, 여기서는 간단히 처리
           const d = element.getAttribute("d") || ""
           const matches = d.match(/[ML]\s*([0-9.-]+)\s*,?\s*([0-9.-]+)/g)
           if (matches && matches.length > 0) {
@@ -443,7 +438,6 @@ export default function RoomManagePage() {
         }),
       })
 
-      // 응답 상태 및 body를 로그로 확인
       const text = await res.text()
       console.log("status:", res.status, "body:", text)
 
@@ -458,7 +452,6 @@ export default function RoomManagePage() {
       }
 
       showToast("노드가 성공적으로 연결되었습니다.")
-      // ★★★ 엣지 연결 성공 시 지도/엣지/노드 재로딩
       reloadMapData()
     } catch (err) {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
@@ -528,7 +521,6 @@ export default function RoomManagePage() {
     ) {
       connectEdge()
     }
-    // eslint-disable-next-line
   }, [
     edgeStep,
     edgeFromNode,
@@ -578,7 +570,6 @@ export default function RoomManagePage() {
           const fileList = Array.isArray(data) ? data : [data]
           const svgUrl = fileList[0]?.File
           const nodesInfo = fileList[0]?.nodes || {}
-          // edges가 있으면 사용, 없으면 nodesInfo에서 만들어줌
           let edgesInfo = fileList[0]?.edges
           if (!edgesInfo) {
             edgesInfo = []
@@ -650,21 +641,21 @@ export default function RoomManagePage() {
       .then((data) => {
         if (Array.isArray(data)) {
           setStairsList(data)
-          console.log("stairsList(배열):", data) // 여기서 배열 형태 확인
+          console.log("stairsList(배열):", data)
         } else if (data && Array.isArray(data.stairs)) {
           setStairsList(data.stairs)
           console.log("stairsList(.stairs):", data.stairs)
         } else {
           setStairsList([])
           setStairsError(data.error || "계단 정보를 불러오지 못했습니다.")
-          console.log("stairsList(빈 데이터):", data) // 에러 상황도 확인
+          console.log("stairsList(빈 데이터):", data)
         }
       })
       .catch(() => setStairsError("계단 정보를 불러오지 못했습니다."))
       .finally(() => setStairsLoading(false))
   }, [stairsBuilding])
 
-  // 강의실 데이터 normalize
+  // 강의실 데이터
   function normalizeRoom(room) {
     return {
       building: room.building || room.Building_Name || "",
@@ -680,23 +671,17 @@ export default function RoomManagePage() {
     return parts[parts.length - 1]
   }
 
-  async function connectEdgeToStairs(
-    fromNode,
-    toStairId,
-    stairsBuilding,
-    filterBuilding,
-    filterFloor
-  ) {
+  async function connectEdgeToStairs(fromNode, toStairId, stairsBuilding) {
     try {
       const res = await fetch("/api/map-route", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           from_building: stairsBuilding,
-          from_floor: fromNode.floor, // 계단노드가 floor 속성 없을 시 filterFloor 사용
+          from_floor: fromNode.floor,
           from_node: fromNode.id,
-          to_building: stairsBuilding, // 보통 같은 건물, 다르면 변경
-          to_floor: toStairId.split("@")[1], // 계단 id에서 층정보 추출
+          to_building: stairsBuilding,
+          to_floor: toStairId.split("@")[1],
           to_node: toStairId,
         }),
       })
@@ -1111,12 +1096,12 @@ export default function RoomManagePage() {
                         key={`${edge.otherNodeId}-${idx}`}
                         onClick={() => handleDisconnectEdge(edge.otherNodeId)}
                         style={{
-                          padding: "8px 18px", // 중간 크기 패딩
-                          borderRadius: 20, // 적당한 둥글기
+                          padding: "8px 18px",
+                          borderRadius: 20,
                           border: "none",
-                          fontSize: 14, // 중간 폰트 크기
-                          fontWeight: 550, // 적당한 두께
-                          background: "#ffa500", // 해제/삭제 계열 색상
+                          fontSize: 14,
+                          fontWeight: 550,
+                          background: "#ffa500",
                           color: "#fff",
                           cursor: "pointer",
                           marginRight: 8,
@@ -1314,8 +1299,6 @@ export default function RoomManagePage() {
                   <button
                     onClick={async () => {
                       if (!selectedStairsNode || !targetStairId) return
-
-                      // 엣지 연결 서버 요청
                       await connectEdgeToStairs(
                         selectedStairsNode,
                         targetStairId,

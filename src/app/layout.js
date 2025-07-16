@@ -11,7 +11,7 @@ export default function RootLayout({ children }) {
 
   const hideMenuAndProfile = pathname === "/login" || pathname === "/signup"
 
-  // 창 꺼짐 로그아웃 fetch
+  // 창 꺼짐 로그아웃
   useEffect(() => {
     const id = localStorage.getItem("id")
     if (!id) return

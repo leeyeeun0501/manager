@@ -4,7 +4,7 @@ import { API_BASE } from "../../apibase"
 
 // floor-route 보면 똑같은 거 하나 더 있음
 // 강의실 조회(건물) (GET)
-export async function GET({ params }) {
+export async function GET(request, { params }) {
   const { building } = await params
 
   try {

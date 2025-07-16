@@ -1,5 +1,6 @@
 // building-manage
 "use client"
+import "../globals.css"
 import React, { useState, useEffect } from "react"
 import NaverMap from "./navermap"
 import Menu from "../components/menu"

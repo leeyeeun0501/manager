@@ -1,5 +1,6 @@
 // mypage
 "use client"
+import "../globals.css"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
 import styles from "./mypage.module.css"

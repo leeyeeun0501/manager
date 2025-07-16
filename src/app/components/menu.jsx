@@ -53,8 +53,8 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
 
   const menuItems = [
     { label: "Home 화면", icon: <FaHome />, path: "/management" },
-    { label: "Map 관리", icon: <FaMapMarkedAlt />, path: "/tower-manage" },
-    { label: "Floor 관리", icon: <FaBuilding />, path: "/building-manage" },
+    { label: "Map 관리", icon: <FaMapMarkedAlt />, path: "/building-manage" },
+    { label: "Floor 관리", icon: <FaBuilding />, path: "/floor-manage" },
     { label: "Room 관리", icon: <FaDoorOpen />, path: "/room-manage" },
     { label: "Category 관리", icon: <FaLayerGroup />, path: "/mapfile-manage" },
     { label: "User 관리", icon: <FaUser />, path: "/user-manage" },

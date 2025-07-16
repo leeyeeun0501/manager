@@ -74,6 +74,7 @@ export async function POST(req, { params }) {
 }
 
 // 강의실명/강의실 설명 수정 (PUT)
+// 근데 강의실명은 수정 못함
 export async function PUT(req, context) {
   const params = context.params ? await context.params : {}
   const { building, floor } = params

@@ -1,7 +1,8 @@
-// route.js (Next.js 13+ App Router 기준)
+// stairs-route
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 
+// 계단 조회 (GET)
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url)

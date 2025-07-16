@@ -2,8 +2,9 @@
 import { NextResponse } from "next/server"
 import { API_BASE } from "../../apibase"
 
+// floor-route 보면 똑같은 거 하나 더 있음
 // 강의실 조회(건물) (GET)
-export async function GET(request, { params }) {
+export async function GET({ params }) {
   const { building } = await params
 
   try {
@@ -18,7 +19,7 @@ export async function GET(request, { params }) {
     }
 
     const data = await res.json()
-    // data.rooms 형태로 반환된다고 가정
+
     return NextResponse.json(data)
   } catch (err) {
     return NextResponse.json({ error: "서버 오류" }, { status: 500 })

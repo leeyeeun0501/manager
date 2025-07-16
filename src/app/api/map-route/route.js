@@ -1,4 +1,4 @@
-// mapfile-image-route
+// map-route
 import { API_BASE } from "../apibase"
 
 // 전체 데이터 조회 (GET)

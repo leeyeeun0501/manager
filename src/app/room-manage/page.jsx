@@ -83,12 +83,16 @@ export default function RoomManagePage() {
   const [edges, setEdges] = useState([])
 
   const [stairsList, setStairsList] = useState([])
+  const [stairsNodes, setStairsNodes] = useState([])
   const [stairsLoading, setStairsLoading] = useState(false)
   const [stairsError, setStairsError] = useState("")
-  const [stairsBuilding, setStairsBuilding] = useState("")
   const [showStairsSelectModal, setShowStairsSelectModal] = useState(false)
   const [selectedStairsNode, setSelectedStairsNode] = useState(null)
   const [targetStairId, setTargetStairId] = useState("")
+
+  const [stairsBuilding, setStairsBuilding] = useState("")
+  const [stairsFloor, setStairsFloor] = useState("")
+  const [stairsId, setStairsId] = useState("")
 
   // SVG 노드 파싱 함수
   const parseSvgNodes = (svgXml) => {
@@ -339,12 +343,10 @@ export default function RoomManagePage() {
     }
   }
 
-  // 강의실 설명 수정 핸들러
-  const handleEditRoom = async (e) => {
-    e.preventDefault()
+  // 강의실 수정 핸들러
+  const handleEditRoom = async () => {
     if (!editRoom) return
     setEditRoomLoading(true)
-
     try {
       const res = await fetch(
         `/api/room-route/${encodeURIComponent(
@@ -354,28 +356,23 @@ export default function RoomManagePage() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            old_room_name: editRoomOldName,
             room_name: editRoomName,
             room_desc: editRoomDesc,
           }),
         }
       )
-
       const data = await res.json()
-
       if (!res.ok) {
         showToast(data.error || "수정 실패")
         return
       }
-
-      // 강의실 목록 데이터 다시 불러오기
       fetchRooms(filterBuilding, filterFloor)
-
-      // 상태 초기화 및 모달 닫기
       setShowEditRoomModal(false)
       setEditRoom(null)
       setEditRoomName("")
       setEditRoomDesc("")
-
+      setEditRoomOldName("")
       showToast("강의실 정보가 수정되었습니다.")
     } catch {
       showToast("수정 중 오류가 발생했습니다.")
@@ -632,35 +629,49 @@ export default function RoomManagePage() {
 
   // 다른 층 계단 연결
   useEffect(() => {
-    if (!stairsBuilding) {
+    if (!stairsBuilding || !stairsFloor || !stairsId) {
       setStairsList([])
+      setStairsNodes([]) // 🆕 nodes도 초기화
       return
     }
 
     setStairsLoading(true)
     setStairsError("")
 
-    fetch(`/api/stairs-route?building=${encodeURIComponent(stairsBuilding)}`, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    })
+    fetch(
+      `/api/stairs-route?building=${encodeURIComponent(
+        stairsBuilding
+      )}&floor=${encodeURIComponent(stairsFloor)}&id=${encodeURIComponent(
+        stairsId
+      )}`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      }
+    )
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
+          // 구조가 배열로만 오면 fallback
           setStairsList(data)
+          setStairsNodes([])
           console.log("stairsList(배열):", data)
-        } else if (data && Array.isArray(data.stairs)) {
-          setStairsList(data.stairs)
+        } else if (data) {
+          // stairs와 nodes 모두 처리
+          setStairsList(Array.isArray(data.stairs) ? data.stairs : [])
+          setStairsNodes(Array.isArray(data.nodes) ? data.nodes : [])
           console.log("stairsList(.stairs):", data.stairs)
+          console.log("stairsNodes(.nodes):", data.nodes)
         } else {
           setStairsList([])
+          setStairsNodes([])
           setStairsError(data.error || "계단 정보를 불러오지 못했습니다.")
           console.log("stairsList(빈 데이터):", data)
         }
       })
       .catch(() => setStairsError("계단 정보를 불러오지 못했습니다."))
       .finally(() => setStairsLoading(false))
-  }, [stairsBuilding])
+  }, [stairsBuilding, stairsFloor, stairsId])
 
   // 강의실 데이터
   function normalizeRoom(room) {
@@ -1090,7 +1101,7 @@ export default function RoomManagePage() {
                     {edgeModalNode.id}
                   </span>
                 </div>
-                {/* 연결된 노드 목록 추가 */}
+                {/* 연결된 노드 목록 */}
                 <div style={{ marginTop: 16 }}>
                   <div style={{ fontWeight: "bold", marginBottom: 6 }}>
                     연결된 노드
@@ -1106,14 +1117,17 @@ export default function RoomManagePage() {
                           padding: "8px 18px",
                           borderRadius: 20,
                           border: "none",
-                          fontSize: 14,
-                          fontWeight: 550,
+                          fontSize: 15,
+                          fontWeight: 700,
                           background: "#ffa500",
                           color: "#fff",
                           cursor: "pointer",
                           marginRight: 8,
                           marginBottom: 8,
                           marginTop: 3,
+                          minWidth: 67,
+                          textAlign: "center",
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.07)",
                         }}
                       >
                         {edge.otherNodeSuffix} 엣지 연결 해제
@@ -1174,6 +1188,8 @@ export default function RoomManagePage() {
                           edgeModalNode.building
                         )
                         setStairsBuilding(edgeModalNode.building)
+                        setStairsFloor(edgeModalNode.floor)
+                        setStairsId(edgeModalNode.id)
                         setSelectedStairsNode(edgeModalNode)
                         setShowStairsSelectModal(true)
                       }}
@@ -1195,7 +1211,8 @@ export default function RoomManagePage() {
               </div>
             </div>
           )}
-          {/*  stairs 연결 선택 모달 */}
+          {/* stairs 연결 선택 모달 */}
+          {/* stairs 연결 선택 모달 */}
           {showStairsSelectModal && (
             <div
               style={{
@@ -1222,9 +1239,12 @@ export default function RoomManagePage() {
                   boxShadow: "0 2px 16px rgba(0,0,0,0.13)",
                   display: "flex",
                   flexDirection: "column",
+                  maxHeight: "90vh",
+                  overflowY: "auto",
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
+                {/* 타이틀 */}
                 <div
                   style={{
                     fontWeight: "bold",
@@ -1238,6 +1258,38 @@ export default function RoomManagePage() {
                 >
                   다른 층 계단 연결
                 </div>
+
+                {/* 연결된 노드 표시 */}
+                <div style={{ marginBottom: 24 }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      marginBottom: 10,
+                      fontSize: 15,
+                    }}
+                  >
+                    연결된 노드
+                  </div>
+                  <button
+                    style={{
+                      background: "#ffa723",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 18,
+                      padding: "8px 18px",
+                      fontWeight: 600,
+                      fontSize: 15,
+                      cursor: "default",
+                    }}
+                  >
+                    {selectedStairsNode?.id
+                      ? `${selectedStairsNode?.floor} ${
+                          selectedStairsNode?.name || ""
+                        }`.trim()
+                      : "없음"}
+                  </button>
+                </div>
+                {/* 상태별 처리 */}
                 {stairsLoading ? (
                   <div style={{ textAlign: "center", margin: 18 }}>
                     계단 목록을 불러오는 중...
@@ -1253,35 +1305,81 @@ export default function RoomManagePage() {
                     {stairsError}
                   </div>
                 ) : (
-                  <select
-                    value={targetStairId || ""}
-                    onChange={(e) => setTargetStairId(e.target.value)}
-                    style={{
-                      width: "100%",
-                      height: 46,
-                      fontSize: 15,
-                      border: "1.3px solid #b3d1fa",
-                      borderRadius: 11,
-                      padding: "6px 15px",
-                      marginBottom: 20,
-                      outline: "none",
-                    }}
-                  >
-                    <option value="">연결할 계단 선택</option>
-                    {stairsList
-                      .filter((id) => id !== (selectedStairsNode?.id || ""))
-                      .map((id) => {
-                        const parts = id.split("@")
-                        const floor = parts[1] || ""
-                        const stairName = parts[2] || ""
-                        return (
-                          <option key={id} value={id}>
-                            {floor}층 - {stairName}
-                          </option>
-                        )
-                      })}
-                  </select>
+                  <>
+                    {/* Select: 연결할 계단 선택 */}
+                    <select
+                      value={targetStairId || ""}
+                      onChange={(e) => setTargetStairId(e.target.value)}
+                      style={{
+                        width: "100%",
+                        height: 46,
+                        fontSize: 15,
+                        border: "1.3px solid #b3d1fa",
+                        borderRadius: 11,
+                        padding: "6px 15px",
+                        marginBottom: 24,
+                        outline: "none",
+                      }}
+                    >
+                      <option value="">연결할 계단 선택</option>
+                      {stairsList
+                        .filter((id) => id !== (selectedStairsNode?.id || ""))
+                        .map((id) => {
+                          const parts = id.split("@")
+                          const floor = parts[1] || ""
+                          const stairName = parts[2] || ""
+                          return (
+                            <option key={id} value={id}>
+                              {floor}층 - {stairName}
+                            </option>
+                          )
+                        })}
+                    </select>
+
+                    {/* 🟡 stairsNodes 목록 표시 */}
+                    {stairsNodes.length > 0 && (
+                      <div style={{ marginBottom: 20 }}>
+                        <div
+                          style={{
+                            fontWeight: 600,
+                            marginBottom: 8,
+                            fontSize: 14,
+                            color: "#555",
+                          }}
+                        >
+                          연결된 계단 목록
+                        </div>
+                        <ul
+                          style={{
+                            listStyle: "none",
+                            padding: 0,
+                            margin: 0,
+                            maxHeight: 160,
+                            overflowY: "auto",
+                          }}
+                        >
+                          {stairsNodes.map((node) => (
+                            <li
+                              key={node.id}
+                              style={{
+                                padding: "6px 10px",
+                                background: "#f1f1f1",
+                                borderRadius: 8,
+                                marginBottom: 6,
+                                fontSize: 14,
+                                color: "#333",
+                              }}
+                            >
+                              {node.floor}층 - {node.name || node.id}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
                 )}
+
+                {/* 버튼 영역 */}
                 <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
                   <button
                     style={{
@@ -1306,6 +1404,7 @@ export default function RoomManagePage() {
                   <button
                     onClick={async () => {
                       if (!selectedStairsNode || !targetStairId) return
+
                       await connectEdgeToStairs(
                         selectedStairsNode,
                         targetStairId,

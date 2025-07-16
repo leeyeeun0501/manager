@@ -7,16 +7,20 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url)
     const building = searchParams.get("building")
+    const floor = searchParams.get("floor")
+    const id = searchParams.get("id")
 
-    if (!building) {
+    if (!building || !floor || !id) {
       return NextResponse.json(
-        { error: "건물 이름이 필요합니다." },
+        { error: "건물 이름, 층수, 룸 ID가 모두 필요합니다." },
         { status: 400 }
       )
     }
 
     const res = await fetch(
-      `${API_BASE}/room/stairs/${encodeURIComponent(building)}`,
+      `${API_BASE}/room/stairs/${encodeURIComponent(
+        building
+      )}/${encodeURIComponent(floor)}/${encodeURIComponent(id)}`,
       {
         method: "GET",
         headers: {

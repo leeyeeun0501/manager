@@ -7,7 +7,7 @@ export default function NaverMapSimple({ markers = [] }) {
   const mapInstanceRef = useRef(null)
   const markerObjsRef = useRef([])
 
-  // 초기 줌?
+  // 지도 생성
   useEffect(() => {
     const center = { lat: 36.3377622, lng: 127.4460928 }
     if (
@@ -37,7 +37,7 @@ export default function NaverMapSimple({ markers = [] }) {
     markerObjsRef.current.forEach((m) => m.setMap(null))
     markerObjsRef.current = []
 
-    markers.forEach(({ last_location }) => {
+    markers.forEach(({ id, name, last_location }) => {
       if (!last_location) return
       const marker = new window.naver.maps.Marker({
         position: new window.naver.maps.LatLng(
@@ -45,6 +45,7 @@ export default function NaverMapSimple({ markers = [] }) {
           last_location.lng
         ),
         map: mapInstanceRef.current,
+        title: id,
       })
       markerObjsRef.current.push(marker)
     })

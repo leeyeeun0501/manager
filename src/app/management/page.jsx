@@ -1,3 +1,4 @@
+// 메인 management
 "use client"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
@@ -42,12 +43,12 @@ export default function ManagementPage() {
       })
   }, [])
 
+  // 로그인
   useEffect(() => {
     fetch("/api/login-route")
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          // Last_Location이 있는 사용자만, x/y → lat/lng 변환
           const markers = data
             .filter(
               (u) =>

@@ -1,3 +1,4 @@
+// navermap
 "use client"
 import { useEffect, useRef } from "react"
 
@@ -6,8 +7,9 @@ export default function NaverMapSimple({ markers = [] }) {
   const mapInstanceRef = useRef(null)
   const markerObjsRef = useRef([])
 
+  // 초기 줌?
   useEffect(() => {
-    const center = { lat: 36.3377622, lng: 127.4460928 } // 우송대
+    const center = { lat: 36.3377622, lng: 127.4460928 }
     if (
       typeof window === "undefined" ||
       !window.naver ||
@@ -22,6 +24,7 @@ export default function NaverMapSimple({ markers = [] }) {
     })
   }, [])
 
+  // 마커
   useEffect(() => {
     if (
       typeof window === "undefined" ||
@@ -31,11 +34,9 @@ export default function NaverMapSimple({ markers = [] }) {
     )
       return
 
-    // 기존 마커 제거
     markerObjsRef.current.forEach((m) => m.setMap(null))
     markerObjsRef.current = []
 
-    // 사용자 위치만 마커로 표시
     markers.forEach(({ last_location }) => {
       if (!last_location) return
       const marker = new window.naver.maps.Marker({

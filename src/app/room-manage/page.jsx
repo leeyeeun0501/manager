@@ -1272,36 +1272,6 @@ export default function RoomManagePage() {
                   다른 층 계단 연결
                 </div>
 
-                {/* 연결된 노드 표시 */}
-                <div style={{ marginBottom: 24 }}>
-                  <div
-                    style={{
-                      fontWeight: 600,
-                      marginBottom: 10,
-                      fontSize: 15,
-                    }}
-                  >
-                    연결된 노드
-                  </div>
-                  <button
-                    style={{
-                      background: "#ffa723",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 18,
-                      padding: "8px 18px",
-                      fontWeight: 600,
-                      fontSize: 15,
-                      cursor: "default",
-                    }}
-                  >
-                    {selectedStairsNode?.id
-                      ? `${selectedStairsNode?.floor} ${
-                          selectedStairsNode?.name || ""
-                        }`.trim()
-                      : "없음"}
-                  </button>
-                </div>
                 {/* 상태별 처리 */}
                 {stairsLoading ? (
                   <div style={{ textAlign: "center", margin: 18 }}>

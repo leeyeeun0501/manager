@@ -4,7 +4,7 @@ import { API_BASE } from "../apibase"
 
 // 전체 데이터 조회/건물 이름만 조회 (GET)
 export async function GET(request) {
-  const { searchParams, pathname } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
 
   // 건물 이름만 조회
   if (searchParams.get("type") === "names") {

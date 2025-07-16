@@ -387,7 +387,7 @@ export default function RoomManagePage() {
     if (filterBuilding && filterFloor) {
       setMapLoading(true)
       fetch(
-        `/api/mapfile-image-route?building=${encodeURIComponent(
+        `/api/map-route?building=${encodeURIComponent(
           filterBuilding
         )}&floor=${encodeURIComponent(filterFloor)}`
       )
@@ -430,7 +430,7 @@ export default function RoomManagePage() {
   const connectEdge = async () => {
     setEdgeConnectLoading(true)
     try {
-      const res = await fetch("/api/mapfile-image-route", {
+      const res = await fetch("/api/map-route", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -492,7 +492,7 @@ export default function RoomManagePage() {
       return
     }
     try {
-      const res = await fetch("/api/mapfile-image-route", {
+      const res = await fetch("/api/map-route", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -515,29 +515,6 @@ export default function RoomManagePage() {
     } catch (err) {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
     }
-  }
-
-  const handleEdgeConnect = (fromNode, toNode) => {
-    console.log("엣지 연결:", fromNode, "→", toNode)
-
-    // 예시: 엣지 리스트에 추가
-    setEdges((prev) => [
-      ...prev,
-      {
-        id: `edge-${fromNode.id}-${toNode.id}`,
-        source: fromNode.id,
-        target: toNode.id,
-        type: "stairs", // 예: 계단 연결이면 stairs 타입
-      },
-    ])
-
-    // 필요시 API 요청도 여기에
-    // fetch('/api/edge-connect', { method: "POST", body: JSON.stringify(...) })
-  }
-
-  const closeStairsEdgeModal = () => {
-    setShowStairsSelectModal(false)
-    setSelectedStairsNode(null)
   }
 
   // 엣지 연결
@@ -592,7 +569,7 @@ export default function RoomManagePage() {
     if (filterBuilding && filterFloor) {
       setMapLoading(true)
       fetch(
-        `/api/mapfile-image-route?building=${encodeURIComponent(
+        `/api/map-route?building=${encodeURIComponent(
           filterBuilding
         )}&floor=${encodeURIComponent(filterFloor)}`
       )
@@ -711,7 +688,7 @@ export default function RoomManagePage() {
     filterFloor
   ) {
     try {
-      const res = await fetch("/api/mapfile-image-route", {
+      const res = await fetch("/api/map-route", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

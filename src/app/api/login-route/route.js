@@ -30,7 +30,6 @@ export async function POST(request) {
 
     const user = await login(id, pw)
 
-    // 로그인 성공: id, name, islogin 포함해서 반환
     return NextResponse.json({
       id: user.id,
       name: user.name,
@@ -46,7 +45,7 @@ export async function POST(request) {
 }
 
 // 사용자 위치 검색 (GET)
-export async function GET(request) {
+export async function GET() {
   try {
     const res = await fetch(`${AUTH_API_BASE}/user/islogin`, { method: "GET" })
     if (!res.ok) {

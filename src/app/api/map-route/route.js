@@ -14,7 +14,6 @@ export async function GET(request) {
     })
   }
 
-  // 서버에서 이미지 URL + 노드/엣지 정보가 같이 담긴 JSON을 반환한다고 가정
   const res = await fetch(
     `${API_BASE}/floor/${encodeURIComponent(floor)}/${encodeURIComponent(
       building
@@ -31,10 +30,8 @@ export async function GET(request) {
     )
   }
 
-  // JSON으로 파싱
   const data = await res.json()
 
-  // 그대로 반환
   return new Response(JSON.stringify(data), {
     status: 200,
     headers: { "Content-Type": "application/json" },
@@ -54,7 +51,6 @@ export async function POST(request) {
       to_node,
     } = body
 
-    // 필수 값 체크
     if (
       !from_building ||
       !from_floor ||
@@ -69,7 +65,6 @@ export async function POST(request) {
       })
     }
 
-    // 실제 연결 처리 API 호출 (예시)
     const connectRes = await fetch(`${API_BASE}/room/connect`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 
-// 전체 데이터 조회 (GET)
+// 전체 데이터/건물명 조회 (GET)
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const building = searchParams.get("building")
@@ -28,7 +28,7 @@ export async function GET(request) {
     return NextResponse.json({ floors: result })
   }
 
-  // 특정 건물의 층 정보 조회(건물명)
+  // 건물명 조회
   if (building) {
     const res = await fetch(
       `${API_BASE}/floor/${encodeURIComponent(building)}`,

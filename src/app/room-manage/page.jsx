@@ -400,8 +400,7 @@ export default function RoomManagePage() {
             edgesInfo = []
             Object.entries(nodesInfo).forEach(([from, arr]) => {
               arr.forEach((edgeObj) => {
-                const 
-                 =
+                const to =
                   typeof edgeObj === "string"
                     ? edgeObj
                     : edgeObj.node || edgeObj.to
@@ -632,7 +631,7 @@ export default function RoomManagePage() {
   useEffect(() => {
     if (!stairsBuilding || !stairsFloor || !stairsId) {
       setStairsList([])
-      setStairsNodes([]) // 🆕 nodes도 초기화
+      setStairsNodes([])
       return
     }
 
@@ -730,9 +729,9 @@ export default function RoomManagePage() {
   const parseNodeInfo = (fullId) => {
     const parts = fullId.split("@")
     return {
-      building: parts[0], // W17-동관
-      floor: parts[1], // 2
-      node: parts[2], // left-stairs
+      building: parts[0],
+      floor: parts[1],
+      node: parts[2],
     }
   }
 

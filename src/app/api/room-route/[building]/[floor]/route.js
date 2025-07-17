@@ -27,6 +27,7 @@ export async function GET(request, { params }) {
 }
 
 // 강의실 추가 (POST)
+// 아마 영원히 안 쓸 듯
 export async function POST(req, { params }) {
   const { building, floor } = params
   try {
@@ -121,6 +122,7 @@ export async function PUT(req, context) {
 }
 
 // 강의실 삭제 (DELETE)
+// 아직 안 씀
 export async function DELETE(request, { params }) {
   const { building, floor } = params
   const { room_name } = await request.json()

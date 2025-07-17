@@ -400,7 +400,8 @@ export default function RoomManagePage() {
             edgesInfo = []
             Object.entries(nodesInfo).forEach(([from, arr]) => {
               arr.forEach((edgeObj) => {
-                const to =
+                const 
+                 =
                   typeof edgeObj === "string"
                     ? edgeObj
                     : edgeObj.node || edgeObj.to

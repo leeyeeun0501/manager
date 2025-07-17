@@ -307,45 +307,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     }
   }, [nodes, edges, edgeConnectMode, recentlyAddedNode])
 
-  // 건물 설명 수정 버튼 클릭 시 서버로 PUT
-  async function handleUpdateBuildingDesc(e) {
-    e.preventDefault()
-    if (!deletePopup.node_name) {
-      alert("건물 이름이 없습니다.")
-      return
-    }
-    setBuildingDescLoading(true)
-    try {
-      const formData = new FormData()
-      formData.append("desc", buildingDesc)
-      const res = await fetch(
-        `/api/building-route?building=${encodeURIComponent(
-          deletePopup.node_name
-        )}`,
-        { method: "PUT", body: formData }
-      )
-      const data = await res.json()
-      if (data && !data.error) {
-        alert("설명 수정 완료!")
-        // 최신 설명 다시 반영 (선택)
-        const res2 = await fetch(
-          `/api/building-route?building=${encodeURIComponent(
-            deletePopup.node_name
-          )}`
-        )
-        const json2 = await res2.json()
-        if (json2.all && json2.all.length > 0) {
-          setBuildingDesc(json2.all[0].Desc || "")
-        }
-      } else {
-        alert(data.error || "설명 수정 실패")
-      }
-    } catch {
-      alert("서버 오류")
-    }
-    setBuildingDescLoading(false)
-  }
-
   // Polyline(노드 선) 표시 (edges + nodes 매핑)
   useEffect(() => {
     const naver = window.naver
@@ -394,6 +355,45 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       })
     })
   }, [edges, nodes])
+
+  // 건물 설명 수정 버튼 클릭 시 서버로 PUT
+  async function handleUpdateBuildingDesc(e) {
+    e.preventDefault()
+    if (!deletePopup.node_name) {
+      alert("건물 이름이 없습니다.")
+      return
+    }
+    setBuildingDescLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append("desc", buildingDesc)
+      const res = await fetch(
+        `/api/building-route?building=${encodeURIComponent(
+          deletePopup.node_name
+        )}`,
+        { method: "PUT", body: formData }
+      )
+      const data = await res.json()
+      if (data && !data.error) {
+        alert("설명 수정 완료!")
+        // 최신 설명 다시 반영 (선택)
+        const res2 = await fetch(
+          `/api/building-route?building=${encodeURIComponent(
+            deletePopup.node_name
+          )}`
+        )
+        const json2 = await res2.json()
+        if (json2.all && json2.all.length > 0) {
+          setBuildingDesc(json2.all[0].Desc || "")
+        }
+      } else {
+        alert(data.error || "설명 수정 실패")
+      }
+    } catch {
+      alert("서버 오류")
+    }
+    setBuildingDescLoading(false)
+  }
 
   // nodes 데이터 fetch
   async function fetchNodes() {

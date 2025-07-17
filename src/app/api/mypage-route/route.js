@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server"
 import { AUTH_API_BASE } from "../apibase"
 
-// 회원정보 검색 (PUT)
+// 회원정보 검색 (GET)
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const id = searchParams.get("id")

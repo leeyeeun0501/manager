@@ -1,4 +1,3 @@
-// signup
 "use client"
 import "../globals.css"
 import { useState } from "react"
@@ -16,10 +15,26 @@ export default function SignupPage() {
   const [error, setError] = useState("")
   const router = useRouter()
 
-  // 핸들러 함수
+  // 하이픈 자동 삽입 함수
+  const formatPhoneNumber = (value) => {
+    const number = value.replace(/[^0-9]/g, "")
+    if (number.length < 4) return number
+    if (number.length < 7) {
+      return number.replace(/(\d{3})(\d{1,3})/, "$1-$2")
+    }
+    if (number.length < 11) {
+      return number.replace(/(\d{3})(\d{3,4})(\d{1,4})/, "$1-$2-$3")
+    }
+    return number.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3")
+  }
+
+  // input onChange 핸들러
   const handleChange = (e) => {
     const { name, value } = e.target
-    setForm((prev) => ({ ...prev, [name]: value }))
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === "phone" ? formatPhoneNumber(value) : value,
+    }))
   }
 
   // 회원가입 핸들러
@@ -89,6 +104,7 @@ export default function SignupPage() {
             onChange={handleChange}
             required
             className={styles["signup-input"]}
+            maxLength={13} // 010-1234-5678
           />
           <input
             name="email"

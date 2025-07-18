@@ -462,7 +462,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       await fetchEdges()
       setRecentlyAddedNode(finalNodeName)
       alert("추가 성공!")
-      window.location.reload()
     } else {
       alert(data.error || "추가 실패")
     }
@@ -504,7 +503,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       fetchNodes()
       fetchEdges()
       alert("삭제 성공!")
-      window.location.reload()
     } else {
       alert(data.error || "삭제 실패")
     }

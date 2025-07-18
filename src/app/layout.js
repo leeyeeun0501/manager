@@ -1,37 +1,57 @@
-// app/layout.js
 "use client"
-import { useEffect } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import Menu from "./components/menu"
 import ProfileButton from "./components/profilebutton"
 import Script from "next/script"
+import { useEffect } from "react"
 
 export default function RootLayout({ children }) {
   const pathname = usePathname()
-
+  const router = useRouter()
   const hideMenuAndProfile = pathname === "/login" || pathname === "/signup"
 
-  // 창 꺼짐 로그아웃
   useEffect(() => {
     const id = localStorage.getItem("id")
     if (!id) return
 
-    const handleUnload = (event) => {
-      const nav = performance.getEntriesByType("navigation")[0]
-      if (nav && nav.type === "reload") {
-        return
-      }
-      navigator.sendBeacon("/api/logout-route", JSON.stringify({ id }))
+    // 내부 라우팅(Next.js) 및 새로고침에서 플래그 설정
+    const setInternalNavFlag = () =>
+      sessionStorage.setItem("internal-nav", "true")
+    window.addEventListener("beforeunload", setInternalNavFlag)
+    window.addEventListener("popstate", setInternalNavFlag)
+
+    // Next.js App Router: 클라이언트 전용 라우팅 대응
+    // (참고: next/navigation에는 router 이벤트가 없으므로 직접 감지)
+    // Link, router.push 등으로 이동 시에만 플래그를 남기고 싶은 경우 아래 코드 사용
+    const originalPush = router.push
+    router.push = (...args) => {
+      sessionStorage.setItem("internal-nav", "true")
+      originalPush.apply(router, args)
     }
 
+    // unload에서만 로그아웃 요청 (플래그 없을 때)
+    const handleUnload = () => {
+      if (!sessionStorage.getItem("internal-nav")) {
+        navigator.sendBeacon("/api/logout-route", JSON.stringify({ id }))
+      }
+      // 항상 플래그 초기화
+      sessionStorage.removeItem("internal-nav")
+    }
     window.addEventListener("unload", handleUnload)
-    return () => window.removeEventListener("unload", handleUnload)
-  }, [])
+
+    return () => {
+      window.removeEventListener("beforeunload", setInternalNavFlag)
+      window.removeEventListener("popstate", setInternalNavFlag)
+      window.removeEventListener("unload", handleUnload)
+      // router.push 복구
+      if (router.push === originalPush) return
+      router.push = originalPush
+    }
+  }, [router])
 
   return (
     <html lang="ko">
       <body>
-        {/* 네이버 지도 API 스크립트 전역 추가 */}
         <Script
           src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=yxffktqahm"
           strategy="beforeInteractive"

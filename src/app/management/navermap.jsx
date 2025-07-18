@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
 function createSpeechBubbleMarkerContent(userId) {
   return `
@@ -40,8 +40,29 @@ export default function NaverMapSimple({ markers = [] }) {
   const mapInstanceRef = useRef(null)
   const markerObjsRef = useRef([])
 
+  const [ready, setReady] = useState(false) // 지도 API 스크립트 준비 여부
+
+  // 1. 네이버 지도 스크립트 중복 삽입 없이 1회만 로딩
   useEffect(() => {
-    const center = { lat: 36.3377622, lng: 127.4460928 }
+    if (typeof window === "undefined") return
+    const existing = document.querySelector('script[src*="maps.js"]')
+    if (existing) {
+      if (window.naver && window.naver.maps) setReady(true)
+      else existing.addEventListener("load", () => setReady(true))
+      return
+    }
+    const script = document.createElement("script")
+    script.src =
+      "https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=yxffktqahm"
+    script.async = true
+    script.onload = () => setReady(true)
+    document.head.appendChild(script)
+    // cleanup 생략(한 번만 로드)
+  }, [])
+
+  // 2. ready (스크립트 로드 완료) 후, 지도 객체 단 한번 생성
+  useEffect(() => {
+    if (!ready) return
     if (
       typeof window === "undefined" ||
       !window.naver ||
@@ -49,13 +70,26 @@ export default function NaverMapSimple({ markers = [] }) {
       !mapRef.current
     )
       return
+    if (!mapInstanceRef.current) {
+      // center/zoom from localStorage → 없으면 기본값
+      let center = new window.naver.maps.LatLng(36.3377622, 127.4460928)
+      let zoom = 17
+      try {
+        const saved = JSON.parse(localStorage.getItem("naverMapCenter"))
+        if (saved && saved.lat && saved.lng) {
+          center = new window.naver.maps.LatLng(saved.lat, saved.lng)
+        }
+        const savedZoom = parseInt(localStorage.getItem("naverMapZoom"), 10)
+        if (!isNaN(savedZoom)) zoom = savedZoom
+      } catch (e) {}
+      const map = new window.naver.maps.Map(mapRef.current, { center, zoom })
+      mapInstanceRef.current = map
+      localStorage.removeItem("naverMapCenter")
+      localStorage.removeItem("naverMapZoom")
+    }
+  }, [ready])
 
-    mapInstanceRef.current = new window.naver.maps.Map(mapRef.current, {
-      center: new window.naver.maps.LatLng(center.lat, center.lng),
-      zoom: 17,
-    })
-  }, [])
-
+  // 3. markers가 변경될 때마다 마커 갱신 (지도 인스턴스 준비 후!)
   useEffect(() => {
     if (
       typeof window === "undefined" ||
@@ -65,6 +99,7 @@ export default function NaverMapSimple({ markers = [] }) {
     )
       return
 
+    // 기존 marker 모두 제거
     markerObjsRef.current.forEach((m) => m.setMap(null))
     markerObjsRef.current = []
 
@@ -85,7 +120,7 @@ export default function NaverMapSimple({ markers = [] }) {
       })
       markerObjsRef.current.push(marker)
     })
-  }, [markers])
+  }, [markers, ready])
 
   return (
     <div

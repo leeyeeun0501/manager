@@ -42,6 +42,57 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   const [buildingDesc, setBuildingDesc] = useState("")
   const [buildingDescLoading, setBuildingDescLoading] = useState(false)
 
+  const [ready, setReady] = useState(false) // 지도 API 스크립트 준비 여부
+
+  // 네이버 지도 스크립트 중복 삽입 없이 1회만 로딩
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const existing = document.querySelector('script[src*="maps.js"]')
+    if (existing) {
+      if (window.naver && window.naver.maps) setReady(true)
+      else existing.addEventListener("load", () => setReady(true))
+      return
+    }
+    const script = document.createElement("script")
+    script.src =
+      "https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=yxffktqahm"
+    script.async = true
+    script.onload = () => setReady(true)
+    document.head.appendChild(script)
+    // 필요시 cleanup 가능
+    // return () => { document.head.removeChild(script) }
+  }, [])
+
+  // ready가 true여야 지도 객체를 생성합니다
+  useEffect(() => {
+    if (!ready) return
+    if (
+      typeof window === "undefined" ||
+      !window.naver ||
+      !window.naver.maps ||
+      !mapRef.current
+    )
+      return
+    if (!mapInstance.current) {
+      // 지도 생성: 기존 center/zoom/localStorage 활용
+      let center = new window.naver.maps.LatLng(36.3377622, 127.4460928)
+      let zoom = 17
+      try {
+        const saved = JSON.parse(localStorage.getItem("naverMapCenter"))
+        if (saved && saved.lat && saved.lng) {
+          center = new window.naver.maps.LatLng(saved.lat, saved.lng)
+        }
+        const savedZoom = parseInt(localStorage.getItem("naverMapZoom"), 10)
+        if (!isNaN(savedZoom)) zoom = savedZoom
+      } catch (e) {}
+      const map = new window.naver.maps.Map(mapRef.current, { center, zoom })
+      mapInstance.current = map
+      localStorage.removeItem("naverMapCenter")
+      localStorage.removeItem("naverMapZoom")
+      // (이하 지도 클릭/마커 등 이벤트 핸들링)
+    }
+  }, [ready, isLoggedIn])
+
   useEffect(() => {
     if (menuOpen) {
       closeAllPopups()

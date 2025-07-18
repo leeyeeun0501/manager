@@ -5,6 +5,7 @@ import React, { useRef, useState, useEffect } from "react"
 import Menu from "../components/menu"
 import styles from "./room-manage.module.css"
 import { MdEditSquare } from "react-icons/md"
+import Loading from "../components/loadiing"
 
 export default function RoomManagePage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -801,7 +802,9 @@ export default function RoomManagePage() {
                   <tbody>
                     {pagedRooms.length === 0 ? (
                       <tr>
-                        <td colSpan={4}>강의실 데이터가 없습니다.</td>
+                        <td colSpan={7} style={{ textAlign: "center" }}>
+                          강의실 데이터가 없습니다.
+                        </td>
                       </tr>
                     ) : (
                       pagedRooms.map((room, idx) => (
@@ -842,7 +845,12 @@ export default function RoomManagePage() {
                               <MdEditSquare size={18} color="#007bff" />
                             </button>
                           </td>
-                          <td>{room.room_user}</td>
+                          <td>
+                            {/* 배열이면 이름을 줄바꿈(/ 쉼표)로 표시 */}
+                            {Array.isArray(room.room_user)
+                              ? room.room_user.join(", ")
+                              : room.room_user}
+                          </td>
                           <td>{room.user_phone}</td>
                           <td>{room.user_email}</td>
                         </tr>

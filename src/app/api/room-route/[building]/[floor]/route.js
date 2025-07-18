@@ -74,14 +74,14 @@ export async function POST(req, { params }) {
   }
 }
 
-// 강의실 설명 수정 (PUT)
+// 강의실 설명 및 담당자 정보 수정 (PUT)
 export async function PUT(req, context) {
   const params = context.params ?? {}
   const { building, floor } = params
 
   try {
     const body = await req.json()
-    const { room_name, room_desc } = body
+    const { room_name, room_desc, room_user, user_phone, user_email } = body
 
     // 필수 항목 검사
     if (!room_name || !room_desc) {
@@ -96,7 +96,13 @@ export async function PUT(req, context) {
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ room_name, room_desc }),
+        body: JSON.stringify({
+          room_name,
+          room_desc,
+          room_user,
+          user_phone,
+          user_email,
+        }),
       }
     )
 
@@ -114,7 +120,7 @@ export async function PUT(req, context) {
     // 성공 응답 처리
     const data = await res.json().catch(() => ({}))
     return NextResponse.json({
-      message: data.message || "강의실 설명이 수정되었습니다",
+      message: data.message || "강의실 정보가 수정되었습니다",
     })
   } catch (err) {
     return NextResponse.json({ error: "서버 오류" }, { status: 500 })

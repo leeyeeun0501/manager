@@ -680,6 +680,9 @@ export default function RoomManagePage() {
       floor: room.floor || room.Floor_Number || "",
       name: room.name || room.Room_Name || "",
       description: room.description || room.Room_Description || "",
+      room_user: room.room_user || room.Room_User || "",
+      user_phone: room.user_phone || room.User_Phone || "",
+      user_email: room.user_email || room.User_Email || "",
     }
   }
 
@@ -790,6 +793,9 @@ export default function RoomManagePage() {
                       <th>층</th>
                       <th>강의실명</th>
                       <th>강의실 설명</th>
+                      <th>사용자</th>
+                      <th>전화번호</th>
+                      <th>이메일</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -836,6 +842,9 @@ export default function RoomManagePage() {
                               <MdEditSquare size={18} color="#007bff" />
                             </button>
                           </td>
+                          <td>{room.room_user}</td>
+                          <td>{room.user_phone}</td>
+                          <td>{room.user_email}</td>
                         </tr>
                       ))
                     )}

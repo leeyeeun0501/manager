@@ -22,6 +22,9 @@ export async function GET() {
           floor: room.Floor_Number,
           name: room.Room_Name,
           description: room.Room_Description,
+          room_user: room.Room_User,
+          user_phone: room.User_Phone,
+          user_email: room.User_Email,
         }))
       : []
     return NextResponse.json({ rooms })

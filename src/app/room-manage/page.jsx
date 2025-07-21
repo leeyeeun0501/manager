@@ -5,7 +5,6 @@ import React, { useRef, useState, useEffect } from "react"
 import Menu from "../components/menu"
 import styles from "./room-manage.module.css"
 import { MdEditSquare } from "react-icons/md"
-import Loading from "../components/loadiing"
 
 export default function RoomManagePage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -94,6 +93,12 @@ export default function RoomManagePage() {
   const [stairsBuilding, setStairsBuilding] = useState("")
   const [stairsFloor, setStairsFloor] = useState("")
   const [stairsId, setStairsId] = useState("")
+
+  const [showEditFieldModal, setShowEditFieldModal] = useState(false)
+  const [editFieldType, setEditFieldType] = useState("")
+  const [editFieldValue, setEditFieldValue] = useState("")
+  const [editFieldRoom, setEditFieldRoom] = useState(null)
+  const [editFieldError, setEditFieldError] = useState("")
 
   // SVG 노드 파싱 함수
   const parseSvgNodes = (svgXml) => {
@@ -818,6 +823,7 @@ export default function RoomManagePage() {
                           <td>{room.building}</td>
                           <td>{room.floor}</td>
                           <td>{room.name}</td>
+                          {/* ⬇ 강의실 설명 */}
                           <td style={{ position: "relative" }}>
                             {room.description}
                             <button
@@ -832,27 +838,114 @@ export default function RoomManagePage() {
                                 top: "50%",
                                 transform: "translateY(-50%)",
                               }}
+                              title="강의실 설명 수정"
                               onClick={() => {
-                                setEditRoom(room)
-                                setEditRoomName(room.name)
-                                setEditRoomDesc(room.description || "")
-                                setEditRoomOldName(room.name)
-                                setShowEditRoomModal(true)
-                                setEditRoomError("")
+                                setEditFieldType("desc")
+                                setEditFieldRoom(room)
+                                setEditFieldValue(room.description || "")
+                                setShowEditFieldModal(true)
+                                setEditFieldError("")
                               }}
-                              aria-label="강의실 정보 수정"
+                              aria-label="강의실 설명 수정"
+                              type="button"
                             >
                               <MdEditSquare size={18} color="#007bff" />
                             </button>
                           </td>
-                          <td>
-                            {/* 배열이면 이름을 줄바꿈(/ 쉼표)로 표시 */}
+                          {/* ⬇ 사용자 */}
+                          <td style={{ position: "relative" }}>
                             {Array.isArray(room.room_user)
                               ? room.room_user.join(", ")
                               : room.room_user}
+                            <button
+                              style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: 0,
+                                marginLeft: 6,
+                                position: "absolute",
+                                right: 6,
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                              title="사용자 수정"
+                              onClick={() => {
+                                setEditFieldType("user")
+                                setEditFieldRoom(room)
+                                // 배열이면 문자열 변환
+                                setEditFieldValue(
+                                  Array.isArray(room.room_user)
+                                    ? room.room_user.join(", ")
+                                    : room.room_user || ""
+                                )
+                                setShowEditFieldModal(true)
+                                setEditFieldError("")
+                              }}
+                              aria-label="사용자 수정"
+                              type="button"
+                            >
+                              <MdEditSquare size={18} color="#007bff" />
+                            </button>
                           </td>
-                          <td>{room.user_phone}</td>
-                          <td>{room.user_email}</td>
+                          {/* ⬇ 전화번호 */}
+                          <td style={{ position: "relative" }}>
+                            {room.user_phone}
+                            <button
+                              style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: 0,
+                                marginLeft: 6,
+                                position: "absolute",
+                                right: 6,
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                              title="전화번호 수정"
+                              onClick={() => {
+                                setEditFieldType("phone")
+                                setEditFieldRoom(room)
+                                setEditFieldValue(room.user_phone || "")
+                                setShowEditFieldModal(true)
+                                setEditFieldError("")
+                              }}
+                              aria-label="전화번호 수정"
+                              type="button"
+                            >
+                              <MdEditSquare size={18} color="#007bff" />
+                            </button>
+                          </td>
+                          {/* ⬇ 이메일 */}
+                          <td style={{ position: "relative" }}>
+                            {room.user_email}
+                            <button
+                              style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: 0,
+                                marginLeft: 6,
+                                position: "absolute",
+                                right: 6,
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                              title="이메일 수정"
+                              onClick={() => {
+                                setEditFieldType("email")
+                                setEditFieldRoom(room)
+                                setEditFieldValue(room.user_email || "")
+                                setShowEditFieldModal(true)
+                                setEditFieldError("")
+                              }}
+                              aria-label="이메일 수정"
+                              type="button"
+                            >
+                              <MdEditSquare size={18} color="#007bff" />
+                            </button>
+                          </td>
                         </tr>
                       ))
                     )}
@@ -1668,6 +1761,208 @@ export default function RoomManagePage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {showEditFieldModal && editFieldRoom && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(0,0,0,0.14)",
+            zIndex: 10000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onClick={() => setShowEditFieldModal(false)}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 18,
+              minWidth: 350,
+              maxWidth: "95vw",
+              padding: "36px 32px 28px 32px",
+              boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "stretch",
+              position: "relative",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 🟦 상단 강의실 정보 */}
+            <div
+              style={{
+                fontWeight: 700,
+                fontSize: 17,
+                color: "#1976d2",
+                marginBottom: 14,
+                textAlign: "center",
+                borderBottom: "1.5px solid #e3ebf8",
+                paddingBottom: 7,
+                letterSpacing: "-0.5px",
+              }}
+            >
+              {editFieldRoom.building} / {editFieldRoom.floor} /{" "}
+              {editFieldRoom.name}
+            </div>
+            {/* 🟦 타입별 타이틀 */}
+            <h3
+              style={{
+                margin: "8px 0 13px 0",
+                fontSize: 18,
+                textAlign: "center",
+              }}
+            >
+              {
+                {
+                  desc: "강의실 설명 수정",
+                  user: "사용자 수정",
+                  phone: "전화번호 수정",
+                  email: "이메일 수정",
+                }[editFieldType]
+              }
+            </h3>
+            {/* 🟦 입력폼 */}
+            <input
+              value={editFieldValue}
+              onChange={(e) => setEditFieldValue(e.target.value)}
+              placeholder={
+                {
+                  desc: "새 강의실 설명",
+                  user: "새 사용자명",
+                  phone: "새 전화번호",
+                  email: "새 이메일",
+                }[editFieldType]
+              }
+              style={{
+                width: "90%",
+                height: 46,
+                padding: "0 13px",
+                borderRadius: 13,
+                border: "1.5px solid #b6bede",
+                fontSize: 16,
+                background: "#fff",
+                color: "#222",
+                fontFamily: "inherit",
+                outline: "none",
+                boxSizing: "border-box",
+                margin: "0 auto 12px auto",
+                display: "block",
+              }}
+            />
+            {/* 🟦 에러 메시지 */}
+            {editFieldError && (
+              <div
+                style={{
+                  color: "#e74c3c",
+                  fontSize: 15,
+                  margin: "4px 0 10px 0",
+                  textAlign: "center",
+                }}
+              >
+                {editFieldError}
+              </div>
+            )}
+            {/* 🟦 버튼 */}
+            <div
+              style={{
+                display: "flex",
+                gap: 11,
+                marginTop: 8,
+                width: "100%",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                type="button"
+                style={{
+                  flex: 1,
+                  padding: "10px 0",
+                  borderRadius: 24,
+                  border: "none",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  background: "#eee",
+                  color: "#333",
+                  cursor: "pointer",
+                }}
+                onClick={() => setShowEditFieldModal(false)}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                style={{
+                  flex: 1,
+                  padding: "10px 0",
+                  borderRadius: 24,
+                  border: "none",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  background: "#2574f5",
+                  color: "#fff",
+                  cursor: "pointer",
+                }}
+                onClick={async () => {
+                  if (!editFieldRoom) return
+                  if (editFieldValue.trim() === "") {
+                    setEditFieldError("값을 입력하세요.")
+                    return
+                  }
+                  setEditFieldError("")
+                  // 수정 payload 구상
+                  const payload = {
+                    old_room_name: editFieldRoom.name,
+                    room_name: editFieldRoom.name,
+                    room_desc:
+                      editFieldType === "desc"
+                        ? editFieldValue
+                        : editFieldRoom.description,
+                    room_user:
+                      editFieldType === "user"
+                        ? editFieldValue
+                        : Array.isArray(editFieldRoom.room_user)
+                        ? editFieldRoom.room_user.join(", ")
+                        : editFieldRoom.room_user,
+                    user_phone:
+                      editFieldType === "phone"
+                        ? editFieldValue
+                        : editFieldRoom.user_phone,
+                    user_email:
+                      editFieldType === "email"
+                        ? editFieldValue
+                        : editFieldRoom.user_email,
+                  }
+                  try {
+                    const res = await fetch(
+                      `/api/room-route/${encodeURIComponent(
+                        editFieldRoom.building
+                      )}/${encodeURIComponent(editFieldRoom.floor)}`,
+                      {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                      }
+                    )
+                    if (!res.ok) throw new Error()
+                    setShowEditFieldModal(false)
+                    // fetchRooms는 props 등에서 가져오도록 맞추세요!
+                    if (typeof fetchRooms === "function")
+                      fetchRooms(filterBuilding, filterFloor)
+                  } catch {
+                    setEditFieldError("수정 중 오류가 발생했습니다.")
+                  }
+                }}
+              >
+                저장
+              </button>
+            </div>
           </div>
         </div>
       )}

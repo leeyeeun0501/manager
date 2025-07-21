@@ -74,9 +74,9 @@ export async function POST(req, { params }) {
   }
 }
 
-// 강의실 설명 및 담당자 정보 수정 (PUT)
+// 수정 (PUT)
 export async function PUT(req, context) {
-  const params = context.params ?? {}
+  const params = (await context.params) ?? {}
   const { building, floor } = params
 
   try {

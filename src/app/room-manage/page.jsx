@@ -818,20 +818,10 @@ export default function RoomManagePage() {
                           <td>{room.building}</td>
                           <td>{room.floor}</td>
                           <td>{room.name}</td>
-                          <td style={{ position: "relative" }}>
+                          <td className={styles["room-desc-cell"]}>
                             {room.description}
                             <button
-                              style={{
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                                padding: 0,
-                                marginLeft: 6,
-                                position: "absolute",
-                                right: 6,
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                              }}
+                              className={styles["edit-icon-button"]}
                               onClick={() => {
                                 setEditRoom(room)
                                 setEditRoomName(room.name)

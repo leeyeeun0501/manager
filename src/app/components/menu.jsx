@@ -56,7 +56,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
     { label: "Map 관리", icon: <FaMapMarkedAlt />, path: "/building-manage" },
     { label: "Floor 관리", icon: <FaBuilding />, path: "/floor-manage" },
     { label: "Room 관리", icon: <FaDoorOpen />, path: "/room-manage" },
-    { label: "Category 관리", icon: <FaLayerGroup />, path: "/mapfile-manage" },
+    // { label: "Category 관리", icon: <FaLayerGroup />, path: "/mapfile-manage" },
     { label: "User 관리", icon: <FaUser />, path: "/user-manage" },
   ]
 

@@ -825,6 +825,7 @@ export default function RoomManagePage() {
                           <td>{room.name}</td>
                           {/* ⬇ 강의실 설명 */}
                           <td style={{ position: "relative" }}>
+                          <td className={styles["room-desc-cell"]}>
                             {room.description}
                             <button
                               style={{
@@ -839,6 +840,7 @@ export default function RoomManagePage() {
                                 transform: "translateY(-50%)",
                               }}
                               title="강의실 설명 수정"
+                              className={styles["edit-icon-button"]}
                               onClick={() => {
                                 setEditFieldType("desc")
                                 setEditFieldRoom(room)
@@ -1656,9 +1658,8 @@ export default function RoomManagePage() {
               <input
                 type="text"
                 value={editRoomName}
-                onChange={(e) => setEditRoomName(e.target.value)}
-                placeholder="강의실명"
-                required
+                readOnly // ← 변경: readonly이면 사용자 입력이나 수정 불가
+                tabIndex={-1} // ← 탭 이동도 막으려면 추가
                 style={{
                   width: "90%",
                   height: 48,
@@ -1666,14 +1667,15 @@ export default function RoomManagePage() {
                   borderRadius: 14,
                   border: "1.5px solid #b3d1fa",
                   fontSize: 16,
-                  background: "#fff",
-                  color: "#222",
+                  background: "#f4f6fa", // ← 비활성화 느낌 주기
+                  color: "#aaa",
                   fontFamily: "inherit",
                   outline: "none",
                   boxSizing: "border-box",
                   margin: "0 auto",
                   display: "block",
                 }}
+                disabled // ← 아예 회색 비활성화로 띄우고 싶으면 이거 사용도 가능
               />
               <input
                 type="text"

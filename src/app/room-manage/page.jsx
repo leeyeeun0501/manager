@@ -1784,39 +1784,29 @@ export default function RoomManagePage() {
             style={{
               background: "#fff",
               borderRadius: 18,
-              minWidth: 350,
-              maxWidth: "95vw",
-              padding: "36px 32px 28px 32px",
+              minWidth: 360,
+              maxWidth: "97vw",
+              padding: "34px 32px 26px 32px",
               boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
               display: "flex",
               flexDirection: "column",
               alignItems: "stretch",
               position: "relative",
+              border: "1px solid #e3ebf8",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 🟦 상단 강의실 정보 */}
+            {/* 1. 파란 타이틀 */}
             <div
               style={{
                 fontWeight: 700,
-                fontSize: 17,
+                fontSize: 18,
                 color: "#1976d2",
-                marginBottom: 14,
+                marginBottom: 18,
                 textAlign: "center",
-                borderBottom: "1.5px solid #e3ebf8",
+                borderBottom: "2px solid #1976d2",
                 paddingBottom: 7,
                 letterSpacing: "-0.5px",
-              }}
-            >
-              {editFieldRoom.building} / {editFieldRoom.floor} /{" "}
-              {editFieldRoom.name}
-            </div>
-            {/* 🟦 타입별 타이틀 */}
-            <h3
-              style={{
-                margin: "8px 0 13px 0",
-                fontSize: 18,
-                textAlign: "center",
               }}
             >
               {
@@ -1827,8 +1817,21 @@ export default function RoomManagePage() {
                   email: "이메일 수정",
                 }[editFieldType]
               }
-            </h3>
-            {/* 🟦 입력폼 */}
+            </div>
+            {/* 2. 강의실 정보 (건물/층/호실) */}
+            <div
+              style={{
+                color: "#495057",
+                fontWeight: 500,
+                fontSize: 15.5,
+                textAlign: "center",
+                margin: "9px 0 15px 0",
+              }}
+            >
+              {editFieldRoom.building} / {editFieldRoom.floor} /{" "}
+              {editFieldRoom.name}
+            </div>
+            {/* 3. 인풋: 수정할 값을 입력 */}
             <input
               value={editFieldValue}
               onChange={(e) => setEditFieldValue(e.target.value)}
@@ -1841,56 +1844,55 @@ export default function RoomManagePage() {
                 }[editFieldType]
               }
               style={{
-                width: "90%",
+                width: "100%",
                 height: 46,
                 padding: "0 13px",
                 borderRadius: 13,
                 border: "1.5px solid #b6bede",
                 fontSize: 16,
-                background: "#fff",
+                background: "#f7fbff",
                 color: "#222",
                 fontFamily: "inherit",
                 outline: "none",
                 boxSizing: "border-box",
-                margin: "0 auto 12px auto",
-                display: "block",
+                marginBottom: 11,
               }}
             />
-            {/* 🟦 에러 메시지 */}
+            {/* 에러 메시지 */}
             {editFieldError && (
               <div
                 style={{
                   color: "#e74c3c",
-                  fontSize: 15,
-                  margin: "4px 0 10px 0",
+                  fontSize: 14,
+                  margin: "2px 0 9px 0",
                   textAlign: "center",
                 }}
               >
                 {editFieldError}
               </div>
             )}
-            {/* 🟦 버튼 */}
+            {/* 버튼 */}
             <div
               style={{
                 display: "flex",
-                gap: 11,
-                marginTop: 8,
+                gap: 10,
+                marginTop: 10,
                 width: "100%",
-                justifyContent: "flex-end",
               }}
             >
               <button
                 type="button"
                 style={{
                   flex: 1,
-                  padding: "10px 0",
+                  padding: "12px 0",
                   borderRadius: 24,
                   border: "none",
-                  fontSize: 15,
+                  fontSize: 17,
                   fontWeight: 600,
-                  background: "#eee",
+                  background: "#efefef",
                   color: "#333",
                   cursor: "pointer",
+                  marginRight: 2,
                 }}
                 onClick={() => setShowEditFieldModal(false)}
               >
@@ -1900,14 +1902,15 @@ export default function RoomManagePage() {
                 type="button"
                 style={{
                   flex: 1,
-                  padding: "10px 0",
+                  padding: "12px 0",
                   borderRadius: 24,
                   border: "none",
-                  fontSize: 15,
+                  fontSize: 17,
                   fontWeight: 600,
                   background: "#2574f5",
                   color: "#fff",
                   cursor: "pointer",
+                  marginLeft: 2,
                 }}
                 onClick={async () => {
                   if (!editFieldRoom) return
@@ -1916,7 +1919,6 @@ export default function RoomManagePage() {
                     return
                   }
                   setEditFieldError("")
-                  // 수정 payload 구상
                   const payload = {
                     old_room_name: editFieldRoom.name,
                     room_name: editFieldRoom.name,
@@ -1952,7 +1954,6 @@ export default function RoomManagePage() {
                     )
                     if (!res.ok) throw new Error()
                     setShowEditFieldModal(false)
-                    // fetchRooms는 props 등에서 가져오도록 맞추세요!
                     if (typeof fetchRooms === "function")
                       fetchRooms(filterBuilding, filterFloor)
                   } catch {

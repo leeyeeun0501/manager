@@ -1919,28 +1919,20 @@ export default function RoomManagePage() {
                     return
                   }
                   setEditFieldError("")
-                  const payload = {
-                    old_room_name: editFieldRoom.name,
+                  // 최소정보(식별자 3개 + 단일필드)만 전송
+                  const basePayload = {
+                    building: editFieldRoom.building,
+                    floor: editFieldRoom.floor,
                     room_name: editFieldRoom.name,
-                    room_desc:
-                      editFieldType === "desc"
-                        ? editFieldValue
-                        : editFieldRoom.description,
-                    room_user:
-                      editFieldType === "user"
-                        ? editFieldValue
-                        : Array.isArray(editFieldRoom.room_user)
-                        ? editFieldRoom.room_user.join(", ")
-                        : editFieldRoom.room_user,
-                    user_phone:
-                      editFieldType === "phone"
-                        ? editFieldValue
-                        : editFieldRoom.user_phone,
-                    user_email:
-                      editFieldType === "email"
-                        ? editFieldValue
-                        : editFieldRoom.user_email,
                   }
+                  // 어떤 필드 수정인지 타입 분기
+                  const fieldMap = {
+                    desc: { room_desc: editFieldValue },
+                    user: { room_user: editFieldValue },
+                    phone: { user_phone: editFieldValue },
+                    email: { user_email: editFieldValue },
+                  }
+                  const payload = { ...basePayload, ...fieldMap[editFieldType] }
                   try {
                     const res = await fetch(
                       `/api/room-route/${encodeURIComponent(

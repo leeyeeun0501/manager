@@ -83,12 +83,19 @@ export async function PUT(req, context) {
     const body = await req.json()
     const { room_name, room_desc, room_user, user_phone, user_email } = body
 
-    // 필수 항목 검사
-    if (!room_name || !room_desc) {
+    // "필수" 로직은 room_name만(즉, 대상 방만 있으면 OK)
+    if (!room_name) {
       return NextResponse.json({ error: "필수 항목 누락" }, { status: 400 })
     }
 
-    // 서버로 PUT 요청
+    // 실제로 받은(=수정할) 값만 body에 넣도록
+    const updateBody = { room_name }
+    if (room_desc !== undefined) updateBody.room_desc = room_desc
+    if (room_user !== undefined) updateBody.room_user = room_user
+    if (user_phone !== undefined) updateBody.user_phone = user_phone
+    if (user_email !== undefined) updateBody.user_email = user_email
+
+    // 서버로 PUT 요청 (updateBody만 전달)
     const res = await fetch(
       `${API_BASE}/room/${encodeURIComponent(building)}/${encodeURIComponent(
         floor
@@ -96,13 +103,7 @@ export async function PUT(req, context) {
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          room_name,
-          room_desc,
-          room_user,
-          user_phone,
-          user_email,
-        }),
+        body: JSON.stringify(updateBody),
       }
     )
 

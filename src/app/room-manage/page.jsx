@@ -778,11 +778,40 @@ export default function RoomManagePage() {
                         <td>{room.description}</td>
                         <td>
                           {Array.isArray(room.room_user)
-                            ? room.room_user.join(", ")
-                            : room.room_user}
+                            ? room.room_user.filter((v) => v && v.trim())
+                                .length > 1
+                              ? room.room_user
+                                  .filter((v) => v && v.trim())
+                                  .join(", ")
+                              : room.room_user.find((v) => v && v.trim()) || ""
+                            : room.room_user && room.room_user.trim()
+                            ? room.room_user
+                            : ""}
                         </td>
-                        <td>{room.user_phone}</td>
-                        <td>{room.user_email}</td>
+                        <td>
+                          {Array.isArray(room.user_phone)
+                            ? room.user_phone.filter((v) => v && v.trim())
+                                .length > 1
+                              ? room.user_phone
+                                  .filter((v) => v && v.trim())
+                                  .join(", ")
+                              : room.user_phone.find((v) => v && v.trim()) || ""
+                            : room.user_phone && room.user_phone.trim()
+                            ? room.user_phone
+                            : ""}
+                        </td>
+                        <td>
+                          {Array.isArray(room.user_email)
+                            ? room.user_email.filter((v) => v && v.trim())
+                                .length > 1
+                              ? room.user_email
+                                  .filter((v) => v && v.trim())
+                                  .join(", ")
+                              : room.user_email.find((v) => v && v.trim()) || ""
+                            : room.user_email && room.user_email.trim()
+                            ? room.user_email
+                            : ""}
+                        </td>
                         <td>
                           <button
                             style={{

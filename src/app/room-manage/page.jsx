@@ -29,7 +29,7 @@ export default function RoomManagePage() {
 
   // 페이징 상태
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const itemsPerPage = 10
 
   // SVG 및 맵 관련 상태
   const [svgRaw, setSvgRaw] = useState("")
@@ -95,9 +95,6 @@ export default function RoomManagePage() {
   const [editRoomUsers, setEditRoomUsers] = useState([
     { user: "", phone: "", email: "" },
   ])
-
-  const tableWrapRef = useRef(null)
-  const headerRowRef = useRef(null)
 
   // SVG 노드 파싱 함수
   const parseSvgNodes = (svgXml) => {
@@ -481,25 +478,6 @@ export default function RoomManagePage() {
     }
   }
 
-  useEffect(() => {
-    function updatePageSize() {
-      if (tableWrapRef.current && headerRowRef.current) {
-        const tableHeight = tableWrapRef.current.offsetHeight
-        const headerHeight = headerRowRef.current.offsetHeight
-        const firstRow = tableWrapRef.current.querySelector("tbody tr")
-        const rowHeight = firstRow ? firstRow.offsetHeight : 45
-        const maxRows = Math.min(
-          10,
-          Math.max(1, Math.floor((tableHeight - headerHeight) / rowHeight))
-        )
-        setItemsPerPage(maxRows)
-      }
-    }
-    updatePageSize()
-    window.addEventListener("resize", updatePageSize)
-    return () => window.removeEventListener("resize", updatePageSize)
-  }, [rooms])
-
   // 엣지 연결
   useEffect(() => {
     if (
@@ -672,14 +650,12 @@ export default function RoomManagePage() {
     }
   }
 
-  // @ 파싱
   function getNodeSuffix(id) {
     if (!id) return ""
     const parts = id.split("@")
     return parts[parts.length - 1]
   }
 
-  // 다른 층 계단 연결
   async function connectEdgeToStairs(fromNode, toNodeInfo) {
     const { building: toBuilding, floor: toFloor, node: toNode } = toNodeInfo
 
@@ -717,7 +693,6 @@ export default function RoomManagePage() {
     }
   }
 
-  // @ 파싱
   const parseNodeInfo = (fullId) => {
     const parts = fullId.split("@")
     return {
@@ -765,6 +740,7 @@ export default function RoomManagePage() {
             )}
           </select>
         </div>
+
         <div className={styles["room-manage-main-row"]}>
           {/* 표 */}
           <div className={styles["room-manage-table-wrap"]}>
@@ -802,19 +778,11 @@ export default function RoomManagePage() {
                         <td>{room.description}</td>
                         <td>
                           {Array.isArray(room.room_user)
-                            ? room.room_user.join(" ")
+                            ? room.room_user.join(", ")
                             : room.room_user}
                         </td>
-                        <td>
-                          {Array.isArray(room.user_phone)
-                            ? room.user_phone.join(", ")
-                            : room.user_phone}
-                        </td>
-                        <td>
-                          {Array.isArray(room.user_email)
-                            ? room.user_email.join(", ")
-                            : room.user_email}
-                        </td>
+                        <td>{room.user_phone}</td>
+                        <td>{room.user_email}</td>
                         <td>
                           <button
                             style={{

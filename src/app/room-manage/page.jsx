@@ -26,12 +26,10 @@ export default function RoomManagePage() {
   const [editRoomName, setEditRoomName] = useState("")
   const [editRoomDesc, setEditRoomDesc] = useState("")
   const [editRoomError, setEditRoomError] = useState("")
-  const [editRoomLoading, setEditRoomLoading] = useState(false)
-  const [editRoomOldName, setEditRoomOldName] = useState("")
 
   // 페이징 상태
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   // SVG 및 맵 관련 상태
   const [svgRaw, setSvgRaw] = useState("")
@@ -97,6 +95,9 @@ export default function RoomManagePage() {
   const [editRoomUsers, setEditRoomUsers] = useState([
     { user: "", phone: "", email: "" },
   ])
+
+  const tableWrapRef = useRef(null)
+  const headerRowRef = useRef(null)
 
   // SVG 노드 파싱 함수
   const parseSvgNodes = (svgXml) => {
@@ -479,6 +480,25 @@ export default function RoomManagePage() {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
     }
   }
+
+  useEffect(() => {
+    function updatePageSize() {
+      if (tableWrapRef.current && headerRowRef.current) {
+        const tableHeight = tableWrapRef.current.offsetHeight
+        const headerHeight = headerRowRef.current.offsetHeight
+        const firstRow = tableWrapRef.current.querySelector("tbody tr")
+        const rowHeight = firstRow ? firstRow.offsetHeight : 45
+        const maxRows = Math.min(
+          10,
+          Math.max(1, Math.floor((tableHeight - headerHeight) / rowHeight))
+        )
+        setItemsPerPage(maxRows)
+      }
+    }
+    updatePageSize()
+    window.addEventListener("resize", updatePageSize)
+    return () => window.removeEventListener("resize", updatePageSize)
+  }, [rooms])
 
   // 엣지 연결
   useEffect(() => {

@@ -39,18 +39,10 @@
   margin-bottom: 40px;
 }
 
-.room-content,
-.room-manage-table-wrap {
-  overflow-x: auto;
-  min-width: 2000px;
-  width: 100%;
-}
-
 .room-content {
   max-width: 100%;
   margin: 0 auto;
-  padding: 0px 0 0 0;
-  overflow-x: auto;
+  padding: 0;
 }
 
 .room-manage-filter-row {
@@ -64,36 +56,24 @@
 .room-manage-main-row {
   display: flex;
   align-items: flex-start;
-  gap: 48px;
+  justify-content: space-between;
   width: 100%;
-  max-width: 1400px;
+  max-width: 100%;
   margin: 20px auto 0;
-  overflow-x: auto;
+  padding: 0 40px;
+  box-sizing: border-box;
 }
 
 .room-manage-table-wrap {
-  flex: 1 1 0;
-  min-width: 700px;
-  max-width: 340px;
-  margin-right: 0;
-  overflow-x: auto;
+  flex: 1 1 auto;
+  margin-right: 24px;
+  overflow-x: visible;
 }
 
 .user-table.center-table {
-  margin-left: 0;
-  margin-right: 0;
-  margin-top: 0;
+  margin: 0;
   width: 100%;
-  max-width: 1200px;
-}
-
-.room-manage-canvas-outer {
-  flex: 0 0 620px;
-  min-width: 600px;
-  max-width: 700px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  max-width: 100%;
 }
 
 .user-table {
@@ -109,11 +89,12 @@
 .user-table th,
 .user-table td {
   border: 1px solid #eee;
-  padding: 8px 4px;
+  padding: 8px 8px;
   text-align: center;
   font-size: 0.95rem;
-  word-break: break-all;
-  max-width: 120px;
+  word-break: break-word;
+  max-width: 160px;
+  min-width: 80px;
 }
 
 .user-table th {
@@ -124,14 +105,21 @@
 }
 
 .center-table {
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 40px;
-  width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+}
+
+.room-manage-canvas-outer {
+  flex: 0 0 600px;
+  max-width: 600px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
 }
 
 .room-manage-canvas {
-  width: 600px;
+  width: 100%;
   height: 600px;
   background: #f5f6fa;
   border: 1.5px solid #e0e0e0;
@@ -156,9 +144,16 @@
 }
 
 .room-manage-canvas-placeholder {
-  color: #bbb;
-  font-size: 1.1rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 18px;
+  color: #666;
   text-align: center;
+  z-index: 2;
+  width: 100%;
+  pointer-events: none;
 }
 
 .room-manage-popup {
@@ -260,19 +255,6 @@
   box-shadow: 0 4px 32px rgba(0, 0, 0, 0.15);
   min-width: 300px;
   text-align: center;
-}
-
-.room-manage-canvas-placeholder {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 18px;
-  color: #666;
-  text-align: center;
-  z-index: 2;
-  width: 100%;
-  pointer-events: none;
 }
 
 .building-select,

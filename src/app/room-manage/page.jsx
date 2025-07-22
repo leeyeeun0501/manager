@@ -94,12 +94,6 @@ export default function RoomManagePage() {
   const [stairsFloor, setStairsFloor] = useState("")
   const [stairsId, setStairsId] = useState("")
 
-  const [showEditFieldModal, setShowEditFieldModal] = useState(false)
-  const [editFieldType, setEditFieldType] = useState("")
-  const [editFieldValue, setEditFieldValue] = useState("")
-  const [editFieldRoom, setEditFieldRoom] = useState(null)
-  const [editFieldError, setEditFieldError] = useState("")
-
   const [editRoomUsers, setEditRoomUsers] = useState([
     { user: "", phone: "", email: "" },
   ])
@@ -350,44 +344,6 @@ export default function RoomManagePage() {
       setRooms([])
     } finally {
       setLoading(false)
-    }
-  }
-
-  // 강의실 수정 핸들러
-  const handleEditRoom = async () => {
-    if (!editRoom) return
-    setEditRoomLoading(true)
-    try {
-      const res = await fetch(
-        `/api/room-route/${encodeURIComponent(
-          editRoom.building
-        )}/${encodeURIComponent(editRoom.floor)}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            old_room_name: editRoomOldName,
-            room_name: editRoomName,
-            room_desc: editRoomDesc,
-          }),
-        }
-      )
-      const data = await res.json()
-      if (!res.ok) {
-        showToast(data.error || "수정 실패")
-        return
-      }
-      fetchRooms(filterBuilding, filterFloor)
-      setShowEditRoomModal(false)
-      setEditRoom(null)
-      setEditRoomName("")
-      setEditRoomDesc("")
-      setEditRoomOldName("")
-      showToast("강의실 정보가 수정되었습니다.")
-    } catch {
-      showToast("수정 중 오류가 발생했습니다.")
-    } finally {
-      setEditRoomLoading(false)
     }
   }
 
@@ -696,12 +652,14 @@ export default function RoomManagePage() {
     }
   }
 
+  // @ 파싱
   function getNodeSuffix(id) {
     if (!id) return ""
     const parts = id.split("@")
     return parts[parts.length - 1]
   }
 
+  // 다른 층 계단 연결
   async function connectEdgeToStairs(fromNode, toNodeInfo) {
     const { building: toBuilding, floor: toFloor, node: toNode } = toNodeInfo
 
@@ -739,6 +697,7 @@ export default function RoomManagePage() {
     }
   }
 
+  // @ 파싱
   const parseNodeInfo = (fullId) => {
     const parts = fullId.split("@")
     return {
@@ -786,7 +745,6 @@ export default function RoomManagePage() {
             )}
           </select>
         </div>
-
         <div className={styles["room-manage-main-row"]}>
           {/* 표 */}
           <div className={styles["room-manage-table-wrap"]}>

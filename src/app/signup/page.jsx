@@ -147,7 +147,7 @@ export default function SignupPage() {
             <input
               name="emailId"
               type="text"
-              placeholder="이메일 아이디"
+              placeholder="이메일"
               value={form.emailId}
               onChange={handleChange}
               required

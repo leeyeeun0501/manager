@@ -1,4 +1,3 @@
-// login
 "use client"
 import "../globals.css"
 import { useState } from "react"
@@ -12,7 +11,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  // 로그인 핸들러
   const handleLogin = async (e) => {
     e.preventDefault()
     setError("")
@@ -39,7 +37,6 @@ export default function LoginPage() {
     }
   }
 
-  // 회원가입 핸들러
   const goToSignup = (e) => {
     e.preventDefault()
     router.push("/signup")
@@ -48,42 +45,50 @@ export default function LoginPage() {
   return (
     <div className={styles["login-container"]}>
       <div className={styles["login-box"]}>
-        <div className={styles["login-title"]}>로그인</div>
+        <h2 className={styles["login-title"]}>로그인</h2>
         <form onSubmit={handleLogin} className={styles["login-form"]}>
           <input
-            className={styles["login-input"]}
+            name="id"
             type="text"
             placeholder="아이디"
             value={id}
             onChange={(e) => setId(e.target.value)}
             required
-            disabled={loading}
+            className={styles["login-input"]}
             autoComplete="username"
           />
           <input
-            className={styles["login-input"]}
+            name="pw"
             type="password"
             placeholder="비밀번호"
             value={pw}
             onChange={(e) => setPw(e.target.value)}
             required
-            disabled={loading}
+            className={styles["login-input"]}
             autoComplete="current-password"
           />
+
+          {/* 로그인 버튼만 남기고 회원가입 버튼 제거 */}
           <button
-            className={styles["login-btn"]}
             type="submit"
+            className={styles["login-btn"]}
             disabled={loading}
           >
-            {loading ? "로그인 중..." : "로그인"}
+            {loading ? "로딩중..." : "로그인"}
           </button>
+
           {error && <div className={styles["login-error"]}>{error}</div>}
         </form>
         <div className={styles["login-link-box"]}>
           계정이 없으신가요?{" "}
-          <span className={styles["login-link"]} onClick={goToSignup}>
+          <a
+            href="/signup"
+            onClick={goToSignup}
+            className={styles["login-link"]}
+            style={{ cursor: "pointer" }}
+          >
             회원가입
-          </span>
+          </a>
         </div>
       </div>
     </div>

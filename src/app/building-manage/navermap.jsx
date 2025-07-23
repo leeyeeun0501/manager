@@ -1310,8 +1310,9 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         <div
           style={{
             position: "fixed",
-            top: 32,
-            left: 410,
+            top: 32, // 상단에서 32px 위치
+            left: "50%", // 가로 가운데 위치
+            transform: "translateX(-50%)", // 가로 방향으로 자기 너비의 절반만큼 왼쪽 이동하여 정확한 중앙 정렬
             zIndex: 3500,
             background: "#00C3FF",
             color: "#fff",

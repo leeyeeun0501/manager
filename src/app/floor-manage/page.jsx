@@ -138,14 +138,10 @@ export default function BuildingPage() {
       setAddFloorFile(null)
       if (addFloorFileRef.current) addFloorFileRef.current.value = ""
 
-      // 새로고침: 선택된 빌딩과 추가 빌딩이 다르면 빌딩 선택 변경도 같이 처리
-      if (selectedBuilding !== addFloorBuilding) {
-        setSelectedBuilding(addFloorBuilding)
-      } else {
-        await fetchFloors(selectedBuilding)
-      }
-      setFloorPage(1)
+      // 새로고침: 전체 층 목록을 다시 불러옴
+      await fetchFloors("") // 빈 문자열 넣어 전체 데이터 로드
       setSelectedFloor("")
+      setFloorPage(1)
     } catch (err) {
       setAddFloorError("층 추가 중 오류가 발생했습니다.")
     }

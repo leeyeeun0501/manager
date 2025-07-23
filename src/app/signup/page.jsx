@@ -10,12 +10,14 @@ export default function SignupPage() {
     pw: "",
     name: "",
     phone: "",
-    email: "",
+    emailId: "",
+    emailDomain: "wsu.ac.kr",
+    customEmailDomain: "",
   })
   const [error, setError] = useState("")
   const router = useRouter()
 
-  // 하이픈 자동 삽입 함수
+  // 전화번호 하이픈 자동 삽입 함수
   const formatPhoneNumber = (value) => {
     const number = value.replace(/[^0-9]/g, "")
     if (number.length < 4) return number
@@ -28,24 +30,53 @@ export default function SignupPage() {
     return number.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3")
   }
 
-  // input onChange 핸들러
   const handleChange = (e) => {
     const { name, value } = e.target
-    setForm((prev) => ({
-      ...prev,
-      [name]: name === "phone" ? formatPhoneNumber(value) : value,
-    }))
+    if (name === "phone") {
+      setForm((prev) => ({ ...prev, phone: formatPhoneNumber(value) }))
+    } else if (name === "emailDomain") {
+      setForm((prev) => ({
+        ...prev,
+        emailDomain: value,
+        customEmailDomain: "",
+      }))
+    } else if (name === "customEmailDomain") {
+      setForm((prev) => ({ ...prev, customEmailDomain: value }))
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }))
+    }
   }
 
-  // 회원가입 핸들러
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
+    const domain =
+      form.emailDomain === "직접입력"
+        ? form.customEmailDomain.trim()
+        : form.emailDomain
+
+    if (!form.emailId.trim()) {
+      setError("이메일 아이디를 입력해주세요.")
+      return
+    }
+    if (!domain) {
+      setError("이메일 도메인을 입력해주세요.")
+      return
+    }
+    const email = `${form.emailId.trim()}@${domain}`
+    const submitData = {
+      id: form.id,
+      pw: form.pw,
+      name: form.name,
+      phone: form.phone,
+      email,
+    }
+
     try {
       const res = await fetch("/api/signup-route", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(submitData),
       })
       if (res.ok) {
         alert("회원가입이 완료되었습니다.")
@@ -77,6 +108,7 @@ export default function SignupPage() {
             onChange={handleChange}
             required
             className={styles["signup-input"]}
+            autoComplete="username"
           />
           <input
             name="pw"
@@ -86,6 +118,7 @@ export default function SignupPage() {
             onChange={handleChange}
             required
             className={styles["signup-input"]}
+            autoComplete="new-password"
           />
           <input
             name="name"
@@ -95,6 +128,7 @@ export default function SignupPage() {
             onChange={handleChange}
             required
             className={styles["signup-input"]}
+            autoComplete="name"
           />
           <input
             name="phone"
@@ -104,17 +138,52 @@ export default function SignupPage() {
             onChange={handleChange}
             required
             className={styles["signup-input"]}
-            maxLength={13} // 010-1234-5678
+            maxLength={13}
+            autoComplete="tel"
           />
-          <input
-            name="email"
-            type="email"
-            placeholder="이메일"
-            value={form.email}
-            onChange={handleChange}
-            required
-            className={styles["signup-input"]}
-          />
+
+          {/* 이메일 입력 분리 */}
+          <div className={styles["email-input-wrapper"]}>
+            <input
+              name="emailId"
+              type="text"
+              placeholder="이메일 아이디"
+              value={form.emailId}
+              onChange={handleChange}
+              required
+              className={styles["email-id-input"]}
+              autoComplete="off"
+            />
+            <span className={styles["email-at"]}>@</span>
+            {form.emailDomain === "직접입력" ? (
+              <input
+                name="customEmailDomain"
+                type="text"
+                placeholder="도메인 직접 입력 (예: example.com)"
+                value={form.customEmailDomain}
+                onChange={handleChange}
+                required
+                className={styles["email-domain-input"]}
+                autoComplete="off"
+              />
+            ) : (
+              <select
+                name="emailDomain"
+                value={form.emailDomain}
+                onChange={handleChange}
+                className={styles["email-domain-select"]}
+                required
+              >
+                <option value="wsu.ac.kr">wsu.ac.kr</option>
+                <option value="naver.com">naver.com</option>
+                <option value="gmail.com">gmail.com</option>
+                <option value="hanmail.net">hanmail.net</option>
+                <option value="nate.com">nate.com</option>
+                <option value="직접입력">직접입력</option>
+              </select>
+            )}
+          </div>
+
           <button type="submit" className={styles["signup-btn"]}>
             회원가입
           </button>

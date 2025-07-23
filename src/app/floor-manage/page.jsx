@@ -48,6 +48,12 @@ export default function BuildingPage() {
     floor: "",
   })
 
+  const getCacheBustedUrl = (url) => {
+    if (!url) return url
+    const separator = url.includes("?") ? "&" : "?"
+    return url + separator + "ts=" + Date.now()
+  }
+
   // 층 표 필터 및 페이지네이션
   const floorFiltered = selectedFloor
     ? floors.filter((f) => String(f.floor) === String(selectedFloor))
@@ -152,6 +158,7 @@ export default function BuildingPage() {
       )
     )
       return
+
     try {
       const res = await fetch(
         `/api/floor-route?building=${encodeURIComponent(
@@ -722,7 +729,7 @@ export default function BuildingPage() {
               {/* 도면 이미지 */}
               <object
                 type="image/svg+xml"
-                data={mapModalFile}
+                data={getCacheBustedUrl(mapModalFile)}
                 style={{
                   width: "400px",
                   height: "400px",
@@ -784,7 +791,7 @@ export default function BuildingPage() {
                     alert("도면이 성공적으로 수정되었습니다!")
 
                     // 도면 수정 후에 층 정보 갱신
-                    await fetchFloors(editMapBuilding)
+                    await fetchFloors(selectedBuilding)
 
                     setMapModalOpen(false)
                   } catch (err) {

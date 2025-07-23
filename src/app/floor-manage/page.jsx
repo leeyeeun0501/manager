@@ -67,48 +67,6 @@ export default function BuildingPage() {
     new Set(floors.map((f) => String(f.floor)).filter(Boolean))
   ).sort((a, b) => Number(a) - Number(b))
 
-  // API에서 층 목록 새로 로드 함수 분리
-  const fetchFloors = async (building) => {
-    try {
-      let url = "/api/floor-route"
-      if (building) {
-        url += `?building=${encodeURIComponent(building)}`
-      }
-      const res = await fetch(url)
-      const data = await res.json()
-      setFloors(data.floors || [])
-    } catch {
-      setFloors([])
-    }
-  }
-
-  // 건물 목록
-  useEffect(() => {
-    async function fetchBuildings() {
-      try {
-        const res = await fetch("/api/building-route")
-        if (!res.ok) throw new Error("Failed to fetch buildings")
-        const data = await res.json()
-        const infos = (data.all || [])
-          .filter((b) => b && b.Building_Name)
-          .map((b) => ({
-            name: b.Building_Name,
-          }))
-        setBuildingInfos(infos)
-      } catch (err) {
-        setBuildingInfos([])
-      }
-    }
-    fetchBuildings()
-  }, [])
-
-  // (전체/건물별) 층 정보
-  useEffect(() => {
-    fetchFloors(selectedBuilding)
-    setSelectedFloor("")
-    setFloorPage(1)
-  }, [selectedBuilding])
-
   // 층 추가 핸들러
   const handleAddFloor = async (e) => {
     e.preventDefault()
@@ -137,11 +95,14 @@ export default function BuildingPage() {
       setAddFloorNum("")
       setAddFloorFile(null)
       if (addFloorFileRef.current) addFloorFileRef.current.value = ""
-
-      // 새로고침: 전체 층 목록을 다시 불러옴
-      await fetchFloors("") // 빈 문자열 넣어 전체 데이터 로드
-      setSelectedFloor("")
-      setFloorPage(1)
+      // 데이터 새로고침
+      if (selectedBuilding === addFloorBuilding) {
+        const floorsRes = await fetch(
+          `/api/floor-route?building=${encodeURIComponent(addFloorBuilding)}`
+        )
+        const floorsData = await floorsRes.json()
+        setFloors(floorsData.floors || [])
+      }
     } catch (err) {
       setAddFloorError("층 추가 중 오류가 발생했습니다.")
     }
@@ -181,6 +142,48 @@ export default function BuildingPage() {
       alert("층 삭제 중 오류가 발생했습니다.")
     }
   }
+
+  // 건물 목록
+  useEffect(() => {
+    async function fetchBuildings() {
+      try {
+        const res = await fetch("/api/building-route")
+        if (!res.ok) throw new Error("Failed to fetch buildings")
+        const data = await res.json()
+        const infos = (data.all || [])
+          .filter((b) => b && b.Building_Name)
+          .map((b) => ({
+            name: b.Building_Name,
+          }))
+        setBuildingInfos(infos)
+      } catch (err) {
+        setBuildingInfos([])
+      }
+    }
+    fetchBuildings()
+  }, [])
+
+  // (전체/건물별) 층 정보
+  useEffect(() => {
+    async function fetchFloors() {
+      let url = "/api/floor-route"
+      if (selectedBuilding) {
+        url += `?building=${encodeURIComponent(selectedBuilding)}`
+      }
+      console.log("층 정보 fetch URL:", url)
+      try {
+        const res = await fetch(url)
+        const data = await res.json()
+        console.log("층 정보 응답:", data)
+        setFloors(data.floors || [])
+      } catch (err) {
+        setFloors([])
+      }
+      setSelectedFloor("")
+      setFloorPage(1)
+    }
+    fetchFloors()
+  }, [selectedBuilding])
 
   // 파일 선택 아이콘 버튼 컴포넌트
   function ClipFileInput({ onFileChange, fileName }) {
@@ -631,6 +634,407 @@ export default function BuildingPage() {
                     }}
                   >
                     저장
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* 2D 도면 팝업 */}
+        {mapModalOpen && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              background: "rgba(0,0,0,0.18)",
+              zIndex: 20000,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onClick={() => {
+              setMapModalOpen(false)
+              setEditFile(null)
+              setEditError("")
+              if (editFileRef.current) editFileRef.current.value = ""
+            }}
+          >
+            <div
+              style={{
+                background: "#fff",
+                borderRadius: 18,
+                minWidth: 600,
+                maxWidth: "90vw",
+                maxHeight: "90vh",
+                padding: "28px 28px 18px 28px",
+                boxShadow: "0 2px 16px rgba(0,0,0,0.12)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                position: "relative",
+                overflow: "auto",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                style={{
+                  position: "absolute",
+                  top: 12,
+                  right: 18,
+                  background: "none",
+                  border: "none",
+                  fontSize: 22,
+                  cursor: "pointer",
+                  color: "#aaa",
+                }}
+                onClick={() => setMapModalOpen(false)}
+                aria-label="닫기"
+              >
+                ✕
+              </button>
+              <div
+                style={{
+                  marginBottom: 18,
+                  fontWeight: 700,
+                  fontSize: 18,
+                  color: "#2574f5",
+                }}
+              >
+                2D 도면 미리보기
+              </div>
+              <div
+                style={{ marginBottom: 12, fontWeight: "bold", fontSize: 16 }}
+              >
+                {/* 건물명/층수 표시 */}
+                <div
+                  style={{
+                    width: "100%",
+                    fontSize: 16,
+                    color: "#2574f5",
+                    fontWeight: 600,
+                    marginBottom: 12,
+                    textAlign: "center",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                  }}
+                >
+                  건물명: {editMapBuilding} / 층수: {editMapFloor}
+                </div>
+              </div>
+              {/* 도면 이미지 */}
+              <object
+                type="image/svg+xml"
+                data={mapModalFile}
+                style={{
+                  width: "400px",
+                  height: "400px",
+                  maxWidth: "40vw",
+                  maxHeight: "60vh",
+                  border: "none",
+                  borderRadius: 10,
+                  background: "#f7f9fc",
+                  display: "block",
+                  margin: "0 auto",
+                }}
+              >
+                SVG 미리보기를 지원하지 않는 브라우저입니다.
+              </object>
+              {/* 파일 선택 + 수정 버튼을 이미지 아래에 세로로 */}
+              <form
+                style={{
+                  marginTop: 24,
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 14,
+                  maxWidth: 340,
+                }}
+                onSubmit={async (e) => {
+                  e.preventDefault()
+                  setEditMapError("")
+                  if (!editMapFile) {
+                    setEditMapError("SVG 파일을 선택하세요.")
+                    return
+                  }
+                  if (!editMapBuilding || !editMapFloor) {
+                    setEditMapError("건물명과 층수를 선택하세요.")
+                    return
+                  }
+                  setEditMapLoading(true)
+                  try {
+                    const formData = new FormData()
+                    formData.append("file", editMapFile)
+                    formData.append("building_name", editMapBuilding)
+                    formData.append("floor_number", editMapFloor)
+
+                    const res = await fetch(
+                      `/api/floor-route?building=${encodeURIComponent(
+                        editMapBuilding
+                      )}&floor=${encodeURIComponent(editMapFloor)}`,
+                      {
+                        method: "PUT",
+                        body: formData,
+                      }
+                    )
+                    const data = await res.json()
+                    if (!res.ok) {
+                      setEditMapError(data.error || "도면 수정 실패")
+                      setEditMapLoading(false)
+                      return
+                    }
+                    alert("도면이 성공적으로 수정되었습니다!")
+                    setMapModalOpen(false)
+                  } catch (err) {
+                    setEditMapError("도면 수정 중 오류가 발생했습니다.")
+                  }
+                  setEditMapLoading(false)
+                }}
+              >
+                <div
+                  style={{
+                    width: "100%",
+                    background: "#fff",
+                    borderRadius: 14,
+                    border: "1.5px solid #b3d1fa",
+                    height: 48,
+                    boxSizing: "border-box",
+                    display: "flex",
+                    alignItems: "center",
+                    padding: 0,
+                  }}
+                >
+                  <ClipFileInput
+                    onFileChange={(e) => setEditMapFile(e.target.files[0])}
+                    fileName={editMapFile ? editMapFile.name : ""}
+                    accept=".svg"
+                    fileInputRef={editMapFileRef}
+                  />
+                </div>
+                {editMapError && (
+                  <div style={{ color: "#e74c3c", fontSize: 15 }}>
+                    {editMapError}
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  style={{
+                    width: "100%",
+                    padding: "12px 0",
+                    borderRadius: 14,
+                    border: "none",
+                    fontSize: 16,
+                    fontWeight: 700,
+                    background: "#2574f5",
+                    color: "#fff",
+                    cursor: "pointer",
+                    marginTop: 8,
+                    opacity: editMapLoading ? 0.6 : 1,
+                  }}
+                  disabled={editMapLoading}
+                >
+                  {editMapLoading ? "수정 중..." : "도면 파일 수정"}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* 2D 도면 추가 팝업 */}
+        {fileAddModal.open && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              background: "rgba(0,0,0,0.14)",
+              zIndex: 20000,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onClick={() =>
+              setFileAddModal({ open: false, building: "", floor: "" })
+            }
+          >
+            <div
+              style={{
+                background: "#fff",
+                borderRadius: 18,
+                minWidth: 380,
+                maxWidth: "95vw",
+                padding: "36px 32px 28px 32px",
+                boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "stretch",
+                position: "relative",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: 18,
+                  color: "#1976d2",
+                  marginBottom: 18,
+                  textAlign: "center",
+                  borderBottom: "2px solid #1976d2",
+                  paddingBottom: 6,
+                  letterSpacing: "-0.5px",
+                }}
+              >
+                2D 도면 파일 추가
+              </div>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault()
+                  setAddFileError("")
+                  if (!addFile) {
+                    setAddFileError("SVG 파일을 선택하세요.")
+                    return
+                  }
+                  if (!editMapBuilding || !editMapFloor) {
+                    setEditMapError("건물명과 층수를 선택하세요.")
+                    return
+                  }
+                  setAddFileLoading(true)
+                  try {
+                    const formData = new FormData()
+                    formData.append("file", addFile)
+                    formData.append("building_name", fileAddModal.building)
+                    formData.append("floor_number", fileAddModal.floor)
+                    const res = await fetch(
+                      `/api/floor-route?building=${encodeURIComponent(
+                        fileAddModal.building
+                      )}&floor=${encodeURIComponent(fileAddModal.floor)}`,
+                      {
+                        method: "PUT",
+                        body: formData,
+                      }
+                    )
+                    const data = await res.json()
+                    if (!res.ok) {
+                      setAddFileError(data.error || "도면 추가 실패")
+                      setAddFileLoading(false)
+                      return
+                    }
+                    alert("도면이 성공적으로 추가되었습니다!")
+                    setFileAddModal({ open: false, building: "", floor: "" })
+                    if (selectedBuilding === fileAddModal.building) {
+                      const floorsRes = await fetch(
+                        `/api/floor-route?building=${encodeURIComponent(
+                          fileAddModal.building
+                        )}`
+                      )
+                      const floorsData = await floorsRes.json()
+                      setFloors(floorsData.floors || [])
+                    }
+                  } catch (err) {
+                    setAddFileError("도면 추가 중 오류가 발생했습니다.")
+                  }
+                  setAddFileLoading(false)
+                }}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 16,
+                }}
+              >
+                {/* 건물명/층수 표시 */}
+                <div
+                  style={{
+                    width: "90%",
+                    margin: "0 auto",
+                    fontSize: 16,
+                    color: "#2574f5",
+                    fontWeight: 600,
+                    marginBottom: 8,
+                    textAlign: "center",
+                  }}
+                >
+                  {" "}
+                  건물명: {fileAddModal.building} / 층수: {fileAddModal.floor}
+                </div>
+                {/* 파일 선택 */}
+                <div
+                  style={{
+                    width: "90%",
+                    margin: "0 auto",
+                    background: "#fff",
+                    borderRadius: 14,
+                    border: "1.5px solid #b3d1fa",
+                    height: 48,
+                    boxSizing: "border-box",
+                    display: "flex",
+                    alignItems: "center",
+                    padding: 0,
+                  }}
+                >
+                  <ClipFileInput
+                    onFileChange={(e) => setAddFile(e.target.files[0])}
+                    fileName={addFile ? addFile.name : ""}
+                  />
+                </div>
+                {addFileError && (
+                  <div
+                    style={{ color: "#e74c3c", fontSize: 15, margin: "4px 0" }}
+                  >
+                    {addFileError}
+                  </div>
+                )}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 10,
+                    marginTop: 14,
+                    width: "100%",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <button
+                    type="button"
+                    style={{
+                      flex: 1,
+                      padding: "10px 0",
+                      borderRadius: 24,
+                      border: "none",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      background: "#eee",
+                      color: "#333",
+                      cursor: "pointer",
+                    }}
+                    onClick={() =>
+                      setFileAddModal({ open: false, building: "", floor: "" })
+                    }
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="submit"
+                    style={{
+                      flex: 1,
+                      padding: "10px 0",
+                      borderRadius: 24,
+                      border: "none",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      background: "#2574f5",
+                      color: "#fff",
+                      cursor: "pointer",
+                      opacity: addFileLoading ? 0.6 : 1,
+                    }}
+                    disabled={addFileLoading}
+                  >
+                    {addFileLoading ? "업로드 중..." : "저장"}
                   </button>
                 </div>
               </form>

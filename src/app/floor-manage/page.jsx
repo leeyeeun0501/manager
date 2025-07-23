@@ -1,4 +1,3 @@
-// floor-manage
 "use client"
 import "../globals.css"
 import React, { useEffect, useState, useRef } from "react"
@@ -67,6 +66,48 @@ export default function BuildingPage() {
     new Set(floors.map((f) => String(f.floor)).filter(Boolean))
   ).sort((a, b) => Number(a) - Number(b))
 
+  // 층 정보 fetch 함수 분리 (재사용 가능)
+  async function fetchFloors(buildingName = selectedBuilding) {
+    let url = "/api/floor-route"
+    if (buildingName) {
+      url += `?building=${encodeURIComponent(buildingName)}`
+    }
+    try {
+      const res = await fetch(url)
+      const data = await res.json()
+      setFloors(data.floors || [])
+    } catch (err) {
+      setFloors([])
+    }
+    setSelectedFloor("")
+    setFloorPage(1)
+  }
+
+  // 건물 목록 로드
+  useEffect(() => {
+    async function fetchBuildings() {
+      try {
+        const res = await fetch("/api/building-route")
+        if (!res.ok) throw new Error("Failed to fetch buildings")
+        const data = await res.json()
+        const infos = (data.all || [])
+          .filter((b) => b && b.Building_Name)
+          .map((b) => ({
+            name: b.Building_Name,
+          }))
+        setBuildingInfos(infos)
+      } catch (err) {
+        setBuildingInfos([])
+      }
+    }
+    fetchBuildings()
+  }, [])
+
+  // 선택된 건물이 바뀔 때 층 정보 로드
+  useEffect(() => {
+    fetchFloors(selectedBuilding)
+  }, [selectedBuilding])
+
   // 층 추가 핸들러
   const handleAddFloor = async (e) => {
     e.preventDefault()
@@ -95,14 +136,9 @@ export default function BuildingPage() {
       setAddFloorNum("")
       setAddFloorFile(null)
       if (addFloorFileRef.current) addFloorFileRef.current.value = ""
-      // 데이터 새로고침
-      if (selectedBuilding === addFloorBuilding) {
-        const floorsRes = await fetch(
-          `/api/floor-route?building=${encodeURIComponent(addFloorBuilding)}`
-        )
-        const floorsData = await floorsRes.json()
-        setFloors(floorsData.floors || [])
-      }
+
+      // '전체 건물' 또는 특정 건물 상태에 따라 갱신
+      await fetchFloors(selectedBuilding)
     } catch (err) {
       setAddFloorError("층 추가 중 오류가 발생했습니다.")
     }
@@ -142,48 +178,6 @@ export default function BuildingPage() {
       alert("층 삭제 중 오류가 발생했습니다.")
     }
   }
-
-  // 건물 목록
-  useEffect(() => {
-    async function fetchBuildings() {
-      try {
-        const res = await fetch("/api/building-route")
-        if (!res.ok) throw new Error("Failed to fetch buildings")
-        const data = await res.json()
-        const infos = (data.all || [])
-          .filter((b) => b && b.Building_Name)
-          .map((b) => ({
-            name: b.Building_Name,
-          }))
-        setBuildingInfos(infos)
-      } catch (err) {
-        setBuildingInfos([])
-      }
-    }
-    fetchBuildings()
-  }, [])
-
-  // (전체/건물별) 층 정보
-  useEffect(() => {
-    async function fetchFloors() {
-      let url = "/api/floor-route"
-      if (selectedBuilding) {
-        url += `?building=${encodeURIComponent(selectedBuilding)}`
-      }
-      console.log("층 정보 fetch URL:", url)
-      try {
-        const res = await fetch(url)
-        const data = await res.json()
-        console.log("층 정보 응답:", data)
-        setFloors(data.floors || [])
-      } catch (err) {
-        setFloors([])
-      }
-      setSelectedFloor("")
-      setFloorPage(1)
-    }
-    fetchFloors()
-  }, [selectedBuilding])
 
   // 파일 선택 아이콘 버튼 컴포넌트
   function ClipFileInput({ onFileChange, fileName }) {
@@ -658,9 +652,9 @@ export default function BuildingPage() {
             }}
             onClick={() => {
               setMapModalOpen(false)
-              setEditFile(null)
-              setEditError("")
-              if (editFileRef.current) editFileRef.current.value = ""
+              setEditMapFile(null)
+              setEditMapError("")
+              if (editMapFileRef.current) editMapFileRef.current.value = ""
             }}
           >
             <div
@@ -788,6 +782,10 @@ export default function BuildingPage() {
                       return
                     }
                     alert("도면이 성공적으로 수정되었습니다!")
+
+                    // 도면 수정 후에 층 정보 갱신
+                    await fetchFloors(editMapBuilding)
+
                     setMapModalOpen(false)
                   } catch (err) {
                     setEditMapError("도면 수정 중 오류가 발생했습니다.")
@@ -927,15 +925,9 @@ export default function BuildingPage() {
                     }
                     alert("도면이 성공적으로 추가되었습니다!")
                     setFileAddModal({ open: false, building: "", floor: "" })
-                    if (selectedBuilding === fileAddModal.building) {
-                      const floorsRes = await fetch(
-                        `/api/floor-route?building=${encodeURIComponent(
-                          fileAddModal.building
-                        )}`
-                      )
-                      const floorsData = await floorsRes.json()
-                      setFloors(floorsData.floors || [])
-                    }
+
+                    // 도면 추가 후 층 리스트 갱신
+                    await fetchFloors(fileAddModal.building)
                   } catch (err) {
                     setAddFileError("도면 추가 중 오류가 발생했습니다.")
                   }

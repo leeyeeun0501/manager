@@ -63,6 +63,9 @@ export default function RoomManagePage() {
   const CANVAS_SIZE = 600
   const mapContainerRef = useRef(null)
 
+  const [search, setSearch] = useState("")
+  const [filteredRooms, setFilteredRooms] = useState([])
+
   // 토스트 메시지 함수
   const showToast = (msg, duration = 3000) => {
     setToastMessage(msg)
@@ -75,7 +78,7 @@ export default function RoomManagePage() {
   const totalPages = Math.ceil(totalRooms / itemsPerPage)
   const startIdx = (currentPage - 1) * itemsPerPage
   const endIdx = startIdx + itemsPerPage
-  const pagedRooms = rooms.slice(startIdx, endIdx)
+  const pagedRooms = filteredRooms.slice(startIdx, endIdx)
 
   const [roomNodes, setRoomNodes] = useState({})
   const [edges, setEdges] = useState([])
@@ -478,6 +481,28 @@ export default function RoomManagePage() {
     }
   }
 
+  useEffect(() => {
+    setFilteredRooms(rooms)
+    setCurrentPage(1) // 검색 초기화 시 1페이지로 이동
+  }, [rooms])
+
+  useEffect(() => {
+    if (!search.trim()) {
+      setFilteredRooms(rooms)
+      setCurrentPage(1)
+      return
+    }
+    const keyword = search.toLowerCase()
+    const filtered = rooms.filter((room) =>
+      Object.values(room).some((val) =>
+        (val ?? "").toString().toLowerCase().includes(keyword)
+      )
+    )
+    console.log("filtered count:", filtered.length)
+    setFilteredRooms(filtered)
+    setCurrentPage(1)
+  }, [search, rooms])
+
   // 엣지 연결
   useEffect(() => {
     if (
@@ -739,6 +764,22 @@ export default function RoomManagePage() {
               )
             )}
           </select>
+          <input
+            type="text"
+            placeholder="검색"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              height: 38,
+              minWidth: 180,
+              borderRadius: 8,
+              border: "1.5px solid #b3d1fa",
+              fontSize: "1.01rem",
+              padding: "0 11px",
+              marginLeft: 8,
+              color: "#222",
+            }}
+          />
         </div>
 
         <div className={styles["room-manage-main-row"]}>

@@ -50,7 +50,7 @@
   gap: 12px;
   margin-bottom: 18px;
   align-items: center;
-  margin-left: 300px;
+  margin-left: 50px;
 }
 
 .room-manage-main-row {
@@ -86,6 +86,10 @@
   table-layout: fixed;
 }
 
+.user-table tr {
+  height: 48px; /* 하나의 행 높이(px단위, 필요시 조정) */
+}
+
 .user-table th,
 .user-table td {
   border: 1px solid #eee;
@@ -95,6 +99,20 @@
   word-break: break-word;
   max-width: 160px;
   min-width: 80px;
+}
+
+.user-table td {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  max-width: 160px;
+  min-width: 80px;
+  font-size: 0.95rem;
+  padding: 8px 8px;
+  border: 1px solid #eee;
+  text-align: center;
+  /* word-break은 필요없음, 한 줄만 보여주기 위함 */
 }
 
 .user-table th {

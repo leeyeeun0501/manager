@@ -769,16 +769,7 @@ export default function RoomManagePage() {
             placeholder="검색"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{
-              height: 38,
-              minWidth: 180,
-              borderRadius: 8,
-              border: "1.5px solid #b3d1fa",
-              fontSize: "1.01rem",
-              padding: "0 11px",
-              marginLeft: 8,
-              color: "#222",
-            }}
+            className={styles["search-input"]}
           />
         </div>
 

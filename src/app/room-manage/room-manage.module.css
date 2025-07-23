@@ -310,3 +310,28 @@
 .room-desc-cell:hover .edit-icon-button {
   opacity: 1;
 }
+
+.search-input {
+  height: 46px;
+  min-width: 150px;
+  font-size: 1.07rem;
+  border-radius: 10px;
+  border: 1.5px solid #b3d1fa;
+  background: #fff;
+  color: #222;
+  padding: 0 18px;
+  outline: none;
+  transition: border 0.15s;
+  margin-left: 8px; /* 기존 select 박스와 간격 맞추려고 추가 */
+  box-sizing: border-box;
+  font-family: inherit; /* select 폰트와 동일하게 */
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-input:focus {
+  border-color: #2574f5;
+  outline: none;
+}

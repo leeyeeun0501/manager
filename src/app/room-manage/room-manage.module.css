@@ -322,9 +322,9 @@
   padding: 0 18px;
   outline: none;
   transition: border 0.15s;
-  margin-left: 8px; /* 기존 select 박스와 간격 맞추려고 추가 */
+  margin-left: 8px;
   box-sizing: border-box;
-  font-family: inherit; /* select 폰트와 동일하게 */
+  font-family: inherit;
 }
 
 .search-input::placeholder {
@@ -334,4 +334,13 @@
 .search-input:focus {
   border-color: #2574f5;
   outline: none;
+}
+
+.room-manage-table-pagination-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 550px;
+  min-height: 550px;
+  max-height: 550px;
+  width: 100%;
 }

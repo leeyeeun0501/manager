@@ -529,7 +529,7 @@ export default function BuildingPage() {
                     border: "1.5px solid #b3d1fa",
                     fontSize: 16,
                     background: "#fff",
-                    color: addFloorBuilding ? "#222" : "#aaa",
+                    color: "#222",
                     fontFamily: "inherit",
                     outline: "none",
                     boxSizing: "border-box",

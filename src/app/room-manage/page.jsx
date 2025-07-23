@@ -1584,14 +1584,16 @@ export default function RoomManagePage() {
             {/* 강의실 정보 한 줄 */}
             <div
               style={{
-                color: "#495057",
-                fontWeight: 500,
-                fontSize: 15.5,
+                width: "90%",
+                margin: "0 auto",
+                fontSize: 16,
+                color: "#2574f5",
+                fontWeight: 600,
+                marginBottom: 12,
                 textAlign: "center",
-                marginBottom: 13,
               }}
             >
-              {editRoom.building} / {editRoom.floor} / {editRoom.name}
+              {`건물명: ${editRoom?.building} / 층수: ${editRoom?.floor} / 호수: ${editRoom?.name}`}
             </div>
             {/* 강의실 설명 */}
             <input

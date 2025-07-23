@@ -71,12 +71,12 @@
   transition: border-color 0.2s, background-color 0.2s;
 }
 
-/* @ 심볼 */
 .email-at {
   font-size: 18px;
   color: #888;
   user-select: none;
   font-weight: bold;
+  transform: translateY(-8px); /* 위로 2px 이동 */
 }
 
 /* 이메일 도메인 select */

@@ -14,15 +14,12 @@ export default function RootLayout({ children }) {
     const id = localStorage.getItem("id")
     if (!id) return
 
-    // 내부 라우팅(Next.js) 및 새로고침에서 플래그 설정
     const setInternalNavFlag = () =>
       sessionStorage.setItem("internal-nav", "true")
     window.addEventListener("beforeunload", setInternalNavFlag)
     window.addEventListener("popstate", setInternalNavFlag)
 
-    // Next.js App Router: 클라이언트 전용 라우팅 대응
-    // (참고: next/navigation에는 router 이벤트가 없으므로 직접 감지)
-    // Link, router.push 등으로 이동 시에만 플래그를 남기고 싶은 경우 아래 코드 사용
+    // 내부 라우팅(Next.js) 및 새로고침에서 플래그 설정
     const originalPush = router.push
     router.push = (...args) => {
       sessionStorage.setItem("internal-nav", "true")
@@ -43,7 +40,6 @@ export default function RootLayout({ children }) {
       window.removeEventListener("beforeunload", setInternalNavFlag)
       window.removeEventListener("popstate", setInternalNavFlag)
       window.removeEventListener("unload", handleUnload)
-      // router.push 복구
       if (router.push === originalPush) return
       router.push = originalPush
     }

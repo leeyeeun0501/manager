@@ -1,3 +1,4 @@
+// signup
 "use client"
 import "../globals.css"
 import { useState } from "react"
@@ -30,6 +31,7 @@ export default function SignupPage() {
     return number.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3")
   }
 
+  // 입력 핸들러
   const handleChange = (e) => {
     const { name, value } = e.target
     if (name === "phone") {
@@ -47,6 +49,7 @@ export default function SignupPage() {
     }
   }
 
+  // 제출 핸들러
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
@@ -90,6 +93,7 @@ export default function SignupPage() {
     }
   }
 
+  // 로그인 이동 핸들러
   const goToLogin = (e) => {
     e.preventDefault()
     router.push("/login")

@@ -1,5 +1,5 @@
+// user-manage
 "use client"
-
 import "../globals.css"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
@@ -58,7 +58,7 @@ export default function UserManagePage() {
       })
       setUsers(usersArr)
 
-      // ▲ 삭제 시 페이지가 전체 페이지 수보다 크면 마지막 페이지로 보정
+      // 삭제 시 페이지가 전체 페이지 수보다 크면 마지막 페이지로 보정
       if (keepPage) {
         setCurrentPage((prev) => {
           const last = Math.max(1, Math.ceil(usersArr.length / itemsPerPage))

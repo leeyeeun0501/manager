@@ -492,13 +492,11 @@ export default function RoomManagePage() {
 
   useEffect(() => {
     setFilteredRooms(rooms)
-    setCurrentPage(1)
   }, [rooms])
 
   useEffect(() => {
     if (!search.trim()) {
       setFilteredRooms(rooms)
-      setCurrentPage(1)
       return
     }
     const keyword = search.toLowerCase()
@@ -509,7 +507,6 @@ export default function RoomManagePage() {
     )
     console.log("filtered count:", filtered.length)
     setFilteredRooms(filtered)
-    setCurrentPage(1)
   }, [search, rooms])
 
   // 엣지 연결

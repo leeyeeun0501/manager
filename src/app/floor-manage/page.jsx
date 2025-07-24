@@ -86,7 +86,6 @@ export default function BuildingPage() {
       setFloors([])
     }
     setSelectedFloor("")
-    setFloorPage(1)
   }
 
   // 건물 목록 로드
@@ -277,7 +276,6 @@ export default function BuildingPage() {
               onChange={(e) => {
                 setSelectedBuilding(e.target.value)
                 setSelectedFloor("")
-                setFloorPage(1)
               }}
               style={{ minWidth: 150 }}
             >
@@ -293,7 +291,6 @@ export default function BuildingPage() {
               value={selectedFloor}
               onChange={(e) => {
                 setSelectedFloor(e.target.value)
-                setFloorPage(1)
               }}
               disabled={!selectedBuilding}
               style={{ minWidth: 120 }}

@@ -36,7 +36,7 @@ export async function DELETE(request) {
     const res = await fetch(`${AUTH_API_BASE}/user/delete`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }), // body에 id 포함!
+      body: JSON.stringify({ id }),
     })
 
     if (!res.ok) {

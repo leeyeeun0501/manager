@@ -1,4 +1,3 @@
-// 메인 management
 "use client"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
@@ -15,7 +14,7 @@ export default function ManagementPage() {
   })
   const [userMarkers, setUserMarkers] = useState([])
 
-  // 건물, 강의실, 사용자 수
+  // 건물, 강의실, 사용자 수 초기 조회 (한번만)
   useEffect(() => {
     fetch("/api/building-route?type=names")
       .then((res) => res.json())
@@ -43,30 +42,41 @@ export default function ManagementPage() {
       })
   }, [])
 
-  // 로그인
+  // 사용자 위치 주기적 갱신 (5초마다)
   useEffect(() => {
-    fetch("/api/login-route")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          const markers = data
-            .filter(
-              (u) =>
-                u.Last_Location &&
-                typeof u.Last_Location.x === "number" &&
-                typeof u.Last_Location.y === "number"
-            )
-            .map((u) => ({
-              id: u.Id,
-              name: u.Name,
-              last_location: {
-                lat: u.Last_Location.x,
-                lng: u.Last_Location.y,
-              },
-            }))
-          setUserMarkers(markers)
-        }
-      })
+    const fetchMarkers = () => {
+      fetch("/api/login-route")
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            const markers = data
+              .filter(
+                (u) =>
+                  u.Last_Location &&
+                  typeof u.Last_Location.x === "number" &&
+                  typeof u.Last_Location.y === "number"
+              )
+              .map((u) => ({
+                id: u.Id,
+                name: u.Name,
+                last_location: {
+                  lat: u.Last_Location.x,
+                  lng: u.Last_Location.y,
+                },
+              }))
+            setUserMarkers(markers)
+          }
+        })
+        .catch((error) => {
+          console.error("로그인 경로 데이터 조회 실패:", error)
+        })
+    }
+
+    fetchMarkers() // 최초 데이터 호출
+
+    const intervalId = setInterval(fetchMarkers, 5000) // 5초마다 갱신
+
+    return () => clearInterval(intervalId) // 언마운트 시 정리
   }, [])
 
   return (

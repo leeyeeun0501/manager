@@ -537,22 +537,29 @@ export default function RoomManagePage() {
     if (!filterBuilding) {
       setFloorOptions([])
       setFilterFloor("")
+      setSvgRaw("")
+      setRoomNodes({})
+      setEdges([])
+      setSvgNodes([])
+      setRooms([])
       fetchRooms()
       return
     }
+    setFilterFloor("") // 층 선택값을 먼저 리셋
     fetchFloors(filterBuilding)
-    fetchRooms(filterBuilding)
-    setFilterFloor("")
+    // fetchRooms는 여기서 호출하지 않음
   }, [filterBuilding])
 
-  // 층 선택 시
+  // filterFloor가 변경될 때 표 정보 요청
   useEffect(() => {
     if (filterBuilding && filterFloor) {
       fetchRooms(filterBuilding, filterFloor)
+    } else if (filterBuilding && filterFloor === "") {
+      fetchRooms(filterBuilding)
     }
   }, [filterFloor, filterBuilding])
 
-  // SVG 로드
+  // SVG 로드 (도면 요청)
   useEffect(() => {
     if (filterBuilding && filterFloor) {
       setMapLoading(true)
@@ -607,7 +614,7 @@ export default function RoomManagePage() {
         .catch(() => {
           setSvgRaw("")
           setRoomNodes({})
-          setEdges([]) // ★★★ 추가
+          setEdges([])
           setSvgNodes([])
         })
         .finally(() => setMapLoading(false))
@@ -618,6 +625,16 @@ export default function RoomManagePage() {
       setSvgNodes([])
     }
   }, [filterBuilding, filterFloor])
+
+  // filterFloor가 ""로 바뀌면 도면 상태 초기화
+  useEffect(() => {
+    if (filterFloor === "") {
+      setSvgRaw("")
+      setRoomNodes({})
+      setEdges([])
+      setSvgNodes([])
+    }
+  }, [filterFloor])
 
   // 다른 층 계단 연결
   useEffect(() => {
@@ -950,6 +967,8 @@ export default function RoomManagePage() {
 
               {/* SVG와 노드, 엣지 표시 */}
               {!mapLoading &&
+                filterBuilding &&
+                filterFloor &&
                 svgRaw &&
                 (() => {
                   const scale = Math.min(

@@ -1,5 +1,5 @@
-// menu components
 "use client"
+
 import { slide as Menu } from "react-burger-menu"
 import {
   FaBars,
@@ -7,15 +7,14 @@ import {
   FaMapMarkedAlt,
   FaBuilding,
   FaDoorOpen,
-  FaLayerGroup,
   FaUser,
   FaSignOutAlt,
+  FaUserCircle,
 } from "react-icons/fa"
 import Link from "next/link"
 import React, { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import styles from "./menu.module.css"
-import { FaUserCircle } from "react-icons/fa"
 
 export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
   const router = useRouter()
@@ -46,7 +45,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
       } else {
         alert("로그아웃 실패")
       }
-    } catch (err) {
+    } catch {
       alert("서버 오류로 로그아웃에 실패했습니다.")
     }
   }
@@ -56,7 +55,6 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
     { label: "Map 관리", icon: <FaMapMarkedAlt />, path: "/building-manage" },
     { label: "Floor 관리", icon: <FaBuilding />, path: "/floor-manage" },
     { label: "Room 관리", icon: <FaDoorOpen />, path: "/room-manage" },
-    // { label: "Category 관리", icon: <FaLayerGroup />, path: "/mapfile-manage" },
     { label: "User 관리", icon: <FaUser />, path: "/user-manage" },
   ]
 
@@ -68,10 +66,15 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
           onClick={() => setMenuOpen(true)}
           className={styles.bmBurgerButton}
           style={{ cursor: "pointer" }}
+          aria-label="메뉴 열기"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === "Enter" && setMenuOpen(true)}
         >
           <FaBars size={32} />
         </div>
       )}
+
       <Menu
         isOpen={menuOpen}
         onClose={() => setMenuOpen(false)}
@@ -91,6 +94,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
           <div className={styles.profileName}>{userName}</div>
           <div className={styles.profileRole}>관리자</div>
         </div>
+
         {menuItems.map((item) => (
           <Link
             key={item.label}
@@ -105,6 +109,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
             {item.label}
           </Link>
         ))}
+
         <button className={styles.logoutBtn} onClick={handleLogout}>
           <FaSignOutAlt style={{ marginRight: 12, fontSize: "1.1em" }} />
           로그아웃

@@ -1,6 +1,6 @@
 "use client"
 import "../globals.css"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import styles from "./login.module.css"
 
@@ -10,6 +10,25 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  // 네이버 지도 API 스크립트 미리 로드
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const existing = document.querySelector('script[src*="maps.js"]')
+    if (existing) return
+    const script = document.createElement("script")
+    script.src =
+      "https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=yxffktqahm"
+    script.async = true
+    script.onload = () => {
+      // 필요시 콘솔에 로드 성공 메시지
+      // console.log("네이버 지도 API 로드 완료")
+    }
+    script.onerror = (e) => {
+      console.error("네이버 지도 API 스크립트 로드 실패", e)
+    }
+    document.head.appendChild(script)
+  }, [])
 
   const handleLogin = async (e) => {
     e.preventDefault()

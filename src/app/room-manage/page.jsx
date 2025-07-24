@@ -58,15 +58,13 @@ export default function RoomManagePage() {
   // SVG 노드
   const [svgNodes, setSvgNodes] = useState([])
   const [selectedNode, setSelectedNode] = useState(null)
-
-  // 기타
   const CANVAS_SIZE = 600
   const mapContainerRef = useRef(null)
 
   const [search, setSearch] = useState("")
   const [filteredRooms, setFilteredRooms] = useState([])
 
-  // 토스트 메시지 함수
+  // 토스트 메시지 함수 = 캐시 무력화
   const showToast = (msg, duration = 3000) => {
     setToastMessage(msg)
     setToastVisible(true)
@@ -394,7 +392,6 @@ export default function RoomManagePage() {
 
   // 엣지 연결 함수
   const connectEdge = async () => {
-    // 🟡 중복 연결 체크 (이 부분 추가)
     if (isEdgeDuplicate(edges, edgeFromNode?.id, edgeToNode?.id)) {
       showToast("이미 연결된 엣지입니다.")
       setEdgeFromNode(null)
@@ -698,6 +695,7 @@ export default function RoomManagePage() {
     )
   }
 
+  // 계단 연결
   async function connectEdgeToStairs(fromNode, toNodeInfo) {
     const { building: toBuilding, floor: toFloor, node: toNode } = toNodeInfo
 
@@ -726,6 +724,7 @@ export default function RoomManagePage() {
     }
   }
 
+  // 노드 정보 파싱
   const parseNodeInfo = (fullId) => {
     const parts = fullId.split("@")
     return {

@@ -87,7 +87,7 @@
 }
 
 .user-table tr {
-  height: 48px; /* 하나의 행 높이(px단위, 필요시 조정) */
+  height: 48px;
 }
 
 .user-table th,

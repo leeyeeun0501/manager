@@ -490,14 +490,6 @@ export default function RoomManagePage() {
     }
   }
 
-  const isDuplicate = edges.some(
-    (e) => e.from === fromNode.id && e.to === toNode.id
-  )
-  if (isDuplicate) {
-    showToast("이미 연결된 엣지입니다.")
-    return
-  }
-
   useEffect(() => {
     setFilteredRooms(rooms)
     setCurrentPage(1)

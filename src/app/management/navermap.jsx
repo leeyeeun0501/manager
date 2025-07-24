@@ -1,3 +1,4 @@
+// navermap
 "use client"
 import { useEffect, useRef, useState } from "react"
 
@@ -40,7 +41,7 @@ export default function NaverMapSimple({ markers = [] }) {
   const mapInstanceRef = useRef(null)
   const markerObjsRef = useRef([])
 
-  const [ready, setReady] = useState(false) // 지도 API 스크립트 준비 여부
+  const [ready, setReady] = useState(false)
 
   // 1. 네이버 지도 스크립트 중복 삽입 없이 1회만 로딩
   useEffect(() => {
@@ -89,7 +90,7 @@ export default function NaverMapSimple({ markers = [] }) {
     }
   }, [ready])
 
-  // 3. markers가 변경될 때마다 마커 갱신 (지도 인스턴스 준비 후!)
+  // 3. markers가 변경될 때마다 마커 갱신
   useEffect(() => {
     if (
       typeof window === "undefined" ||

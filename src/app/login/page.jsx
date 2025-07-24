@@ -1,3 +1,4 @@
+// login
 "use client"
 import "../globals.css"
 import { useState } from "react"
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
+  // 로그인 핸들러
   const handleLogin = async (e) => {
     e.preventDefault()
     setError("")
@@ -37,6 +39,7 @@ export default function LoginPage() {
     }
   }
 
+  // 회원가입 이동 핸들러
   const goToSignup = (e) => {
     e.preventDefault()
     router.push("/signup")

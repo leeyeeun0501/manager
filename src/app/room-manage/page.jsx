@@ -394,6 +394,17 @@ export default function RoomManagePage() {
 
   // 엣지 연결 함수
   const connectEdge = async () => {
+    // 🟡 중복 연결 체크 (이 부분 추가)
+    if (isEdgeDuplicate(edges, edgeFromNode?.id, edgeToNode?.id)) {
+      showToast("이미 연결된 엣지입니다.")
+      setEdgeFromNode(null)
+      setEdgeToNode(null)
+      setEdgeStep(0)
+      setEdgeConnectLoading(false)
+      setEdgeConnectMode(false)
+      return
+    }
+
     setEdgeConnectLoading(true)
     try {
       const res = await fetch("/api/map-route", {
@@ -410,12 +421,10 @@ export default function RoomManagePage() {
       })
 
       const text = await res.text()
-      console.log("status:", res.status, "body:", text)
-
       let data = {}
       try {
         data = JSON.parse(text)
-      } catch (e) {}
+      } catch {}
 
       if (!res.ok) {
         showToast(data.error || "엣지 연결 실패")
@@ -481,9 +490,17 @@ export default function RoomManagePage() {
     }
   }
 
+  const isDuplicate = edges.some(
+    (e) => e.from === fromNode.id && e.to === toNode.id
+  )
+  if (isDuplicate) {
+    showToast("이미 연결된 엣지입니다.")
+    return
+  }
+
   useEffect(() => {
     setFilteredRooms(rooms)
-    setCurrentPage(1) // 검색 초기화 시 1페이지로 이동
+    setCurrentPage(1)
   }, [rooms])
 
   useEffect(() => {
@@ -675,44 +692,46 @@ export default function RoomManagePage() {
     }
   }
 
+  // @ 파싱
   function getNodeSuffix(id) {
     if (!id) return ""
     const parts = id.split("@")
     return parts[parts.length - 1]
   }
 
+  // 중복 엣지 체크
+  function isEdgeDuplicate(edges, fromId, toId) {
+    const fromSuffix = getNodeSuffix(fromId)
+    const toSuffix = getNodeSuffix(toId)
+    return edges.some(
+      (e) =>
+        getNodeSuffix(e.from) === fromSuffix && getNodeSuffix(e.to) === toSuffix
+    )
+  }
+
   async function connectEdgeToStairs(fromNode, toNodeInfo) {
     const { building: toBuilding, floor: toFloor, node: toNode } = toNodeInfo
+
+    // 🟡 중복 체크 추가
+    if (isEdgeDuplicate(edges, fromNode?.id, toNode)) {
+      showToast("이미 연결된 엣지입니다.")
+      return
+    }
 
     try {
       const res = await fetch("/api/map-route", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // ✅ 건물 → 층 → 아이디 순서
           from_building: fromNode.building,
           from_floor: fromNode.floor,
           from_node: fromNode.id,
-
           to_building: toBuilding,
           to_floor: toFloor,
           to_node: toNode,
         }),
       })
-
-      const text = await res.text()
-      let data = {}
-      try {
-        data = JSON.parse(text)
-      } catch {}
-
-      if (!res.ok) {
-        showToast(data.error || "엣지 연결 실패")
-        return
-      }
-
-      showToast("노드가 성공적으로 연결되었습니다.")
-      reloadMapData && reloadMapData()
+      // 생략
     } catch (err) {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
     }
@@ -1170,30 +1189,53 @@ export default function RoomManagePage() {
                   {connectedNodes.length === 0 ? (
                     <div style={{ color: "#888" }}>연결된 노드 없음</div>
                   ) : (
-                    connectedNodes.map((edge, idx) => (
-                      <button
-                        key={`${edge.otherNodeId}-${idx}`}
-                        onClick={() => handleDisconnectEdge(edge.otherNodeId)}
-                        style={{
-                          padding: "8px 18px",
-                          borderRadius: 20,
-                          border: "none",
-                          fontSize: 15,
-                          fontWeight: 700,
-                          background: "#ffa500",
-                          color: "#fff",
-                          cursor: "pointer",
-                          marginRight: 8,
-                          marginBottom: 8,
-                          marginTop: 3,
-                          minWidth: 67,
-                          textAlign: "center",
-                          boxShadow: "0 1px 3px rgba(0,0,0,0.07)",
-                        }}
-                      >
-                        {edge.otherNodeSuffix} 엣지 연결 해제
-                      </button>
-                    ))
+                    connectedNodes.map((edge, idx) => {
+                      // otherNodeId를 @ 기준으로 분리
+                      const parts = edge.otherNodeId.split("@")
+                      // 예: ["W17", "1", "left_stairs"]
+
+                      // 층 정보 추출 (두 번째 부분)
+                      const floor = parts[1] || ""
+
+                      // suffix 가져오기 (기존 edge.otherNodeSuffix 사용하거나 parts[2] 사용)
+                      // stairs인 경우 표시용 텍스트 다르게 할 수도 있음
+                      const suffix = edge.otherNodeSuffix || parts[2] || ""
+
+                      // 버튼에 보여줄 텍스트 구성
+                      let labelText = ""
+                      if (suffix.toLowerCase().includes("stairs")) {
+                        // 예: "1층 left_stairs 엣지 연결 해제"
+                        labelText = `${floor}층 ${suffix} 엣지 연결 해제`
+                      } else {
+                        // stairs 외 다른 엣지는 기존 방식 또는 id 그대로
+                        labelText = `${suffix} 엣지 연결 해제`
+                      }
+
+                      return (
+                        <button
+                          key={`${edge.otherNodeId}-${idx}`}
+                          onClick={() => handleDisconnectEdge(edge.otherNodeId)}
+                          style={{
+                            padding: "8px 18px",
+                            borderRadius: 20,
+                            border: "none",
+                            fontSize: 15,
+                            fontWeight: 700,
+                            background: "#ffa500",
+                            color: "#fff",
+                            cursor: "pointer",
+                            marginRight: 8,
+                            marginBottom: 8,
+                            marginTop: 3,
+                            minWidth: 67,
+                            textAlign: "center",
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.07)",
+                          }}
+                        >
+                          {labelText}
+                        </button>
+                      )
+                    })
                   )}
                 </div>
                 {/* 기존 버튼들 */}
@@ -1353,7 +1395,11 @@ export default function RoomManagePage() {
                     >
                       <option value="">연결할 계단 선택</option>
                       {stairsList
-                        .filter((id) => id !== (selectedStairsNode?.id || ""))
+                        .filter(
+                          (id) =>
+                            id !== (selectedStairsNode?.id || "") &&
+                            !isEdgeDuplicate(edges, selectedStairsNode?.id, id)
+                        )
                         .map((id) => {
                           const parts = id.split("@")
                           const floor = parts[1] || ""

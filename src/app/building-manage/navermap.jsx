@@ -42,7 +42,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   const [buildingDesc, setBuildingDesc] = useState("")
   const [buildingDescLoading, setBuildingDescLoading] = useState(false)
 
-  const [ready, setReady] = useState(false) // 지도 API 스크립트 준비 여부
+  // 지도 API 스크립트 준비 여부
+  const [ready, setReady] = useState(false)
 
   // 네이버 지도 스크립트 중복 삽입 없이 1회만 로딩
   useEffect(() => {
@@ -59,11 +60,9 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     script.async = true
     script.onload = () => setReady(true)
     document.head.appendChild(script)
-    // 필요시 cleanup 가능
-    // return () => { document.head.removeChild(script) }
   }, [])
 
-  // ready가 true여야 지도 객체를 생성합니다
+  // 지도 생성 여부 확인
   useEffect(() => {
     if (!ready) return
     if (
@@ -651,6 +650,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     setBuildingDescLoading(false)
   }
 
+  // 다음 O 노드 이름 생성
   function getNextONodeName() {
     const oNumbers = nodes
       .map((n) => n.id || n.node_name)
@@ -661,6 +661,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     return "O" + (maxO + 1)
   }
 
+  // 관리 팝업 닫기
   function handleCloseDeletePopup() {
     setDeletePopup({
       open: false,
@@ -672,6 +673,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     })
   }
 
+  // 추가 팝업 닫기
   function handleClosePopup() {
     setAddPopup({ open: false, x: null, y: null })
     if (tempMarkerRef.current) {
@@ -680,6 +682,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     }
   }
 
+  // 엣지 연결 시작
   function handleStartEdgeConnect(node) {
     setEdgeConnectMode({
       active: true,
@@ -696,6 +699,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     setEdgeConnectHint(true)
   }
 
+  // 연결된 노드 조회
   function getConnectedNodes(nodeId) {
     const connected = []
     edges.forEach((edge) => {

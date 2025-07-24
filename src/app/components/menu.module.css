@@ -1,3 +1,5 @@
+/* menu.module.css */
+
 .bmBurgerButton {
   position: fixed;
   width: 32px;
@@ -12,7 +14,6 @@
   border-radius: 2px;
 }
 
-/* 메뉴 래퍼: 사이드바 위치 및 크기 고정 */
 .bmMenuWrap {
   top: 0;
   left: 0;
@@ -21,11 +22,10 @@
   z-index: 3000 !important;
 }
 
-/* 메뉴 본체: flex 레이아웃 + 스크롤바 숨김 */
 .bmMenu {
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* 왼쪽 정렬 */
+  align-items: flex-start;
   min-height: 100vh;
   padding: 0;
   background: #fff;
@@ -66,7 +66,7 @@
   font-size: 1.2rem;
   color: #222;
   margin-bottom: 2px;
-  margin-left: 0; /* 왼쪽 여백 제거 */
+  margin-left: 0;
   text-align: center;
 }
 
@@ -75,10 +75,9 @@
   color: #888;
   margin-left: 0;
   text-align: center;
-  margin-bottom: 18px; /* 원하는 만큼 조절 (예: 18px) */
+  margin-bottom: 18px;
 }
 
-/* 메뉴 리스트 */
 .menuList {
   flex: 1;
   display: flex;
@@ -88,7 +87,6 @@
   width: 100%;
 }
 
-/* 각 메뉴 링크 스타일 */
 .menuLink {
   display: flex;
   align-items: center;
@@ -113,7 +111,6 @@
   border-left: 4px solid #0070f3;
 }
 
-/* 메뉴 아이콘 */
 .menuIcon {
   margin-right: 14px;
   font-size: 1.25em;
@@ -126,7 +123,6 @@
   color: #0070f3;
 }
 
-/* 로그아웃 버튼 */
 .logoutBtn {
   margin: 32px 0 16px 0;
   padding: 12px 32px;
@@ -147,7 +143,6 @@
   color: #c0392b;
 }
 
-/* 오버레이 */
 .bmOverlay {
   position: fixed !important;
   top: 0 !important;

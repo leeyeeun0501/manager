@@ -1,3 +1,4 @@
+// menu
 "use client"
 
 import { slide as Menu } from "react-burger-menu"
@@ -21,6 +22,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
   const pathname = usePathname()
   const [userName, setUserName] = useState("")
 
+  // 사용자 이름 설정
   useEffect(() => {
     if (typeof window !== "undefined") {
       setUserName(localStorage.getItem("name") || "")

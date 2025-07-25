@@ -22,11 +22,6 @@ export default function UserManagePage() {
     return 1
   })
 
-  // 페이징 - 사용자가 직접 이동 시 localStorage에 저장
-  useEffect(() => {
-    localStorage.setItem("USER_MANAGE_PAGE", currentPage)
-  }, [currentPage])
-
   // 현재 보여줄 페이지 범위의 user만 추출
   const totalUsers = users.length
   const totalPages = Math.ceil(totalUsers / itemsPerPage)
@@ -76,6 +71,11 @@ export default function UserManagePage() {
   useEffect(() => {
     fetchUsers(true)
   }, [])
+
+  // 페이징
+  useEffect(() => {
+    localStorage.setItem("USER_MANAGE_PAGE", currentPage)
+  }, [currentPage])
 
   // 삭제 핸들러
   const handleDelete = async (id) => {

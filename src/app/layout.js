@@ -31,7 +31,6 @@ export default function RootLayout({ children }) {
       if (!sessionStorage.getItem("internal-nav")) {
         navigator.sendBeacon("/api/logout-route", JSON.stringify({ id }))
       }
-      // 항상 플래그 초기화
       sessionStorage.removeItem("internal-nav")
     }
     window.addEventListener("unload", handleUnload)

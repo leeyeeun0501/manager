@@ -1,6 +1,5 @@
 // menu
 "use client"
-
 import { slide as Menu } from "react-burger-menu"
 import {
   FaBars,

@@ -73,7 +73,7 @@ export default function BuildingPage() {
     new Set(floors.map((f) => String(f.floor)).filter(Boolean))
   ).sort((a, b) => Number(a) - Number(b))
 
-  // 층 정보 fetch 함수 분리 (재사용 가능)
+  // 층 정보 fetch 함수 분리
   async function fetchFloors(buildingName = selectedBuilding) {
     let url = "/api/floor-route"
     if (buildingName) {

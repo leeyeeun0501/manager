@@ -5,6 +5,16 @@ import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
 import styles from "./mypage.module.css"
 
+// 전화번호 하이픈 자동 삽입 함수
+const formatPhoneNumber = (value) => {
+  const number = value.replace(/[^0-9]/g, "")
+  if (number.length < 4) return number
+  if (number.length < 7) return number.replace(/(\d{3})(\d{1,3})/, "$1-$2")
+  if (number.length < 11)
+    return number.replace(/(\d{3})(\d{3,4})(\d{1,4})/, "$1-$2-$3")
+  return number.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3")
+}
+
 export default function MyPage() {
   const [user, setUser] = useState({
     id: "",
@@ -147,7 +157,12 @@ export default function MyPage() {
           <input
             className={styles["mypage-input"]}
             value={user.phone || ""}
-            onChange={(e) => setUser((u) => ({ ...u, phone: e.target.value }))}
+            onChange={(e) =>
+              setUser((u) => ({
+                ...u,
+                phone: formatPhoneNumber(e.target.value),
+              }))
+            }
             placeholder="전화번호"
           />
           <input

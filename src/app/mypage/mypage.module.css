@@ -31,23 +31,95 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+  max-width: 350px;
+}
+
+.input-wrapper {
+  width: 290px;
+  margin-bottom: 14px;
+  box-sizing: border-box;
+}
+.common-input {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 15px;
+  box-sizing: border-box;
+  border: 2px solid transparent;
+  box-shadow: inset 0 0 0 1px #bbb;
+  transition: border-color 0.2s, background-color 0.2s;
+  min-width: 0;
+  max-width: none;
+}
+
+.email-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 290px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+.email-id-input {
+  flex: 2 1 0;
+  min-width: 0;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 15px;
+  box-sizing: border-box;
+  border: 2px solid transparent;
+  box-shadow: inset 0 0 0 1px #bbb;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+.email-at {
+  font-size: 16px;
+  color: #888;
+  user-select: none;
+  font-weight: bold;
+  transform: translateY(-4px);
+}
+.email-domain-select {
+  flex: 2 1 0;
+  min-width: 0;
+  max-width: 110px;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 15px;
+  background: #fff;
+  box-sizing: border-box;
+  cursor: pointer;
+  border: 2px solid transparent;
+  box-shadow: inset 0 0 0 1px #bbb;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+.email-domain-input {
+  flex: 2 1 0;
+  min-width: 0;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 15px;
+  box-sizing: border-box;
+  border: 2px solid transparent;
+  box-shadow: inset 0 0 0 1px #bbb;
+  transition: border-color 0.2s, background-color 0.2s;
 }
 
 .mypage-input {
-  width: 250px;
-  padding: 12px;
-  margin-bottom: 16px;
+  width: 350px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
   border-radius: 24px;
-  border: 1px solid #bbb;
-  font-size: 16px;
-  background: #fafafa;
-  outline: none;
-  transition: border 0.2s, background 0.2s;
+  border: 2px solid transparent;
+  font-size: 17px;
+  box-sizing: border-box;
+  box-shadow: inset 0 0 0 1px #bbb;
+  transition: border-color 0.2s, background-color 0.2s;
 }
-
 .mypage-input:focus {
+  outline: none;
   border-color: #0070f3;
-  background: #fff;
+  box-shadow: none;
+  background: #f9fcff;
 }
 
 .mypage-input[disabled] {
@@ -146,5 +218,25 @@
   100% {
     opacity: 0;
     transform: translateX(-50%) translateY(-10px);
+  }
+}
+
+@media (max-width: 480px) {
+  .mypage-form {
+    max-width: 100vw;
+  }
+  .input-wrapper,
+  .email-input-wrapper {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+  .common-input,
+  .email-id-input,
+  .email-domain-input,
+  .email-domain-select {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
   }
 }

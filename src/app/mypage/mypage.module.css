@@ -39,6 +39,7 @@
   margin-bottom: 14px;
   box-sizing: border-box;
 }
+
 .common-input {
   width: 100%;
   padding: 10px 16px;
@@ -60,6 +61,7 @@
   margin-bottom: 16px;
   box-sizing: border-box;
 }
+
 .email-id-input {
   flex: 2 1 0;
   min-width: 0;
@@ -71,6 +73,7 @@
   box-shadow: inset 0 0 0 1px #bbb;
   transition: border-color 0.2s, background-color 0.2s;
 }
+
 .email-domain-input {
   flex: 2 1 0;
   min-width: 0;
@@ -82,6 +85,7 @@
   box-shadow: inset 0 0 0 1px #bbb;
   transition: border-color 0.2s, background-color 0.2s;
 }
+
 .email-domain-select {
   flex: 2 1 0;
   min-width: 0;
@@ -96,6 +100,7 @@
   box-shadow: inset 0 0 0 1px #bbb;
   transition: border-color 0.2s, background-color 0.2s;
 }
+
 .email-at {
   font-size: 18px;
   color: #888;
@@ -115,6 +120,7 @@
   box-shadow: inset 0 0 0 1px #bbb;
   transition: border-color 0.2s, background-color 0.2s;
 }
+
 .mypage-input:focus {
   outline: none;
   border-color: #0070f3;

@@ -15,7 +15,7 @@ export default function ManagementPage() {
   })
   const [userMarkers, setUserMarkers] = useState([])
 
-  // 건물, 강의실, 사용자 수 초기 조회 (한번만)
+  // 건물, 강의실, 사용자 수 초기 조회
   useEffect(() => {
     fetch("/api/building-route?type=names")
       .then((res) => res.json())

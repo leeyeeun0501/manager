@@ -487,6 +487,11 @@ export default function RoomManagePage() {
     }
   }
 
+  const handleBuildingChange = (e) => {
+    setFilterBuilding(e.target.value)
+    setFilterFloor("") // 층 선택 초기화 (비동기, 바로 반영 안됨)
+  }
+
   useEffect(() => {
     setFilteredRooms(rooms)
   }, [rooms])
@@ -552,12 +557,23 @@ export default function RoomManagePage() {
 
   // filterFloor가 변경될 때 표 정보 요청
   useEffect(() => {
-    if (filterBuilding && filterFloor) {
-      fetchRooms(filterBuilding, filterFloor)
-    } else if (filterBuilding && filterFloor === "") {
-      fetchRooms(filterBuilding)
+    // filterFloor 초기화 완료 후에만 호출됨
+    if (!filterBuilding) {
+      fetchRooms()
+      return
     }
-  }, [filterFloor, filterBuilding])
+
+    if (!filterFloor) {
+      fetchRooms(filterBuilding)
+      setSvgRaw("")
+      setRoomNodes({})
+      setEdges([])
+      return
+    }
+
+    fetchRooms(filterBuilding, filterFloor)
+    // SVG맵 등도 여기에 처리
+  }, [filterBuilding, filterFloor])
 
   // SVG 로드 (도면 요청)
   useEffect(() => {

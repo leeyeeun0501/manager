@@ -128,6 +128,15 @@
   cursor: not-allowed;
 }
 
+.email-id-input:focus,
+.email-domain-input:focus,
+.email-domain-select:focus {
+  outline: none;
+  border-color: #0070f3;
+  box-shadow: none;
+  background: #f9fcff;
+}
+
 .mypage-btn-main,
 .mypage-btn-sub,
 .mypage-btn-danger {

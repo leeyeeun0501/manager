@@ -73,7 +73,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     )
       return
     if (!mapInstance.current) {
-      // 지도 생성: 기존 center/zoom/localStorage 활용
       let center = new window.naver.maps.LatLng(36.3377622, 127.4460928)
       let zoom = 17
       try {
@@ -113,10 +112,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         deletePopup.node_name
       ) {
         try {
-          // 전체 건물 리스트 받아오기
           const res = await fetch("/api/building-route")
           const json = await res.json()
-          // 해당 건물 찾기 (이름이 node_name과 일치)
           let found = null
           if (json.all && Array.isArray(json.all)) {
             found = json.all.find(
@@ -125,7 +122,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                 b.name === deletePopup.node_name
             )
           }
-          // 설명만 추출 (필드명 여러 개 커버)
           setBuildingDesc(
             (found &&
               (found.Desc ||

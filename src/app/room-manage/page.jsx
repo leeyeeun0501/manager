@@ -489,7 +489,7 @@ export default function RoomManagePage() {
 
   const handleBuildingChange = (e) => {
     setFilterBuilding(e.target.value)
-    setFilterFloor("") // 층 선택 초기화 (비동기, 바로 반영 안됨)
+    setFilterFloor("")
   }
 
   useEffect(() => {
@@ -555,9 +555,8 @@ export default function RoomManagePage() {
     // fetchRooms는 여기서 호출하지 않음
   }, [filterBuilding])
 
-  // filterFloor가 변경될 때 표 정보 요청
+  // 층 선택 시
   useEffect(() => {
-    // filterFloor 초기화 완료 후에만 호출됨
     if (!filterBuilding) {
       fetchRooms()
       return
@@ -642,7 +641,7 @@ export default function RoomManagePage() {
     }
   }, [filterBuilding, filterFloor])
 
-  // filterFloor가 ""로 바뀌면 도면 상태 초기화
+  // 층 선택 시 도면 초기화
   useEffect(() => {
     if (filterFloor === "") {
       setSvgRaw("")
@@ -732,7 +731,6 @@ export default function RoomManagePage() {
   async function connectEdgeToStairs(fromNode, toNodeInfo) {
     const { building: toBuilding, floor: toFloor, node: toNode } = toNodeInfo
 
-    // 🟡 중복 체크 추가
     if (isEdgeDuplicate(edges, fromNode?.id, toNode)) {
       showToast("이미 연결된 엣지입니다.")
       return

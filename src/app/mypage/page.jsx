@@ -61,6 +61,25 @@ export default function MyPage() {
             phone: userData.Phone || "",
             email: userData.Email || "",
           }))
+          // 이메일 분리
+          if (userData.Email) {
+            const parts = userData.Email.split("@")
+            setEmailId(parts[0] || "")
+            const domainList = [
+              "wsu.ac.kr",
+              "naver.com",
+              "gmail.com",
+              "hanmail.net",
+              "nate.com",
+            ]
+            if (domainList.includes(parts[1])) {
+              setEmailDomain(parts[1])
+              setCustomEmailDomain("")
+            } else {
+              setEmailDomain("직접입력")
+              setCustomEmailDomain(parts[1] || "")
+            }
+          }
         }
       })
       .catch(() => {})
@@ -72,6 +91,9 @@ export default function MyPage() {
     setEditMsg("")
     setLoading(true)
     try {
+      const domain =
+        emailDomain === "직접입력" ? customEmailDomain.trim() : emailDomain
+      const email = `${emailId.trim()}@${domain}`
       const res = await fetch("/api/mypage-route", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -79,7 +101,7 @@ export default function MyPage() {
           id: user.id,
           pw: pw || undefined,
           phone: user.phone,
-          email: user.email,
+          email,
         }),
       })
       const data = await res.json().catch(() => ({}))

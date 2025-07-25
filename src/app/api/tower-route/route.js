@@ -19,12 +19,11 @@ export async function GET() {
 
     const data = await res.json()
 
-    // x: 위도, y: 경도로 변환
     const nodes = Array.isArray(data)
       ? data.map((node) => ({
           id: node.id,
-          x: node.lat, // 위도
-          y: node.lng, // 경도
+          x: node.lat,
+          y: node.lng,
         }))
       : []
 

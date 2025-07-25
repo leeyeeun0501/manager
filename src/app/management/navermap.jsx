@@ -2,6 +2,7 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
 
+// 마커 팝업 컨텐츠 생성
 function createSpeechBubbleMarkerContent(userId) {
   return `
     <div style="

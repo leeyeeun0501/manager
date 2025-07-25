@@ -1416,11 +1416,7 @@ export default function RoomManagePage() {
                     >
                       <option value="">연결할 계단 선택</option>
                       {stairsList
-                        .filter(
-                          (id) =>
-                            id !== (selectedStairsNode?.id || "") &&
-                            !isEdgeDuplicate(edges, selectedStairsNode?.id, id)
-                        )
+                        .filter((id) => id !== (selectedStairsNode?.id || ""))
                         .map((id) => {
                           const parts = id.split("@")
                           const floor = parts[1] || ""

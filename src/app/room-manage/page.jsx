@@ -1363,7 +1363,7 @@ export default function RoomManagePage() {
                   display: "flex",
                   flexDirection: "column",
                   maxHeight: "90vh",
-                  overflowY: "auto",
+                  overflow: "hidden",
                 }}
                 onClick={(e) => e.stopPropagation()}
               >

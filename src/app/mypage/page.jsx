@@ -29,6 +29,15 @@ export default function MyPage() {
   const [deleteMsg, setDeleteMsg] = useState("")
   const [deleting, setDeleting] = useState(false)
   const [showPopup, setShowPopup] = useState(false)
+  const [emailId, setEmailId] = useState("")
+  const [emailDomain, setEmailDomain] = useState("wsu.ac.kr")
+  const [customEmailDomain, setCustomEmailDomain] = useState("")
+  function handleEmailChange(e) {
+    const { name, value } = e.target
+    if (name === "emailId") setEmailId(value)
+    else if (name === "emailDomain") setEmailDomain(value)
+    else if (name === "customEmailDomain") setCustomEmailDomain(value)
+  }
 
   // 마이 페이지 정보
   useEffect(() => {
@@ -165,12 +174,47 @@ export default function MyPage() {
             }
             placeholder="전화번호"
           />
-          <input
-            className={styles["mypage-input"]}
-            value={user.email || ""}
-            onChange={(e) => setUser((u) => ({ ...u, email: e.target.value }))}
-            placeholder="이메일"
-          />
+          {/* 이메일 입력 분리 */}
+          <div className={styles["email-input-wrapper"]}>
+            <input
+              name="emailId"
+              type="text"
+              placeholder="이메일"
+              value={emailId}
+              onChange={handleEmailChange}
+              required
+              className={styles["email-id-input"]}
+              autoComplete="off"
+            />
+            <span className={styles["email-at"]}>@</span>
+            {emailDomain === "직접입력" ? (
+              <input
+                name="customEmailDomain"
+                type="text"
+                placeholder="도메인 직접 입력 (예: example.com)"
+                value={customEmailDomain}
+                onChange={handleEmailChange}
+                required
+                className={styles["email-domain-input"]}
+                autoComplete="off"
+              />
+            ) : (
+              <select
+                name="emailDomain"
+                value={emailDomain}
+                onChange={handleEmailChange}
+                className={styles["email-domain-select"]}
+                required
+              >
+                <option value="wsu.ac.kr">wsu.ac.kr</option>
+                <option value="naver.com">naver.com</option>
+                <option value="gmail.com">gmail.com</option>
+                <option value="hanmail.net">hanmail.net</option>
+                <option value="nate.com">nate.com</option>
+                <option value="직접입력">직접입력</option>
+              </select>
+            )}
+          </div>
           <input
             className={styles["mypage-input"]}
             type="password"

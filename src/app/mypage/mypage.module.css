@@ -55,39 +55,18 @@
 .email-input-wrapper {
   display: flex;
   align-items: center;
-  gap: 6px;
-  width: 290px;
-  margin-bottom: 12px;
+  gap: 12px;
+  width: 350px;
+  margin-bottom: 16px;
   box-sizing: border-box;
 }
 .email-id-input {
   flex: 2 1 0;
   min-width: 0;
-  padding: 10px 16px;
-  border-radius: 20px;
-  font-size: 15px;
+  padding: 14px 18px;
+  border-radius: 24px;
+  font-size: 17px;
   box-sizing: border-box;
-  border: 2px solid transparent;
-  box-shadow: inset 0 0 0 1px #bbb;
-  transition: border-color 0.2s, background-color 0.2s;
-}
-.email-at {
-  font-size: 16px;
-  color: #888;
-  user-select: none;
-  font-weight: bold;
-  transform: translateY(-4px);
-}
-.email-domain-select {
-  flex: 2 1 0;
-  min-width: 0;
-  max-width: 110px;
-  padding: 10px 16px;
-  border-radius: 20px;
-  font-size: 15px;
-  background: #fff;
-  box-sizing: border-box;
-  cursor: pointer;
   border: 2px solid transparent;
   box-shadow: inset 0 0 0 1px #bbb;
   transition: border-color 0.2s, background-color 0.2s;
@@ -95,13 +74,34 @@
 .email-domain-input {
   flex: 2 1 0;
   min-width: 0;
-  padding: 10px 16px;
-  border-radius: 20px;
-  font-size: 15px;
+  padding: 14px 18px;
+  border-radius: 24px;
+  font-size: 17px;
   box-sizing: border-box;
   border: 2px solid transparent;
   box-shadow: inset 0 0 0 1px #bbb;
   transition: border-color 0.2s, background-color 0.2s;
+}
+.email-domain-select {
+  flex: 2 1 0;
+  min-width: 0;
+  max-width: 140px;
+  padding: 14px 18px;
+  border-radius: 24px;
+  font-size: 17px;
+  background: #fff;
+  box-sizing: border-box;
+  cursor: pointer;
+  border: 2px solid transparent;
+  box-shadow: inset 0 0 0 1px #bbb;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+.email-at {
+  font-size: 18px;
+  color: #888;
+  user-select: none;
+  font-weight: bold;
+  transform: translateY(-8px);
 }
 
 .mypage-input {
@@ -131,11 +131,11 @@
 .mypage-btn-main,
 .mypage-btn-sub,
 .mypage-btn-danger {
-  width: 250px;
-  padding: 12px;
+  width: 350px;
+  padding: 14px 18px;
   border-radius: 24px;
   border: none;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   margin-bottom: 16px;
   cursor: pointer;

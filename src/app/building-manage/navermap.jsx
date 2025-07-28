@@ -505,6 +505,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       finalNodeName = getNextONodeName()
     }
 
+    let res
     if (type === "building") {
       // 건물인 경우 FormData 사용하여 이미지와 함께 전송
       const formData = new FormData()
@@ -519,7 +520,32 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         })
       }
 
-      const res = await fetch("/api/tower-route", {
+      console.log(
+        "Sending FormData - type:",
+        type,
+        "node_name:",
+        finalNodeName,
+        "x:",
+        addPopup.x,
+        "y:",
+        addPopup.y,
+        "desc:",
+        desc,
+        "images count:",
+        newBuildingImages.length
+      )
+
+      // 이미지 상세 정보 로그
+      newBuildingImages.forEach((image, index) => {
+        console.log(`Image ${index}:`, {
+          name: image.name,
+          type: image.type,
+          size: image.size,
+          lastModified: image.lastModified,
+        })
+      })
+
+      res = await fetch("/api/tower-route", {
         method: "POST",
         body: formData,
       })
@@ -532,12 +558,15 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         y: addPopup.y,
       }
 
-      const res = await fetch("/api/tower-route", {
+      console.log("Sending JSON - body:", body)
+
+      res = await fetch("/api/tower-route", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       })
     }
+
     const data = await res.json()
     if (data.success) {
       setAddPopup({ open: false, x: null, y: null })
@@ -1085,47 +1114,142 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                         rows={3}
                       />
                       {/* 이미지 업로드 필드 */}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={(e) => {
-                          const files = Array.from(e.target.files)
-                          setNewBuildingImages(files)
-                        }}
-                        style={{
-                          width: "100%",
-                          padding: "16px 20px",
-                          borderRadius: "25px",
-                          border: "1px solid #e0e0e0",
-                          fontSize: 16,
-                          marginBottom: 0,
-                          background: "#fff",
-                          color: "#333",
-                          outline: "none",
-                          transition: "border-color 0.2s ease",
-                          boxSizing: "border-box",
-                        }}
-                        placeholder="파일 선택"
-                      />
-                      {newBuildingImages.length > 0 && (
-                        <div
-                          style={{
-                            marginTop: 8,
-                            fontSize: 14,
-                            color: "#666",
-                            padding: "8px 12px",
-                            background: "#f8f9fa",
-                            borderRadius: 8,
-                            border: "1px solid #e9ecef",
-                          }}
-                        >
-                          선택된 파일:{" "}
-                          {newBuildingImages
-                            .map((file) => file.name)
-                            .join(", ")}
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={{ marginBottom: 8 }}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              document.getElementById("add-file-input").click()
+                            }
+                            style={{
+                              background: "#1976d2",
+                              color: "white",
+                              border: "none",
+                              padding: "12px 20px",
+                              borderRadius: "8px",
+                              fontSize: 14,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              marginBottom: 8,
+                            }}
+                          >
+                            <span style={{ fontSize: 16 }}>+</span> 파일 추가
+                          </button>
                         </div>
-                      )}
+
+                        <input
+                          id="add-file-input"
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={(e) => {
+                            const newFiles = Array.from(e.target.files)
+                            setNewBuildingImages((prev) => [
+                              ...prev,
+                              ...newFiles,
+                            ])
+                            e.target.value = "" // 입력 필드 초기화
+                          }}
+                          style={{ display: "none" }}
+                        />
+
+                        {newBuildingImages.length > 0 && (
+                          <div style={{ marginTop: 12 }}>
+                            <div
+                              style={{
+                                fontSize: 14,
+                                fontWeight: 600,
+                                color: "#333",
+                                marginBottom: 8,
+                              }}
+                            >
+                              선택된 파일 ({newBuildingImages.length}개):
+                            </div>
+                            <div
+                              style={{
+                                maxHeight: 120,
+                                overflowY: "auto",
+                                border: "1px solid #e0e0e0",
+                                borderRadius: "8px",
+                                padding: "8px",
+                              }}
+                            >
+                              {newBuildingImages.map((file, index) => (
+                                <div
+                                  key={index}
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    padding: "6px 8px",
+                                    marginBottom: "4px",
+                                    background: "#f8f9fa",
+                                    borderRadius: "4px",
+                                    fontSize: 13,
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      color: "#333",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
+                                      flex: 1,
+                                      marginRight: 8,
+                                    }}
+                                  >
+                                    {file.name}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setNewBuildingImages((prev) =>
+                                        prev.filter((_, i) => i !== index)
+                                      )
+                                    }}
+                                    style={{
+                                      background: "#dc3545",
+                                      color: "white",
+                                      border: "none",
+                                      borderRadius: "4px",
+                                      padding: "2px 6px",
+                                      fontSize: 12,
+                                      cursor: "pointer",
+                                      minWidth: "20px",
+                                      height: "20px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                    }}
+                                    title="삭제"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setNewBuildingImages([])}
+                              style={{
+                                background: "#6c757d",
+                                color: "white",
+                                border: "none",
+                                padding: "6px 12px",
+                                borderRadius: "4px",
+                                fontSize: 12,
+                                cursor: "pointer",
+                                marginTop: 8,
+                              }}
+                            >
+                              모든 파일 제거
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </>
                   )}
                   {type === "node" && (
@@ -1288,47 +1412,142 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                       />
 
                       {/* 새 이미지 업로드 */}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={(e) => {
-                          const files = Array.from(e.target.files)
-                          setNewBuildingImages(files)
-                        }}
-                        style={{
-                          width: "100%",
-                          padding: "16px 20px",
-                          borderRadius: "25px",
-                          border: "1px solid #e0e0e0",
-                          fontSize: 16,
-                          marginBottom: 0,
-                          background: "#fff",
-                          color: "#333",
-                          outline: "none",
-                          transition: "border-color 0.2s ease",
-                          boxSizing: "border-box",
-                        }}
-                        placeholder="파일 선택"
-                      />
-                      {newBuildingImages.length > 0 && (
-                        <div
-                          style={{
-                            marginTop: 8,
-                            fontSize: 14,
-                            color: "#666",
-                            padding: "8px 12px",
-                            background: "#f8f9fa",
-                            borderRadius: 8,
-                            border: "1px solid #e9ecef",
-                          }}
-                        >
-                          선택된 파일:{" "}
-                          {newBuildingImages
-                            .map((file) => file.name)
-                            .join(", ")}
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={{ marginBottom: 8 }}>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              document.getElementById("file-input").click()
+                            }
+                            style={{
+                              background: "#1976d2",
+                              color: "white",
+                              border: "none",
+                              padding: "12px 20px",
+                              borderRadius: "8px",
+                              fontSize: 14,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              marginBottom: 8,
+                            }}
+                          >
+                            <span style={{ fontSize: 16 }}>+</span> 파일 추가
+                          </button>
                         </div>
-                      )}
+
+                        <input
+                          id="file-input"
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={(e) => {
+                            const newFiles = Array.from(e.target.files)
+                            setNewBuildingImages((prev) => [
+                              ...prev,
+                              ...newFiles,
+                            ])
+                            e.target.value = "" // 입력 필드 초기화
+                          }}
+                          style={{ display: "none" }}
+                        />
+
+                        {newBuildingImages.length > 0 && (
+                          <div style={{ marginTop: 12 }}>
+                            <div
+                              style={{
+                                fontSize: 14,
+                                fontWeight: 600,
+                                color: "#333",
+                                marginBottom: 8,
+                              }}
+                            >
+                              선택된 파일 ({newBuildingImages.length}개):
+                            </div>
+                            <div
+                              style={{
+                                maxHeight: 120,
+                                overflowY: "auto",
+                                border: "1px solid #e0e0e0",
+                                borderRadius: "8px",
+                                padding: "8px",
+                              }}
+                            >
+                              {newBuildingImages.map((file, index) => (
+                                <div
+                                  key={index}
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    padding: "6px 8px",
+                                    marginBottom: "4px",
+                                    background: "#f8f9fa",
+                                    borderRadius: "4px",
+                                    fontSize: 13,
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      color: "#333",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
+                                      flex: 1,
+                                      marginRight: 8,
+                                    }}
+                                  >
+                                    {file.name}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setNewBuildingImages((prev) =>
+                                        prev.filter((_, i) => i !== index)
+                                      )
+                                    }}
+                                    style={{
+                                      background: "#dc3545",
+                                      color: "white",
+                                      border: "none",
+                                      borderRadius: "4px",
+                                      padding: "2px 6px",
+                                      fontSize: 12,
+                                      cursor: "pointer",
+                                      minWidth: "20px",
+                                      height: "20px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                    }}
+                                    title="삭제"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setNewBuildingImages([])}
+                              style={{
+                                background: "#6c757d",
+                                color: "white",
+                                border: "none",
+                                padding: "6px 12px",
+                                borderRadius: "4px",
+                                fontSize: 12,
+                                cursor: "pointer",
+                                marginTop: 8,
+                              }}
+                            >
+                              모든 파일 제거
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </>
                   )}
                   {/* 연결된 노드 (엣지 해제) */}

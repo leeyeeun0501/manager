@@ -129,7 +129,7 @@ export default function NaverMapSimple({ markers = [] }) {
       ref={mapRef}
       style={{
         width: "100%",
-        height: "500px",
+        height: "700px",
         borderRadius: "18px",
         border: "1.5px solid #222",
         background: "#eee",

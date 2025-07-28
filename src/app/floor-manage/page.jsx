@@ -367,7 +367,7 @@ export default function BuildingPage() {
                             setEditMapError("")
                           }}
                         >
-                          2D 도면
+                          2D 도면 미리보기
                         </button>
                       ) : (
                         <>

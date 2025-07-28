@@ -314,7 +314,15 @@ export default function BuildingPage() {
           {/* 층 추가 버튼 */}
           <button
             className={styles["add-floor-btn"]}
-            onClick={() => setShowAddFloor(true)}
+            onClick={() => {
+              setShowAddFloor(true)
+              // 선택된 건물이 있으면 자동으로 설정
+              if (selectedBuilding) {
+                setAddFloorBuilding(selectedBuilding)
+              } else {
+                setAddFloorBuilding("")
+              }
+            }}
             type="button"
           >
             층 추가
@@ -520,6 +528,7 @@ export default function BuildingPage() {
                   value={addFloorBuilding}
                   onChange={(e) => setAddFloorBuilding(e.target.value)}
                   required
+                  disabled={selectedBuilding !== ""}
                   style={{
                     width: "90%",
                     height: 48,
@@ -527,14 +536,15 @@ export default function BuildingPage() {
                     borderRadius: 14,
                     border: "1.5px solid #b3d1fa",
                     fontSize: 16,
-                    background: "#fff",
-                    color: "#222",
+                    background: selectedBuilding !== "" ? "#f5f5f5" : "#fff",
+                    color: selectedBuilding !== "" ? "#666" : "#222",
                     fontFamily: "inherit",
                     outline: "none",
                     boxSizing: "border-box",
                     margin: "0 auto",
                     display: "block",
                     appearance: "none",
+                    cursor: selectedBuilding !== "" ? "not-allowed" : "pointer",
                   }}
                 >
                   <option value="">건물 선택</option>
@@ -614,7 +624,15 @@ export default function BuildingPage() {
                       color: "#333",
                       cursor: "pointer",
                     }}
-                    onClick={() => setShowAddFloor(false)}
+                    onClick={() => {
+                      setShowAddFloor(false)
+                      setAddFloorBuilding("")
+                      setAddFloorNum("")
+                      setAddFloorFile(null)
+                      setAddFloorError("")
+                      if (addFloorFileRef.current)
+                        addFloorFileRef.current.value = ""
+                    }}
                   >
                     취소
                   </button>

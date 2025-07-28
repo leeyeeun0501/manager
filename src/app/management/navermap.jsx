@@ -41,8 +41,10 @@ export default function NaverMapSimple({ markers = [] }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markerObjsRef = useRef([])
+  const pathRef = useRef(null)
 
   const [ready, setReady] = useState(false)
+  const [pathData, setPathData] = useState([])
 
   // 1. 네이버 지도 스크립트 중복 삽입 없이 1회만 로딩
   useEffect(() => {
@@ -91,7 +93,28 @@ export default function NaverMapSimple({ markers = [] }) {
     }
   }, [ready])
 
-  // 3. markers가 변경될 때마다 마커 갱신
+  // 3. tower-route 데이터 가져오기
+  useEffect(() => {
+    const fetchPathData = async () => {
+      try {
+        const response = await fetch("/api/tower-route")
+        const data = await response.json()
+        if (data.nodes && Array.isArray(data.nodes)) {
+          // O가 포함된 노드 제외
+          const filteredNodes = data.nodes.filter(
+            (node) => node.id && !node.id.toString().includes("O")
+          )
+          setPathData(filteredNodes)
+        }
+      } catch (error) {
+        console.error("경로 데이터 조회 실패:", error)
+      }
+    }
+
+    fetchPathData()
+  }, [])
+
+  // 4. markers가 변경될 때마다 마커 갱신
   useEffect(() => {
     if (
       typeof window === "undefined" ||
@@ -105,7 +128,7 @@ export default function NaverMapSimple({ markers = [] }) {
     markerObjsRef.current.forEach((m) => m.setMap(null))
     markerObjsRef.current = []
 
-    markers.forEach(({ id, last_location }) => {
+    markers.forEach(({ id, name, last_location }) => {
       if (!last_location) return
       const marker = new window.naver.maps.Marker({
         position: new window.naver.maps.LatLng(
@@ -113,9 +136,9 @@ export default function NaverMapSimple({ markers = [] }) {
           last_location.lng
         ),
         map: mapInstanceRef.current,
-        title: id,
+        title: name || id,
         icon: {
-          content: createSpeechBubbleMarkerContent(id),
+          content: createSpeechBubbleMarkerContent(name || id),
           size: new window.naver.maps.Size(42, 42),
           anchor: new window.naver.maps.Point(21, 38),
         },
@@ -123,6 +146,89 @@ export default function NaverMapSimple({ markers = [] }) {
       markerObjsRef.current.push(marker)
     })
   }, [markers, ready])
+
+  // 5. pathData가 변경될 때마다 경로 마커 그리기
+  useEffect(() => {
+    if (
+      typeof window === "undefined" ||
+      !window.naver ||
+      !window.naver.maps ||
+      !mapInstanceRef.current ||
+      pathData.length === 0
+    )
+      return
+
+    // 기존 경로 마커 제거
+    if (pathRef.current) {
+      pathRef.current.forEach((marker) => marker.setMap(null))
+    }
+
+    // 경로 마커 생성
+    const pathMarkers = pathData.map((node) => {
+      return new window.naver.maps.Marker({
+        position: new window.naver.maps.LatLng(node.x, node.y),
+        map: mapInstanceRef.current,
+        title: `경로점 ${node.id}`,
+        icon: {
+          content: `
+            <div style="
+              position: relative;
+              width: 24px;
+              height: 32px;
+            ">
+              <div style="
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 0;
+                height: 0;
+                border-left: 8px solid transparent;
+                border-right: 8px solid transparent;
+                border-top: 16px solid #0066FF;
+              "></div>
+              <div style="
+                position: absolute;
+                bottom: 2px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 0;
+                height: 0;
+                border-left: 6px solid transparent;
+                border-right: 6px solid transparent;
+                border-top: 12px solid #0066FF;
+              "></div>
+              <div style="
+                position: absolute;
+                top: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 12px;
+                height: 12px;
+                background: white;
+                border: 2px solid #0066FF;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
+                <div style="
+                  width: 4px;
+                  height: 4px;
+                  background: #0066FF;
+                  border-radius: 50%;
+                "></div>
+              </div>
+            </div>
+          `,
+          size: new window.naver.maps.Size(24, 32),
+          anchor: new window.naver.maps.Point(12, 32),
+        },
+      })
+    })
+
+    pathRef.current = pathMarkers
+  }, [pathData, ready])
 
   return (
     <div

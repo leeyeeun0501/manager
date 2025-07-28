@@ -48,10 +48,16 @@ export async function PUT(request) {
 
   const formData = await request.formData()
   const file = formData.get("file")
-  const image = formData.get("image")
+  // 배열 인덱스로 이미지들 가져오기
+  const images = []
+  let index = 0
+  while (formData.get(`images[${index}]`)) {
+    images.push(formData.get(`images[${index}]`))
+    index++
+  }
   const desc = formData.get("desc")
 
-  if (!file && !desc && !image) {
+  if (!file && !desc && (!images || images.length === 0)) {
     return NextResponse.json(
       { error: "수정할 항목이 없습니다." },
       { status: 400 }
@@ -60,7 +66,11 @@ export async function PUT(request) {
 
   const externalForm = new FormData()
   if (file) externalForm.append("file", file)
-  if (image) externalForm.append("image", image)
+  if (images && images.length > 0) {
+    images.forEach((image, index) => {
+      externalForm.append(`images[${index}]`, image)
+    })
+  }
   if (desc) externalForm.append("desc", desc)
   const res = await fetch(
     `${API_BASE}/building/${encodeURIComponent(building)}`,

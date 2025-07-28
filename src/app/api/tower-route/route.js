@@ -72,7 +72,7 @@ export async function POST(request) {
     // Content-Type 확인하여 FormData인지 JSON인지 판단
     const contentType = request.headers.get("content-type") || ""
 
-    let type, node_name, x, y, desc, image
+    let type, node_name, x, y, desc, images
 
     if (contentType.includes("multipart/form-data")) {
       // FormData 처리 (이미지 포함)
@@ -82,7 +82,13 @@ export async function POST(request) {
       x = formData.get("x")
       y = formData.get("y")
       desc = formData.get("desc")
-      image = formData.get("image")
+      // 배열 인덱스로 이미지들 가져오기
+      images = []
+      let index = 0
+      while (formData.get(`images[${index}]`)) {
+        images.push(formData.get(`images[${index}]`))
+        index++
+      }
     } else {
       // JSON 처리 (기존 방식)
       const json = await request.json()
@@ -116,8 +122,10 @@ export async function POST(request) {
     if (type === "building" && desc) {
       formDataToSend.append("desc", desc)
     }
-    if (image) {
-      formDataToSend.append("image", image)
+    if (images && images.length > 0) {
+      images.forEach((image, index) => {
+        formDataToSend.append(`images[${index}]`, image)
+      })
     }
 
     const res = await fetch(`${API_BASE}/path/create`, {

@@ -20,6 +20,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   const [type, setType] = useState("building")
   const [nodeName, setNodeName] = useState("")
   const [desc, setDesc] = useState("")
+  const [buildingImage, setBuildingImage] = useState(null)
 
   const [edgeConnectHint, setEdgeConnectHint] = useState(false)
   const [deletePopup, setDeletePopup] = useState({
@@ -181,6 +182,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         })
         setNodeName("")
         setDesc("")
+        setBuildingImage(null)
 
         if (tempMarkerRef.current) {
           tempMarkerRef.current.setMap(null)
@@ -487,20 +489,37 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       finalNodeName = getNextONodeName()
     }
 
-    const body = {
-      type,
-      node_name: finalNodeName,
-      x: addPopup.x,
-      y: addPopup.y,
-    }
     if (type === "building") {
-      body.desc = desc
+      // 건물인 경우 FormData 사용하여 이미지와 함께 전송
+      const formData = new FormData()
+      formData.append("type", type)
+      formData.append("node_name", finalNodeName)
+      formData.append("x", addPopup.x)
+      formData.append("y", addPopup.y)
+      formData.append("desc", desc)
+      if (buildingImage) {
+        formData.append("image", buildingImage)
+      }
+
+      const res = await fetch("/api/tower-route", {
+        method: "POST",
+        body: formData,
+      })
+    } else {
+      // 노드인 경우 기존 방식 사용
+      const body = {
+        type,
+        node_name: finalNodeName,
+        x: addPopup.x,
+        y: addPopup.y,
+      }
+
+      const res = await fetch("/api/tower-route", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
     }
-    const res = await fetch("/api/tower-route", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    })
     const data = await res.json()
     if (data.success) {
       setAddPopup({ open: false, x: null, y: null })
@@ -1035,6 +1054,43 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                         placeholder="설명"
                         rows={3}
                       />
+                      {/* 이미지 업로드 필드 */}
+                      <div style={{ width: "100%" }}>
+                        <label
+                          style={{
+                            display: "block",
+                            fontSize: 15,
+                            fontWeight: 600,
+                            color: "#555",
+                            marginBottom: 8,
+                          }}
+                        >
+                          건물 사진
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => setBuildingImage(e.target.files[0])}
+                          style={{
+                            width: "100%",
+                            padding: 8,
+                            borderRadius: 8,
+                            border: "1px solid #bbb",
+                            fontSize: 14,
+                          }}
+                        />
+                        {buildingImage && (
+                          <div
+                            style={{
+                              marginTop: 8,
+                              fontSize: 14,
+                              color: "#666",
+                            }}
+                          >
+                            선택된 파일: {buildingImage.name}
+                          </div>
+                        )}
+                      </div>
                     </>
                   )}
                   {type === "node" && (

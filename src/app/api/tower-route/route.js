@@ -69,8 +69,29 @@ export async function PUT(request) {
 // 건물/노드 추가 (POST)
 export async function POST(request) {
   try {
-    const json = await request.json()
-    const { type, node_name, x, y, desc } = json
+    // Content-Type 확인하여 FormData인지 JSON인지 판단
+    const contentType = request.headers.get("content-type") || ""
+
+    let type, node_name, x, y, desc, image
+
+    if (contentType.includes("multipart/form-data")) {
+      // FormData 처리 (이미지 포함)
+      const formData = await request.formData()
+      type = formData.get("type")
+      node_name = formData.get("node_name")
+      x = formData.get("x")
+      y = formData.get("y")
+      desc = formData.get("desc")
+      image = formData.get("image")
+    } else {
+      // JSON 처리 (기존 방식)
+      const json = await request.json()
+      type = json.type
+      node_name = json.node_name
+      x = json.x
+      y = json.y
+      desc = json.desc
+    }
 
     if (
       !type ||
@@ -86,16 +107,22 @@ export async function POST(request) {
       )
     }
 
+    // FormData로 외부 API 호출
+    const formDataToSend = new FormData()
+    formDataToSend.append("type", type)
+    formDataToSend.append("node_name", node_name)
+    formDataToSend.append("x", x)
+    formDataToSend.append("y", y)
+    if (type === "building" && desc) {
+      formDataToSend.append("desc", desc)
+    }
+    if (image) {
+      formDataToSend.append("image", image)
+    }
+
     const res = await fetch(`${API_BASE}/path/create`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type,
-        node_name,
-        x,
-        y,
-        ...(type === "building" && desc ? { desc } : {}),
-      }),
+      body: formDataToSend,
     })
 
     const data = await res.json()

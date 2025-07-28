@@ -48,9 +48,10 @@ export async function PUT(request) {
 
   const formData = await request.formData()
   const file = formData.get("file")
+  const image = formData.get("image")
   const desc = formData.get("desc")
 
-  if (!file && !desc) {
+  if (!file && !desc && !image) {
     return NextResponse.json(
       { error: "수정할 항목이 없습니다." },
       { status: 400 }
@@ -59,6 +60,7 @@ export async function PUT(request) {
 
   const externalForm = new FormData()
   if (file) externalForm.append("file", file)
+  if (image) externalForm.append("image", image)
   if (desc) externalForm.append("desc", desc)
   const res = await fetch(
     `${API_BASE}/building/${encodeURIComponent(building)}`,

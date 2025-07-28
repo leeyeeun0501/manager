@@ -20,7 +20,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   const [type, setType] = useState("building")
   const [nodeName, setNodeName] = useState("")
   const [desc, setDesc] = useState("")
-  const [buildingImage, setBuildingImage] = useState(null)
+  const [newBuildingImage, setNewBuildingImage] = useState(null)
 
   const [edgeConnectHint, setEdgeConnectHint] = useState(false)
   const [deletePopup, setDeletePopup] = useState({
@@ -42,6 +42,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   // 건물 설명 수정 관련 state
   const [buildingDesc, setBuildingDesc] = useState("")
   const [buildingDescLoading, setBuildingDescLoading] = useState(false)
+  const [existingImageUrl, setExistingImageUrl] = useState("")
 
   // 지도 API 스크립트 준비 여부
   const [ready, setReady] = useState(false)
@@ -104,9 +105,9 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     fetchEdges()
   }, [])
 
-  // 건물 관리 팝업이 열릴 때마다 전체 건물 데이터 받아와서 설명만 추출
+  // 건물 관리 팝업이 열릴 때마다 전체 건물 데이터 받아와서 설명과 이미지 추출
   useEffect(() => {
-    async function fetchBuildingDesc() {
+    async function fetchBuildingInfo() {
       if (
         deletePopup.open &&
         deletePopup.type === "building" &&
@@ -132,14 +133,20 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                 "")) ||
               ""
           )
+          // 기존 이미지 URL 설정
+          setExistingImageUrl(
+            (found && (found.image_url || found.image || "")) || ""
+          )
         } catch {
           setBuildingDesc("")
+          setExistingImageUrl("")
         }
       } else {
         setBuildingDesc("")
+        setExistingImageUrl("")
       }
     }
-    fetchBuildingDesc()
+    fetchBuildingInfo()
   }, [deletePopup])
 
   // 지도 최초 생성 및 클릭 마커 + 추가 팝업
@@ -182,7 +189,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         })
         setNodeName("")
         setDesc("")
-        setBuildingImage(null)
+        setNewBuildingImage(null)
 
         if (tempMarkerRef.current) {
           tempMarkerRef.current.setMap(null)
@@ -415,6 +422,9 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     try {
       const formData = new FormData()
       formData.append("desc", buildingDesc)
+      if (newBuildingImage) {
+        formData.append("image", newBuildingImage)
+      }
       const res = await fetch(
         `/api/building-route?building=${encodeURIComponent(
           deletePopup.node_name
@@ -423,8 +433,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       )
       const data = await res.json()
       if (data && !data.error) {
-        alert("설명 수정 완료!")
-        // 최신 설명 다시 반영 (선택)
+        alert("정보 수정 완료!")
+        // 최신 정보 다시 반영
         const res2 = await fetch(
           `/api/building-route?building=${encodeURIComponent(
             deletePopup.node_name
@@ -433,9 +443,13 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         const json2 = await res2.json()
         if (json2.all && json2.all.length > 0) {
           setBuildingDesc(json2.all[0].Desc || "")
+          setExistingImageUrl(
+            json2.all[0].image_url || json2.all[0].image || ""
+          )
         }
+        setNewBuildingImage(null)
       } else {
-        alert(data.error || "설명 수정 실패")
+        alert(data.error || "정보 수정 실패")
       }
     } catch {
       alert("서버 오류")
@@ -497,8 +511,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       formData.append("x", addPopup.x)
       formData.append("y", addPopup.y)
       formData.append("desc", desc)
-      if (buildingImage) {
-        formData.append("image", buildingImage)
+      if (newBuildingImage) {
+        formData.append("image", newBuildingImage)
       }
 
       const res = await fetch("/api/tower-route", {
@@ -686,6 +700,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       x: null,
       y: null,
     })
+    setNewBuildingImage(null)
   }
 
   // 추가 팝업 닫기
@@ -1070,7 +1085,9 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                         <input
                           type="file"
                           accept="image/*"
-                          onChange={(e) => setBuildingImage(e.target.files[0])}
+                          onChange={(e) =>
+                            setNewBuildingImage(e.target.files[0])
+                          }
                           style={{
                             width: "100%",
                             padding: 8,
@@ -1079,7 +1096,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                             fontSize: 14,
                           }}
                         />
-                        {buildingImage && (
+                        {newBuildingImage && (
                           <div
                             style={{
                               marginTop: 8,
@@ -1087,7 +1104,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                               color: "#666",
                             }}
                           >
-                            선택된 파일: {buildingImage.name}
+                            선택된 파일: {newBuildingImage.name}
                           </div>
                         )}
                       </div>
@@ -1201,35 +1218,101 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                       <strong>경도(y):</strong> {deletePopup.y}
                     </span>
                   </div>
-                  {/* 건물일 때만 설명 입력란 + 수정 버튼 */}
+                  {/* 건물일 때만 설명 입력란 + 이미지 표시 + 수정 버튼 */}
                   {deletePopup.type === "building" && (
-                    <div
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        marginBottom: 12,
-                      }}
-                    >
-                      <textarea
+                    <>
+                      {/* 기존 이미지 표시 */}
+                      {existingImageUrl && (
+                        <div style={{ marginBottom: 12 }}>
+                          <div
+                            style={{
+                              fontWeight: 600,
+                              marginBottom: 6,
+                              fontSize: 15,
+                            }}
+                          >
+                            현재 건물 사진
+                          </div>
+                          <img
+                            src={existingImageUrl}
+                            alt="건물 사진"
+                            style={{
+                              width: "100%",
+                              maxHeight: 200,
+                              borderRadius: 8,
+                              border: "1px solid #ddd",
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {/* 새 이미지 업로드 */}
+                      <div style={{ marginBottom: 12 }}>
+                        <div
+                          style={{
+                            fontWeight: 600,
+                            marginBottom: 6,
+                            fontSize: 15,
+                          }}
+                        >
+                          새 사진 업로드 (선택사항)
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            setNewBuildingImage(e.target.files[0])
+                          }
+                          style={{
+                            width: "100%",
+                            padding: 8,
+                            borderRadius: 8,
+                            border: "1px solid #bbb",
+                            fontSize: 14,
+                          }}
+                        />
+                        {newBuildingImage && (
+                          <div
+                            style={{
+                              marginTop: 8,
+                              fontSize: 14,
+                              color: "#666",
+                            }}
+                          >
+                            선택된 파일: {newBuildingImage.name}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 설명 입력란 */}
+                      <div
                         style={{
-                          width: "90%",
-                          minHeight: 80,
-                          maxHeight: 180,
-                          padding: 12,
-                          borderRadius: 14,
-                          border: "1px solid #bbb",
-                          fontSize: 16,
-                          fontFamily: "inherit",
-                          resize: "none",
-                          display: "block",
+                          width: "100%",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          marginBottom: 12,
                         }}
-                        value={buildingDesc}
-                        onChange={(e) => setBuildingDesc(e.target.value)}
-                        placeholder="설명"
-                      />
-                    </div>
+                      >
+                        <textarea
+                          style={{
+                            width: "90%",
+                            minHeight: 80,
+                            maxHeight: 180,
+                            padding: 12,
+                            borderRadius: 14,
+                            border: "1px solid #bbb",
+                            fontSize: 16,
+                            fontFamily: "inherit",
+                            resize: "none",
+                            display: "block",
+                          }}
+                          value={buildingDesc}
+                          onChange={(e) => setBuildingDesc(e.target.value)}
+                          placeholder="설명"
+                        />
+                      </div>
+                    </>
                   )}
                   {/* 연결된 노드 (엣지 해제) */}
                   <div style={{ marginBottom: 16 }}>

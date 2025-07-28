@@ -47,6 +47,13 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   // 지도 API 스크립트 준비 여부
   const [ready, setReady] = useState(false)
 
+  // 추가
+  const [buildingImageIndex, setBuildingImageIndex] = useState(0)
+
+  useEffect(() => {
+    setBuildingImageIndex(0)
+  }, [deletePopup])
+
   // 네이버 지도 스크립트 중복 삽입 없이 1회만 로딩
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -1347,6 +1354,17 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                           b.name === deletePopup.node_name
                       )
 
+                      const imageArr =
+                        Array.isArray(found?.Image) && found.Image.length > 0
+                          ? found.Image
+                          : existingImageUrl
+                          ? [existingImageUrl]
+                          : found?.image
+                          ? [found.image]
+                          : found?.image_url
+                          ? [found.image_url]
+                          : []
+
                       // 이미지 URL 결정: Image(배열), existingImageUrl(문자열), image, image_url 모두 커버
                       const imageUrl =
                         (Array.isArray(found?.Image) && found.Image.length > 0
@@ -1359,7 +1377,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                       return (
                         <>
                           {/* 기존 이미지 표시 */}
-                          {imageUrl && (
+                          {imageArr.length > 0 && (
                             <div style={{ marginBottom: 12 }}>
                               <div
                                 style={{
@@ -1370,16 +1388,89 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                               >
                                 현재 건물 사진
                               </div>
-                              <img
-                                src={imageUrl}
-                                alt="건물 사진"
+                              <div
                                 style={{
-                                  width: "100%",
-                                  maxHeight: 200,
-                                  borderRadius: 8,
-                                  border: "1px solid #ddd",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 8,
                                 }}
-                              />
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setBuildingImageIndex((prev) =>
+                                      Math.max(0, prev - 1)
+                                    )
+                                  }
+                                  style={{
+                                    padding: "4px 10px",
+                                    borderRadius: 6,
+                                    border: "1px solid #bbb",
+                                    background: "#fafafa",
+                                    fontSize: 18,
+                                    cursor:
+                                      buildingImageIndex === 0
+                                        ? "not-allowed"
+                                        : "pointer",
+                                    color:
+                                      buildingImageIndex === 0
+                                        ? "#bbb"
+                                        : "#333",
+                                  }}
+                                  disabled={buildingImageIndex === 0}
+                                >
+                                  ◀
+                                </button>
+                                <img
+                                  src={imageArr[buildingImageIndex]}
+                                  alt={`건물 사진 ${buildingImageIndex + 1}`}
+                                  style={{
+                                    width: 200,
+                                    maxHeight: 180,
+                                    borderRadius: 8,
+                                    border: "1px solid #ddd",
+                                    objectFit: "contain",
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setBuildingImageIndex((prev) =>
+                                      Math.min(imageArr.length - 1, prev + 1)
+                                    )
+                                  }
+                                  style={{
+                                    padding: "4px 10px",
+                                    borderRadius: 6,
+                                    border: "1px solid #bbb",
+                                    background: "#fafafa",
+                                    fontSize: 18,
+                                    cursor:
+                                      buildingImageIndex === imageArr.length - 1
+                                        ? "not-allowed"
+                                        : "pointer",
+                                    color:
+                                      buildingImageIndex === imageArr.length - 1
+                                        ? "#bbb"
+                                        : "#333",
+                                  }}
+                                  disabled={
+                                    buildingImageIndex === imageArr.length - 1
+                                  }
+                                >
+                                  ▶
+                                </button>
+                              </div>
+                              <div
+                                style={{
+                                  textAlign: "center",
+                                  fontSize: 13,
+                                  color: "#555",
+                                  marginTop: 4,
+                                }}
+                              >
+                                {buildingImageIndex + 1} / {imageArr.length}
+                              </div>
                             </div>
                           )}
 

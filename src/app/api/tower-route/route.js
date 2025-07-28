@@ -27,16 +27,12 @@ export async function GET() {
         return NextResponse.json({ nodes })
       }
     } catch (externalError) {
-      console.log(
-        "외부 API 연결 실패, 로컬 데이터 사용:",
-        externalError.message
-      )
+      // 외부 API 연결 실패 시 로컬 데이터 사용
     }
 
     // 외부 API 실패 시 로컬 데이터 반환
     return NextResponse.json({ nodes: localNodes })
   } catch (err) {
-    console.error("GET 오류:", err)
     return NextResponse.json({ error: "서버 오류" }, { status: 500 })
   }
 }
@@ -66,10 +62,7 @@ export async function PUT(request) {
         return NextResponse.json({ message: "노드 정보 수정 성공", data })
       }
     } catch (externalError) {
-      console.log(
-        "외부 API 연결 실패, 로컬 데이터 수정:",
-        externalError.message
-      )
+      // 외부 API 연결 실패 시 로컬 데이터 수정
     }
 
     // 외부 API 실패 시 로컬 데이터 수정
@@ -86,7 +79,6 @@ export async function PUT(request) {
       )
     }
   } catch (err) {
-    console.error("PUT 오류:", err)
     return NextResponse.json({ error: "서버 오류" }, { status: 500 })
   }
 }
@@ -94,27 +86,20 @@ export async function PUT(request) {
 // 건물/노드 추가 (POST)
 export async function POST(request) {
   try {
-    console.log("=== POST /api/tower-route 시작 ===")
-
     // Content-Type 확인하여 FormData인지 JSON인지 판단
     const contentType = request.headers.get("content-type") || ""
-    console.log("Content-Type:", contentType)
 
     let type, node_name, x, y, desc, images
 
     if (contentType.includes("multipart/form-data")) {
-      console.log("FormData 처리 시작")
       // FormData 처리 (이미지 포함)
       const formData = await request.formData()
-      console.log("FormData 파싱 완료")
 
       type = formData.get("type")
       node_name = formData.get("node_name")
       x = formData.get("x")
       y = formData.get("y")
       desc = formData.get("desc")
-
-      console.log("기본 데이터 추출:", { type, node_name, x, y, desc })
 
       // 배열 인덱스로 이미지들 가져오기
       images = []
@@ -123,32 +108,6 @@ export async function POST(request) {
         images.push(formData.get(`images[${index}]`))
         index++
       }
-      console.log("이미지 추출 완료, 개수:", images.length)
-
-      console.log(
-        "FormData - type:",
-        type,
-        "node_name:",
-        node_name,
-        "x:",
-        x,
-        "y:",
-        y,
-        "desc:",
-        desc,
-        "images count:",
-        images.length
-      )
-
-      // 이미지 상세 정보 로그
-      images.forEach((image, index) => {
-        console.log(`Received Image ${index}:`, {
-          name: image.name,
-          type: image.type,
-          size: image.size,
-          lastModified: image.lastModified,
-        })
-      })
     } else {
       // JSON 처리 (기존 방식)
       const json = await request.json()
@@ -157,19 +116,6 @@ export async function POST(request) {
       x = json.x
       y = json.y
       desc = json.desc
-
-      console.log(
-        "JSON - type:",
-        type,
-        "node_name:",
-        node_name,
-        "x:",
-        x,
-        "y:",
-        y,
-        "desc:",
-        desc
-      )
     }
 
     if (
@@ -186,7 +132,6 @@ export async function POST(request) {
       )
     }
 
-    console.log("외부 API 호출 준비 시작")
     // FormData로 외부 API 호출
     const formDataToSend = new FormData()
     formDataToSend.append("type", type)
@@ -201,24 +146,6 @@ export async function POST(request) {
         formDataToSend.append(`images[${index}]`, image)
       })
     }
-    console.log("FormData 구성 완료")
-
-    console.log(
-      "Sending to external API - type:",
-      type,
-      "node_name:",
-      node_name,
-      "x:",
-      x,
-      "y:",
-      y,
-      "desc:",
-      desc,
-      "images count:",
-      images ? images.length : 0
-    )
-
-    console.log("외부 API 호출 시작:", `${API_BASE}/path/create`)
 
     // 먼저 외부 API 시도
     try {
@@ -227,14 +154,7 @@ export async function POST(request) {
         body: formDataToSend,
       })
 
-      console.log("External API response status:", res.status)
-      console.log(
-        "External API response headers:",
-        Object.fromEntries(res.headers.entries())
-      )
-
       const data = await res.json()
-      console.log("External API response data:", data)
 
       if (!res.ok) {
         throw new Error(data.error || "외부 서버 오류")
@@ -242,11 +162,6 @@ export async function POST(request) {
 
       return NextResponse.json({ success: true, node: data })
     } catch (externalError) {
-      console.log(
-        "외부 API 연결 실패, 로컬 저장소 사용:",
-        externalError.message
-      )
-
       // 외부 API 실패 시 로컬 저장소에 저장
       const newNode = {
         id: Date.now().toString(),
@@ -262,7 +177,6 @@ export async function POST(request) {
       }
 
       localNodes.push(newNode)
-      console.log("로컬 저장소에 저장됨:", newNode)
 
       return NextResponse.json({
         success: true,
@@ -271,10 +185,6 @@ export async function POST(request) {
       })
     }
   } catch (err) {
-    console.error("=== POST /api/tower-route 오류 ===")
-    console.error("오류 메시지:", err.message)
-    console.error("오류 스택:", err.stack)
-    console.error("오류 객체:", err)
     return NextResponse.json(
       { success: false, error: `서버 오류: ${err.message}` },
       { status: 500 }
@@ -310,11 +220,6 @@ export async function DELETE(request) {
 
       return NextResponse.json({ success: true, message: "삭제 성공", data })
     } catch (externalError) {
-      console.log(
-        "외부 API 연결 실패, 로컬 데이터 삭제:",
-        externalError.message
-      )
-
       // 외부 API 실패 시 로컬 데이터에서 삭제
       const initialLength = localNodes.length
       localNodes = localNodes.filter(
@@ -334,7 +239,6 @@ export async function DELETE(request) {
       }
     }
   } catch (err) {
-    console.error("DELETE /api/tower-route error:", err)
     return NextResponse.json(
       { success: false, error: "서버 오류" },
       { status: 500 }

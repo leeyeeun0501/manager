@@ -26,7 +26,7 @@ export async function GET(request) {
     const data = await res.json()
     const mapped = (Array.isArray(data) ? data : []).map((b) => ({
       ...b,
-      file: b.File || null,
+      image: b.image || b.image_url || b.File || null,
     }))
     return NextResponse.json({ all: mapped })
   }

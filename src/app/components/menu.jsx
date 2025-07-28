@@ -10,8 +10,6 @@ import {
   FaUser,
   FaSignOutAlt,
   FaUserCircle,
-  FaQuestionCircle,
-  FaComments,
 } from "react-icons/fa"
 import Link from "next/link"
 import React, { useEffect, useState } from "react"
@@ -59,8 +57,6 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
     { label: "Floor 관리", icon: <FaBuilding />, path: "/floor-manage" },
     { label: "Room 관리", icon: <FaDoorOpen />, path: "/room-manage" },
     { label: "User 관리", icon: <FaUser />, path: "/user-manage" },
-    { label: "문의 관리", icon: <FaComments />, path: "/inquiry-manage" },
-    { label: "문의 작성", icon: <FaQuestionCircle />, path: "/inquiry" },
   ]
 
   return (

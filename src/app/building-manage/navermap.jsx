@@ -43,16 +43,78 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   const [buildingDesc, setBuildingDesc] = useState("")
   const [buildingDescLoading, setBuildingDescLoading] = useState(false)
   const [existingImageUrl, setExistingImageUrl] = useState("")
+  const [currentBuilding, setCurrentBuilding] = useState(null)
 
   // 지도 API 스크립트 준비 여부
   const [ready, setReady] = useState(false)
 
   // 추가
   const [buildingImageIndex, setBuildingImageIndex] = useState(0)
+  const [currentImageArr, setCurrentImageArr] = useState([])
 
   useEffect(() => {
     setBuildingImageIndex(0)
-  }, [deletePopup])
+    setCurrentImageArr([])
+  }, [deletePopup.node_name])
+
+  // 이미지 배열이 변경될 때마다 현재 이미지 배열 상태 업데이트
+  useEffect(() => {
+    if (!deletePopup.open || !deletePopup.node_name) return
+
+    const fetchBuildingData = async () => {
+      try {
+        const res = await fetch("/api/building-route")
+        const json = await res.json()
+        console.log("API 전체 응답:", json)
+
+        if (json.all && Array.isArray(json.all)) {
+          const found = json.all.find(
+            (b) =>
+              b.Building_Name === deletePopup.node_name ||
+              b.name === deletePopup.node_name
+          )
+          console.log("찾은 건물 데이터:", found)
+
+          if (found) {
+            setCurrentBuilding(found)
+            setBuildingDesc(found.Description || found.Desc || found.desc || "")
+
+            let newImageArr = []
+            if (Array.isArray(found.Image) && found.Image.length > 0) {
+              newImageArr = [...found.Image]
+            } else if (Array.isArray(found.image) && found.image.length > 0) {
+              newImageArr = [...found.image]
+            } else if (found.image) {
+              newImageArr = [found.image]
+            } else if (found.image_url) {
+              newImageArr = [found.image_url]
+            }
+
+            console.log("새로운 이미지 배열:", newImageArr)
+            setCurrentImageArr(newImageArr)
+            if (newImageArr.length > 0) {
+              setExistingImageUrl(newImageArr[0])
+            }
+          }
+        }
+      } catch (error) {
+        console.error("건물 데이터 가져오기 실패:", error)
+        setCurrentBuilding(null)
+        setCurrentImageArr([])
+        setBuildingDesc("")
+        setExistingImageUrl("")
+      }
+    }
+
+    fetchBuildingData()
+  }, [deletePopup.open, deletePopup.node_name])
+
+  // 이미지 인덱스가 배열 범위를 벗어나지 않도록 보정
+  useEffect(() => {
+    if (buildingImageIndex >= currentImageArr.length) {
+      setBuildingImageIndex(Math.max(0, currentImageArr.length - 1))
+    }
+  }, [currentImageArr, buildingImageIndex])
 
   // 네이버 지도 스크립트 중복 삽입 없이 1회만 로딩
   useEffect(() => {
@@ -123,7 +185,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         try {
           const res = await fetch("/api/building-route")
           const json = await res.json()
-          console.log("API 전체 응답:", json)
           let found = null
           if (json.all && Array.isArray(json.all)) {
             found = json.all.find(
@@ -131,31 +192,19 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                 b.Building_Name === deletePopup.node_name ||
                 b.name === deletePopup.node_name
             )
-            console.log("찾은 건물 데이터:", found)
-            console.log("해당 건물의 image 값:", found?.image)
           }
-          setBuildingDesc(
-            (found &&
-              (found.Desc ||
-                found.Description ||
-                found.desc ||
-                found.description ||
-                "")) ||
-              ""
-          )
-          // 기존 이미지 URL 설정
-          setExistingImageUrl(
-            (Array.isArray(found.Image) && found.Image.length > 0
-              ? found.Image[0]
-              : found.image || found.image_url || null) || ""
-          )
-        } catch {
+          if (found) {
+            setBuildingDesc(found.Description || found.Desc || found.desc || "")
+            setCurrentBuilding(found)
+          }
+        } catch (error) {
+          console.error("건물 정보 가져오기 실패:", error)
           setBuildingDesc("")
-          setExistingImageUrl("")
+          setCurrentBuilding(null)
         }
       } else {
         setBuildingDesc("")
-        setExistingImageUrl("")
+        setCurrentBuilding(null)
       }
     }
     fetchBuildingInfo()
@@ -457,9 +506,22 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         const json2 = await res2.json()
         if (json2.all && json2.all.length > 0) {
           setBuildingDesc(json2.all[0].Desc || "")
-          setExistingImageUrl(
-            json2.all[0].image_url || json2.all[0].image || ""
-          )
+          // 이미지 URL 설정 로직 개선
+          let images = []
+          const building = json2.all[0]
+          if (Array.isArray(building.Image) && building.Image.length > 0) {
+            images = building.Image
+          } else if (
+            Array.isArray(building.image) &&
+            building.image.length > 0
+          ) {
+            images = building.image
+          } else if (building.image) {
+            images = [building.image]
+          } else if (building.image_url) {
+            images = [building.image_url]
+          }
+          setExistingImageUrl(images[0] || "")
         }
         setNewBuildingImages([])
       } else {
@@ -1354,30 +1416,41 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                           b.name === deletePopup.node_name
                       )
 
-                      const imageArr =
-                        Array.isArray(found?.Image) && found.Image.length > 0
-                          ? found.Image
-                          : existingImageUrl
-                          ? [existingImageUrl]
-                          : found?.image
-                          ? [found.image]
-                          : found?.image_url
-                          ? [found.image_url]
-                          : []
+                      console.log("현재 선택된 건물 데이터:", found)
 
-                      // 이미지 URL 결정: Image(배열), existingImageUrl(문자열), image, image_url 모두 커버
-                      const imageUrl =
-                        (Array.isArray(found?.Image) && found.Image.length > 0
-                          ? found.Image[0]
-                          : existingImageUrl ||
-                            found?.image ||
-                            found?.image_url ||
-                            null) || null
+                      // 이미지 배열 생성 로직 개선
+                      let imageArr = []
+                      if (found) {
+                        console.log("Image 필드:", found.Image)
+                        console.log("image 필드:", found.image)
+                        console.log("image_url 필드:", found.image_url)
+
+                        if (
+                          Array.isArray(found.Image) &&
+                          found.Image.length > 0
+                        ) {
+                          imageArr = [...found.Image]
+                        } else if (
+                          Array.isArray(found.image) &&
+                          found.image.length > 0
+                        ) {
+                          imageArr = [...found.image]
+                        } else if (found.image) {
+                          imageArr = [found.image]
+                        } else if (found.image_url) {
+                          imageArr = [found.image_url]
+                        }
+                      }
+                      if (imageArr.length === 0 && existingImageUrl) {
+                        imageArr = [existingImageUrl]
+                      }
+
+                      console.log("최종 이미지 배열:", imageArr)
 
                       return (
                         <>
                           {/* 기존 이미지 표시 */}
-                          {imageArr.length > 0 && (
+                          {currentImageArr.length > 0 && (
                             <div style={{ marginBottom: 12 }}>
                               <div
                                 style={{
@@ -1386,7 +1459,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                                   fontSize: 15,
                                 }}
                               >
-                                현재 건물 사진
+                                현재 건물 사진 ({currentImageArr.length}장)
                               </div>
                               <div
                                 style={{
@@ -1397,11 +1470,15 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                               >
                                 <button
                                   type="button"
-                                  onClick={() =>
+                                  onClick={() => {
+                                    console.log(
+                                      "이전 이미지로 이동, 현재 인덱스:",
+                                      buildingImageIndex
+                                    )
                                     setBuildingImageIndex((prev) =>
                                       Math.max(0, prev - 1)
                                     )
-                                  }
+                                  }}
                                   style={{
                                     padding: "4px 10px",
                                     borderRadius: 6,
@@ -1421,24 +1498,51 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                                 >
                                   ◀
                                 </button>
-                                <img
-                                  src={imageArr[buildingImageIndex]}
-                                  alt={`건물 사진 ${buildingImageIndex + 1}`}
+                                <div
                                   style={{
+                                    position: "relative",
                                     width: 200,
-                                    maxHeight: 180,
-                                    borderRadius: 8,
-                                    border: "1px solid #ddd",
-                                    objectFit: "contain",
+                                    height: 180,
                                   }}
-                                />
+                                >
+                                  {currentImageArr[buildingImageIndex] && (
+                                    <img
+                                      key={currentImageArr[buildingImageIndex]}
+                                      src={currentImageArr[buildingImageIndex]}
+                                      alt={`건물 사진 ${
+                                        buildingImageIndex + 1
+                                      }`}
+                                      style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        borderRadius: 8,
+                                        border: "1px solid #ddd",
+                                        objectFit: "contain",
+                                      }}
+                                      onError={(e) => {
+                                        console.log(
+                                          "이미지 로드 실패:",
+                                          e.target.src
+                                        )
+                                        e.target.src = "/fallback-image.jpg"
+                                      }}
+                                    />
+                                  )}
+                                </div>
                                 <button
                                   type="button"
-                                  onClick={() =>
-                                    setBuildingImageIndex((prev) =>
-                                      Math.min(imageArr.length - 1, prev + 1)
+                                  onClick={() => {
+                                    console.log(
+                                      "다음 이미지로 이동, 현재 인덱스:",
+                                      buildingImageIndex
                                     )
-                                  }
+                                    setBuildingImageIndex((prev) =>
+                                      Math.min(
+                                        currentImageArr.length - 1,
+                                        prev + 1
+                                      )
+                                    )
+                                  }}
                                   style={{
                                     padding: "4px 10px",
                                     borderRadius: 6,
@@ -1446,16 +1550,19 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                                     background: "#fafafa",
                                     fontSize: 18,
                                     cursor:
-                                      buildingImageIndex === imageArr.length - 1
+                                      buildingImageIndex ===
+                                      currentImageArr.length - 1
                                         ? "not-allowed"
                                         : "pointer",
                                     color:
-                                      buildingImageIndex === imageArr.length - 1
+                                      buildingImageIndex ===
+                                      currentImageArr.length - 1
                                         ? "#bbb"
                                         : "#333",
                                   }}
                                   disabled={
-                                    buildingImageIndex === imageArr.length - 1
+                                    buildingImageIndex ===
+                                    currentImageArr.length - 1
                                   }
                                 >
                                   ▶
@@ -1469,7 +1576,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                                   marginTop: 4,
                                 }}
                               >
-                                {buildingImageIndex + 1} / {imageArr.length}
+                                {buildingImageIndex + 1} /{" "}
+                                {currentImageArr.length}
                               </div>
                             </div>
                           )}

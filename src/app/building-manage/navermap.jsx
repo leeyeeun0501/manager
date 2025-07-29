@@ -1646,62 +1646,123 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                               marginBottom: 12,
                             }}
                           >
-                            {currentImageArr
-                              // .filter(
-                              //   (url, index, self) =>
-                              //     self.indexOf(url) === index
-                              // ) // 중복 제거 - 일시적으로 제거
-                              .map((imageUrl, idx) => (
-                                <div
-                                  key={`${imageUrl}-${idx}`} // 고유한 key 생성
-                                  onClick={() => toggleImageSelection(imageUrl)}
+                            {/* 기존 이미지들 */}
+                            {currentImageArr.map((imageUrl, idx) => (
+                              <div
+                                key={`existing-${imageUrl}-${idx}`}
+                                onClick={() => toggleImageSelection(imageUrl)}
+                                style={{
+                                  position: "relative",
+                                  aspectRatio: "1",
+                                  cursor: "pointer",
+                                  border: `2px solid ${
+                                    selectedImages.includes(imageUrl)
+                                      ? "#1976d2"
+                                      : "transparent"
+                                  }`,
+                                  borderRadius: 8,
+                                  overflow: "hidden",
+                                }}
+                              >
+                                <img
+                                  src={imageUrl}
+                                  alt={`건물 사진 ${idx + 1}`}
                                   style={{
-                                    position: "relative",
-                                    aspectRatio: "1",
-                                    cursor: "pointer",
-                                    border: `2px solid ${
-                                      selectedImages.includes(imageUrl)
-                                        ? "#1976d2"
-                                        : "transparent"
-                                    }`,
-                                    borderRadius: 8,
-                                    overflow: "hidden",
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                  }}
+                                  onError={(e) => {
+                                    e.target.src = "/fallback-image.jpg"
+                                  }}
+                                />
+                                {selectedImages.includes(imageUrl) && (
+                                  <div
+                                    style={{
+                                      position: "absolute",
+                                      top: 4,
+                                      right: 4,
+                                      width: 20,
+                                      height: 20,
+                                      borderRadius: "50%",
+                                      background: "#1976d2",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      color: "white",
+                                      fontSize: 12,
+                                    }}
+                                  >
+                                    ✓
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+
+                            {/* 새로 추가한 이미지들 */}
+                            {newBuildingImages.map((file, idx) => (
+                              <div
+                                key={`new-${file.name}-${idx}`}
+                                onClick={() =>
+                                  toggleImageSelection(
+                                    `new-${file.name}-${idx}`
+                                  )
+                                }
+                                style={{
+                                  position: "relative",
+                                  aspectRatio: "1",
+                                  cursor: "pointer",
+                                  border: `2px solid ${
+                                    selectedImages.includes(
+                                      `new-${file.name}-${idx}`
+                                    )
+                                      ? "#1976d2"
+                                      : "transparent"
+                                  }`,
+                                  borderRadius: 8,
+                                  overflow: "hidden",
+                                  background: "#f5f5f5",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    textAlign: "center",
+                                    fontSize: 12,
+                                    color: "#666",
+                                    padding: 8,
                                   }}
                                 >
-                                  <img
-                                    src={imageUrl}
-                                    alt={`건물 사진 ${idx + 1}`}
-                                    style={{
-                                      width: "100%",
-                                      height: "100%",
-                                      objectFit: "cover",
-                                    }}
-                                    onError={(e) => {
-                                      e.target.src = "/fallback-image.jpg"
-                                    }}
-                                  />
-                                  {selectedImages.includes(imageUrl) && (
-                                    <div
-                                      style={{
-                                        position: "absolute",
-                                        top: 4,
-                                        right: 4,
-                                        width: 20,
-                                        height: 20,
-                                        borderRadius: "50%",
-                                        background: "#1976d2",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        color: "white",
-                                        fontSize: 12,
-                                      }}
-                                    >
-                                      ✓
-                                    </div>
-                                  )}
+                                  {file.name}
+                                  <br />
+                                  <small>(새로 추가됨)</small>
                                 </div>
-                              ))}
+                                {selectedImages.includes(
+                                  `new-${file.name}-${idx}`
+                                ) && (
+                                  <div
+                                    style={{
+                                      position: "absolute",
+                                      top: 4,
+                                      right: 4,
+                                      width: 20,
+                                      height: 20,
+                                      borderRadius: "50%",
+                                      background: "#1976d2",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      color: "white",
+                                      fontSize: 12,
+                                    }}
+                                  >
+                                    ✓
+                                  </div>
+                                )}
+                              </div>
+                            ))}
                           </div>
                           {newBuildingImages.length > 0 && (
                             <div

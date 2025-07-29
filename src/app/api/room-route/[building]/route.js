@@ -96,7 +96,27 @@ export async function DELETE(request, { params }) {
         )
       }
 
-      const result = await response.json()
+      // 성공 응답 처리 - 먼저 텍스트로 읽어서 확인
+      let result
+      try {
+        const responseText = await response.text()
+        console.log("외부 API 응답 텍스트:", responseText)
+
+        // 텍스트가 JSON인지 확인
+        if (
+          responseText.trim().startsWith("{") ||
+          responseText.trim().startsWith("[")
+        ) {
+          result = JSON.parse(responseText)
+        } else {
+          // JSON이 아닌 텍스트인 경우
+          result = { message: responseText }
+        }
+      } catch (parseError) {
+        console.log("응답 파싱 실패, 텍스트로 처리:", parseError)
+        result = { message: "이미지 삭제 완료" }
+      }
+
       console.log("외부 API 성공 응답:", result)
       return Response.json({
         success: true,

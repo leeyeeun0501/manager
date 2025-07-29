@@ -394,7 +394,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       const marker = new naver.maps.Marker({
         position: new naver.maps.LatLng(x, y),
         map,
-        draggable: !edgeConnectMode.active,
+        draggable: false, // 드래그 비활성화로 클릭 이벤트 우선 처리
         opacity: 0.3,
         title: node_name || id,
         zIndex: 100,
@@ -403,7 +403,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       })
       markersRef.current.push(marker)
 
-      naver.maps.Event.addListener(marker, "click", function () {
+      naver.maps.Event.addListener(marker, "click", function (e) {
+        e.domEvent?.preventDefault?.()
         if (edgeConnectMode.active) {
           handleEdgeConnect(edgeConnectMode.fromNode, {
             id,
@@ -424,7 +425,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         }
       })
 
-      naver.maps.Event.addListener(circle, "click", function () {
+      naver.maps.Event.addListener(circle, "click", function (e) {
+        e.domEvent?.preventDefault?.()
         if (edgeConnectMode.active) {
           handleEdgeConnect(edgeConnectMode.fromNode, {
             id,

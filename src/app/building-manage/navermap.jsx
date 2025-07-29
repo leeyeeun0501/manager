@@ -74,20 +74,24 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     if (!window.confirm("선택한 이미지를 삭제하시겠습니까?")) return
 
     try {
-      // 선택된 이미지들을 순차적으로 삭제
-      for (const imageUrl of selectedImages) {
-        const res = await fetch(
-          `/api/room-route/${encodeURIComponent(
-            deletePopup.node_name
-          )}?image_url=${encodeURIComponent(imageUrl)}`,
-          { method: "DELETE" }
-        )
-        const data = await res.json()
-
-        if (!data.success) {
-          alert(data.error || "이미지 삭제 실패")
-          return
+      // 선택된 이미지들을 배열로 한 번에 삭제
+      const res = await fetch(
+        `/api/room-route/${encodeURIComponent(deletePopup.node_name)}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            image_urls: selectedImages, // 배열로 전송
+          }),
         }
+      )
+      const data = await res.json()
+
+      if (!data.success) {
+        alert(data.error || "이미지 삭제 실패")
+        return
       }
 
       // 현재 이미지 배열에서 선택된 이미지들 제거
@@ -98,6 +102,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       setBuildingImageIndex(0)
       alert("선택한 이미지가 삭제되었습니다.")
     } catch (error) {
+      console.error("이미지 삭제 오류:", error)
       alert("서버 오류")
     }
   }
@@ -141,6 +146,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
             }
 
             console.log("새로운 이미지 배열:", newImageArr)
+            console.log("이미지 배열 길이:", newImageArr.length)
             setCurrentImageArr(newImageArr)
             if (newImageArr.length > 0) {
               setExistingImageUrl(newImageArr[0])
@@ -683,7 +689,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     }
 
     const data = await res.json()
-    if (data.success) {
+    if (data.success && !data.error) {
       setAddPopup({ open: false, x: null, y: null })
       await fetchNodes()
       await fetchEdges()
@@ -1631,57 +1637,62 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                               marginBottom: 12,
                             }}
                           >
-                            {currentImageArr.map((imageUrl, idx) => (
-                              <div
-                                key={imageUrl}
-                                onClick={() => toggleImageSelection(imageUrl)}
-                                style={{
-                                  position: "relative",
-                                  aspectRatio: "1",
-                                  cursor: "pointer",
-                                  border: `2px solid ${
-                                    selectedImages.includes(imageUrl)
-                                      ? "#1976d2"
-                                      : "transparent"
-                                  }`,
-                                  borderRadius: 8,
-                                  overflow: "hidden",
-                                }}
-                              >
-                                <img
-                                  src={imageUrl}
-                                  alt={`건물 사진 ${idx + 1}`}
+                            {currentImageArr
+                              // .filter(
+                              //   (url, index, self) =>
+                              //     self.indexOf(url) === index
+                              // ) // 중복 제거 - 일시적으로 제거
+                              .map((imageUrl, idx) => (
+                                <div
+                                  key={`${imageUrl}-${idx}`} // 고유한 key 생성
+                                  onClick={() => toggleImageSelection(imageUrl)}
                                   style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
+                                    position: "relative",
+                                    aspectRatio: "1",
+                                    cursor: "pointer",
+                                    border: `2px solid ${
+                                      selectedImages.includes(imageUrl)
+                                        ? "#1976d2"
+                                        : "transparent"
+                                    }`,
+                                    borderRadius: 8,
+                                    overflow: "hidden",
                                   }}
-                                  onError={(e) => {
-                                    e.target.src = "/fallback-image.jpg"
-                                  }}
-                                />
-                                {selectedImages.includes(imageUrl) && (
-                                  <div
+                                >
+                                  <img
+                                    src={imageUrl}
+                                    alt={`건물 사진 ${idx + 1}`}
                                     style={{
-                                      position: "absolute",
-                                      top: 4,
-                                      right: 4,
-                                      width: 20,
-                                      height: 20,
-                                      borderRadius: "50%",
-                                      background: "#1976d2",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                      color: "white",
-                                      fontSize: 12,
+                                      width: "100%",
+                                      height: "100%",
+                                      objectFit: "cover",
                                     }}
-                                  >
-                                    ✓
-                                  </div>
-                                )}
-                              </div>
-                            ))}
+                                    onError={(e) => {
+                                      e.target.src = "/fallback-image.jpg"
+                                    }}
+                                  />
+                                  {selectedImages.includes(imageUrl) && (
+                                    <div
+                                      style={{
+                                        position: "absolute",
+                                        top: 4,
+                                        right: 4,
+                                        width: 20,
+                                        height: 20,
+                                        borderRadius: "50%",
+                                        background: "#1976d2",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        color: "white",
+                                        fontSize: 12,
+                                      }}
+                                    >
+                                      ✓
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
                           </div>
                           {newBuildingImages.length > 0 && (
                             <div

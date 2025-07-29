@@ -1,0 +1,35 @@
+/* inquiry-manage.css */
+
+.inquiry-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  table-layout: fixed;
+}
+.inquiry-table th,
+.inquiry-table td {
+  border: 1px solid #eee;
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 0.97rem;
+  max-width: 160px;
+  min-width: 80px;
+  word-break: break-all;
+}
+.inquiry-table th {
+  background: #eaf2fd;
+  font-weight: 800;
+  color: #2574f5;
+  font-size: 1.05rem;
+}
+.inquiry-table td {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.inquiry-table tr:hover {
+  background: #eaf2fd;
+}

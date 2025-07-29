@@ -1363,7 +1363,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                                 marginBottom: 8,
                               }}
                             >
-                              선택된 파일 ({newBuildingImages.length}개):
+                              선택된 파일
                             </div>
                             <div
                               style={{
@@ -1732,94 +1732,50 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                               </div>
                             ))}
 
-                            {/* 새로 추가한 이미지들 */}
-                            {newBuildingImages.map((file, idx) => (
-                              <div
-                                key={`new-${file.name}-${idx}`}
-                                onClick={() =>
-                                  toggleImageSelection(
-                                    `new-${file.name}-${idx}`
-                                  )
-                                }
-                                style={{
-                                  position: "relative",
-                                  aspectRatio: "1",
-                                  cursor: "pointer",
-                                  border: `2px solid ${
-                                    selectedImages.includes(
-                                      `new-${file.name}-${idx}`
-                                    )
-                                      ? "#1976d2"
-                                      : "transparent"
-                                  }`,
-                                  borderRadius: 8,
-                                  overflow: "hidden",
-                                  background: "#f5f5f5",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                }}
-                              >
+                            {/* 이미지가 없을 때 표시 */}
+                            {currentImageArr.length === 0 &&
+                              newBuildingImages.length === 0 && (
                                 <div
                                   style={{
+                                    gridColumn: "1 / -1",
                                     textAlign: "center",
-                                    fontSize: 12,
-                                    color: "#666",
-                                    padding: 8,
+                                    color: "#999",
+                                    fontSize: 13,
+                                    padding: "8px 0",
+                                    fontStyle: "italic",
                                   }}
                                 >
-                                  {file.name}
-                                  <br />
-                                  <small>(새로 추가됨)</small>
+                                  사진 없음
                                 </div>
-                                {selectedImages.includes(
-                                  `new-${file.name}-${idx}`
-                                ) && (
-                                  <div
-                                    style={{
-                                      position: "absolute",
-                                      top: 4,
-                                      right: 4,
-                                      width: 20,
-                                      height: 20,
-                                      borderRadius: "50%",
-                                      background: "#1976d2",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                      color: "white",
-                                      fontSize: 12,
-                                    }}
-                                  >
-                                    ✓
-                                  </div>
-                                )}
-                              </div>
-                            ))}
+                              )}
                           </div>
                           {newBuildingImages.length > 0 && (
                             <div
                               style={{
                                 marginBottom: 12,
                                 padding: 8,
-                                backgroundColor: "#f5f5f5",
+                                backgroundColor: "transparent",
                                 borderRadius: 4,
                               }}
                             >
                               <div
                                 style={{
-                                  fontSize: 13,
-                                  color: "#666",
-                                  marginBottom: 4,
+                                  fontSize: 14,
+                                  fontWeight: 600,
+                                  color: "#333",
+                                  marginBottom: 8,
                                 }}
                               >
-                                추가 이미지
+                                선택된 파일
                               </div>
                               <div
                                 style={{
-                                  display: "flex",
-                                  flexWrap: "wrap",
-                                  gap: 8,
+                                  maxHeight: 120,
+                                  overflowY: "auto",
+                                  border: "1px solid #e0e0e0",
+                                  borderRadius: "8px",
+                                  padding: "8px",
+                                  background: "#fff",
                                 }}
                               >
                                 {newBuildingImages.map((file, index) => (
@@ -1827,20 +1783,23 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                                     key={index}
                                     style={{
                                       display: "flex",
+                                      justifyContent: "space-between",
                                       alignItems: "center",
-                                      gap: 4,
-                                      backgroundColor: "#fff",
-                                      padding: "4px 8px",
-                                      borderRadius: 4,
-                                      fontSize: 12,
+                                      padding: "6px 8px",
+                                      marginBottom: "4px",
+                                      background: "#f8f9fa",
+                                      borderRadius: "4px",
+                                      fontSize: 13,
                                     }}
                                   >
                                     <span
                                       style={{
-                                        maxWidth: 120,
+                                        color: "#333",
                                         overflow: "hidden",
                                         textOverflow: "ellipsis",
                                         whiteSpace: "nowrap",
+                                        flex: 1,
+                                        marginRight: 8,
                                       }}
                                     >
                                       {file.name}
@@ -1852,15 +1811,20 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                                         )
                                       }}
                                       style={{
-                                        background: "none",
+                                        background: "#dc3545",
+                                        color: "white",
                                         border: "none",
-                                        padding: 0,
+                                        borderRadius: "4px",
+                                        padding: "2px 6px",
+                                        fontSize: 12,
                                         cursor: "pointer",
-                                        color: "#999",
-                                        fontSize: 14,
+                                        minWidth: "20px",
+                                        height: "20px",
                                         display: "flex",
                                         alignItems: "center",
+                                        justifyContent: "center",
                                       }}
+                                      title="삭제"
                                     >
                                       ×
                                     </button>

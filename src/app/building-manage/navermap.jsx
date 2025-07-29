@@ -51,6 +51,56 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   // 추가
   const [buildingImageIndex, setBuildingImageIndex] = useState(0)
   const [currentImageArr, setCurrentImageArr] = useState([])
+  const [selectedImages, setSelectedImages] = useState([])
+
+  // 이미지 선택 토글 함수
+  const toggleImageSelection = (imageUrl) => {
+    setSelectedImages((prev) => {
+      if (prev.includes(imageUrl)) {
+        return prev.filter((url) => url !== imageUrl)
+      } else {
+        return [...prev, imageUrl]
+      }
+    })
+  }
+
+  // 선택된 이미지 삭제 함수
+  const handleDeleteSelectedImages = async () => {
+    if (selectedImages.length === 0) {
+      alert("삭제할 이미지를 선택해주세요.")
+      return
+    }
+
+    if (!window.confirm("선택한 이미지를 삭제하시겠습니까?")) return
+
+    try {
+      // 선택된 이미지들을 순차적으로 삭제
+      for (const imageUrl of selectedImages) {
+        const res = await fetch(
+          `/api/room-route/${encodeURIComponent(
+            deletePopup.node_name
+          )}?image_url=${encodeURIComponent(imageUrl)}`,
+          { method: "DELETE" }
+        )
+        const data = await res.json()
+
+        if (!data.success) {
+          alert(data.error || "이미지 삭제 실패")
+          return
+        }
+      }
+
+      // 현재 이미지 배열에서 선택된 이미지들 제거
+      setCurrentImageArr((prev) =>
+        prev.filter((url) => !selectedImages.includes(url))
+      )
+      setSelectedImages([])
+      setBuildingImageIndex(0)
+      alert("선택한 이미지가 삭제되었습니다.")
+    } catch (error) {
+      alert("서버 오류")
+    }
+  }
 
   useEffect(() => {
     setBuildingImageIndex(0)
@@ -483,54 +533,72 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     try {
       const formData = new FormData()
       formData.append("desc", buildingDesc)
+
+      // 새로 추가된 이미지가 있는 경우에만 이미지 추가
       if (newBuildingImages.length > 0) {
-        newBuildingImages.forEach((image, index) => {
-          formData.append(`images[${index}]`, image)
+        newBuildingImages.forEach((image) => {
+          formData.append("images", image)
         })
       }
+
       const res = await fetch(
         `/api/building-route?building=${encodeURIComponent(
           deletePopup.node_name
         )}`,
-        { method: "PUT", body: formData }
+        {
+          method: "PUT",
+          body: formData,
+        }
       )
       const data = await res.json()
       if (data && !data.error) {
         alert("정보 수정 완료!")
-        // 최신 정보 다시 반영
-        const res2 = await fetch(
-          `/api/building-route?building=${encodeURIComponent(
-            deletePopup.node_name
-          )}`
-        )
+        // 최신 정보 다시 불러오기
+        const res2 = await fetch("/api/building-route")
         const json2 = await res2.json()
-        if (json2.all && json2.all.length > 0) {
-          setBuildingDesc(json2.all[0].Desc || "")
-          // 이미지 URL 설정 로직 개선
-          let images = []
-          const building = json2.all[0]
-          if (Array.isArray(building.Image) && building.Image.length > 0) {
-            images = building.Image
-          } else if (
-            Array.isArray(building.image) &&
-            building.image.length > 0
-          ) {
-            images = building.image
-          } else if (building.image) {
-            images = [building.image]
-          } else if (building.image_url) {
-            images = [building.image_url]
+        if (json2.all && Array.isArray(json2.all)) {
+          const found = json2.all.find(
+            (b) =>
+              b.Building_Name === deletePopup.node_name ||
+              b.name === deletePopup.node_name
+          )
+          if (found) {
+            setBuildingDesc(found.Description || found.Desc || found.desc || "")
+
+            // 이미지 배열 업데이트
+            let newImageArr = []
+            if (Array.isArray(found.Image) && found.Image.length > 0) {
+              newImageArr = [...found.Image]
+            } else if (Array.isArray(found.image) && found.image.length > 0) {
+              newImageArr = [...found.image]
+            } else if (found.image) {
+              newImageArr = [found.image]
+            } else if (found.image_url) {
+              newImageArr = [found.image_url]
+            }
+            setCurrentImageArr(newImageArr)
+            if (newImageArr.length > 0) {
+              setExistingImageUrl(newImageArr[0])
+            }
           }
-          setExistingImageUrl(images[0] || "")
         }
+        // 이미지 선택 초기화
         setNewBuildingImages([])
+        setBuildingImageIndex(0)
       } else {
         alert(data.error || "정보 수정 실패")
       }
-    } catch {
+    } catch (error) {
       alert("서버 오류")
     }
     setBuildingDescLoading(false)
+  }
+
+  // 이미지 파일 선택 핸들러
+  const handleImageSelect = (e) => {
+    const files = Array.from(e.target.files)
+    setNewBuildingImages((prev) => [...prev, ...files])
+    e.target.value = "" // 입력 필드 초기화
   }
 
   // nodes 데이터 fetch
@@ -741,6 +809,13 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     try {
       const formData = new FormData()
       formData.append("desc", buildingDesc)
+
+      if (newBuildingImages.length > 0) {
+        newBuildingImages.forEach((image) => {
+          formData.append("images", image)
+        })
+      }
+
       const res = await fetch(
         `/api/building-route?building=${encodeURIComponent(
           deletePopup.node_name
@@ -749,11 +824,40 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       )
       const data = await res.json()
       if (data && !data.error) {
-        alert("설명 수정 완료!")
+        alert("정보 수정 완료!")
+        const res2 = await fetch("/api/building-route")
+        const json2 = await res2.json()
+        if (json2.all && Array.isArray(json2.all)) {
+          const found = json2.all.find(
+            (b) =>
+              b.Building_Name === deletePopup.node_name ||
+              b.name === deletePopup.node_name
+          )
+          if (found) {
+            setBuildingDesc(found.Description || found.Desc || found.desc || "")
+
+            let newImageArr = []
+            if (Array.isArray(found.Image) && found.Image.length > 0) {
+              newImageArr = [...found.Image]
+            } else if (Array.isArray(found.image) && found.image.length > 0) {
+              newImageArr = [...found.image]
+            } else if (found.image) {
+              newImageArr = [found.image]
+            } else if (found.image_url) {
+              newImageArr = [found.image_url]
+            }
+            setCurrentImageArr(newImageArr)
+            if (newImageArr.length > 0) {
+              setExistingImageUrl(newImageArr[0])
+            }
+          }
+        }
+        setNewBuildingImages([])
+        setBuildingImageIndex(0)
       } else {
-        alert(data.error || "설명 수정 실패")
+        alert(data.error || "정보 수정 실패")
       }
-    } catch {
+    } catch (error) {
       alert("서버 오류")
     }
     setBuildingDescLoading(false)
@@ -1416,8 +1520,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                           b.name === deletePopup.node_name
                       )
 
-                      console.log("현재 선택된 건물 데이터:", found)
-
                       // 이미지 배열 생성 로직 개선
                       let imageArr = []
                       if (found) {
@@ -1445,139 +1547,211 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                         imageArr = [existingImageUrl]
                       }
 
-                      console.log("최종 이미지 배열:", imageArr)
-
                       return (
                         <>
-                          {/* 기존 이미지 표시 */}
-                          {currentImageArr.length > 0 && (
-                            <div style={{ marginBottom: 12 }}>
-                              <div
+                          {/* 이미지 갤러리 */}
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              marginBottom: 8,
+                            }}
+                          >
+                            <div style={{ fontSize: 15, color: "#555" }}>
+                              <strong>현재 건물 사진</strong>
+                            </div>
+                            <div style={{ display: "flex", gap: 8 }}>
+                              {selectedImages.length > 0 && (
+                                <button
+                                  onClick={handleDeleteSelectedImages}
+                                  style={{
+                                    background: "none",
+                                    border: "none",
+                                    padding: 0,
+                                    cursor: "pointer",
+                                    color: "#ff4d4f",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    width: 24,
+                                    height: 24,
+                                  }}
+                                  title="선택한 이미지 삭제"
+                                >
+                                  <svg
+                                    viewBox="64 64 896 896"
+                                    width="20"
+                                    height="20"
+                                    fill="currentColor"
+                                  >
+                                    <path d="M360 184h-8c4.4 0 8-3.6 8-8v8h304v-8c0 4.4 3.6 8 8 8h-8v72h72v-80c0-35.3-28.7-64-64-64H352c-35.3 0-64 28.7-64 64v80h72v-72zm504 72H160c-17.7 0-32 14.3-32 32v32c0 4.4 3.6 8 8 8h60.4l24.7 523c1.6 34.1 29.8 61 63.9 61h454c34.2 0 62.3-26.8 63.9-61l24.7-523H888c4.4 0 8-3.6 8-8v-32c0-17.7-14.3-32-32-32zM731.3 840H292.7l-24.2-512h487l-24.2 512z" />
+                                  </svg>
+                                </button>
+                              )}
+                              <label
                                 style={{
-                                  fontWeight: 600,
-                                  marginBottom: 6,
-                                  fontSize: 15,
+                                  background: "none",
+                                  border: "none",
+                                  padding: 0,
+                                  cursor: "pointer",
+                                  color: "#1976d2",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  width: 24,
+                                  height: 24,
+                                }}
+                                title="이미지 추가"
+                              >
+                                <svg
+                                  viewBox="64 64 896 896"
+                                  width="20"
+                                  height="20"
+                                  fill="currentColor"
+                                >
+                                  <path d="M482 152h60q8 0 8 8v704q0 8-8 8h-60q-8 0-8-8V160q0-8 8-8z" />
+                                  <path d="M176 474h672q8 0 8 8v60q0 8-8 8H176q-8 0-8-8v-60q0-8 8-8z" />
+                                </svg>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  multiple
+                                  onChange={handleImageSelect}
+                                  style={{ display: "none" }}
+                                />
+                              </label>
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns: "repeat(3, 1fr)",
+                              gap: 8,
+                              marginBottom: 12,
+                            }}
+                          >
+                            {currentImageArr.map((imageUrl, idx) => (
+                              <div
+                                key={imageUrl}
+                                onClick={() => toggleImageSelection(imageUrl)}
+                                style={{
+                                  position: "relative",
+                                  aspectRatio: "1",
+                                  cursor: "pointer",
+                                  border: `2px solid ${
+                                    selectedImages.includes(imageUrl)
+                                      ? "#1976d2"
+                                      : "transparent"
+                                  }`,
+                                  borderRadius: 8,
+                                  overflow: "hidden",
                                 }}
                               >
-                                현재 건물 사진 ({currentImageArr.length}장)
+                                <img
+                                  src={imageUrl}
+                                  alt={`건물 사진 ${idx + 1}`}
+                                  style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                  }}
+                                  onError={(e) => {
+                                    e.target.src = "/fallback-image.jpg"
+                                  }}
+                                />
+                                {selectedImages.includes(imageUrl) && (
+                                  <div
+                                    style={{
+                                      position: "absolute",
+                                      top: 4,
+                                      right: 4,
+                                      width: 20,
+                                      height: 20,
+                                      borderRadius: "50%",
+                                      background: "#1976d2",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      color: "white",
+                                      fontSize: 12,
+                                    }}
+                                  >
+                                    ✓
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {newBuildingImages.length > 0 && (
+                            <div
+                              style={{
+                                marginBottom: 12,
+                                padding: 8,
+                                backgroundColor: "#f5f5f5",
+                                borderRadius: 4,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  fontSize: 13,
+                                  color: "#666",
+                                  marginBottom: 4,
+                                }}
+                              >
+                                추가 이미지
                               </div>
                               <div
                                 style={{
                                   display: "flex",
-                                  alignItems: "center",
+                                  flexWrap: "wrap",
                                   gap: 8,
                                 }}
                               >
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    console.log(
-                                      "이전 이미지로 이동, 현재 인덱스:",
-                                      buildingImageIndex
-                                    )
-                                    setBuildingImageIndex((prev) =>
-                                      Math.max(0, prev - 1)
-                                    )
-                                  }}
-                                  style={{
-                                    padding: "4px 10px",
-                                    borderRadius: 6,
-                                    border: "1px solid #bbb",
-                                    background: "#fafafa",
-                                    fontSize: 18,
-                                    cursor:
-                                      buildingImageIndex === 0
-                                        ? "not-allowed"
-                                        : "pointer",
-                                    color:
-                                      buildingImageIndex === 0
-                                        ? "#bbb"
-                                        : "#333",
-                                  }}
-                                  disabled={buildingImageIndex === 0}
-                                >
-                                  ◀
-                                </button>
-                                <div
-                                  style={{
-                                    position: "relative",
-                                    width: 200,
-                                    height: 180,
-                                  }}
-                                >
-                                  {currentImageArr[buildingImageIndex] && (
-                                    <img
-                                      key={currentImageArr[buildingImageIndex]}
-                                      src={currentImageArr[buildingImageIndex]}
-                                      alt={`건물 사진 ${
-                                        buildingImageIndex + 1
-                                      }`}
+                                {newBuildingImages.map((file, index) => (
+                                  <div
+                                    key={index}
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 4,
+                                      backgroundColor: "#fff",
+                                      padding: "4px 8px",
+                                      borderRadius: 4,
+                                      fontSize: 12,
+                                    }}
+                                  >
+                                    <span
                                       style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        borderRadius: 8,
-                                        border: "1px solid #ddd",
-                                        objectFit: "contain",
+                                        maxWidth: 120,
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
                                       }}
-                                      onError={(e) => {
-                                        console.log(
-                                          "이미지 로드 실패:",
-                                          e.target.src
+                                    >
+                                      {file.name}
+                                    </span>
+                                    <button
+                                      onClick={() => {
+                                        setNewBuildingImages((prev) =>
+                                          prev.filter((_, i) => i !== index)
                                         )
-                                        e.target.src = "/fallback-image.jpg"
                                       }}
-                                    />
-                                  )}
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    console.log(
-                                      "다음 이미지로 이동, 현재 인덱스:",
-                                      buildingImageIndex
-                                    )
-                                    setBuildingImageIndex((prev) =>
-                                      Math.min(
-                                        currentImageArr.length - 1,
-                                        prev + 1
-                                      )
-                                    )
-                                  }}
-                                  style={{
-                                    padding: "4px 10px",
-                                    borderRadius: 6,
-                                    border: "1px solid #bbb",
-                                    background: "#fafafa",
-                                    fontSize: 18,
-                                    cursor:
-                                      buildingImageIndex ===
-                                      currentImageArr.length - 1
-                                        ? "not-allowed"
-                                        : "pointer",
-                                    color:
-                                      buildingImageIndex ===
-                                      currentImageArr.length - 1
-                                        ? "#bbb"
-                                        : "#333",
-                                  }}
-                                  disabled={
-                                    buildingImageIndex ===
-                                    currentImageArr.length - 1
-                                  }
-                                >
-                                  ▶
-                                </button>
-                              </div>
-                              <div
-                                style={{
-                                  textAlign: "center",
-                                  fontSize: 13,
-                                  color: "#555",
-                                  marginTop: 4,
-                                }}
-                              >
-                                {buildingImageIndex + 1} /{" "}
-                                {currentImageArr.length}
+                                      style={{
+                                        background: "none",
+                                        border: "none",
+                                        padding: 0,
+                                        cursor: "pointer",
+                                        color: "#999",
+                                        fontSize: 14,
+                                        display: "flex",
+                                        alignItems: "center",
+                                      }}
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           )}
@@ -1605,142 +1779,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                             placeholder="설명"
                           />
 
-                          {/* 새 이미지 업로드 */}
-                          <div style={{ marginBottom: 16 }}>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                document.getElementById("file-input").click()
-                              }
-                              style={{
-                                background: "#1976d2",
-                                color: "white",
-                                border: "none",
-                                padding: "12px 20px",
-                                borderRadius: "8px",
-                                fontSize: 14,
-                                fontWeight: 600,
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "8px",
-                                marginBottom: 8,
-                              }}
-                            >
-                              <span style={{ fontSize: 16 }}>+</span> 파일 추가
-                            </button>
-
-                            <input
-                              id="file-input"
-                              type="file"
-                              accept="image/*"
-                              multiple
-                              onChange={(e) => {
-                                const newFiles = Array.from(e.target.files)
-                                setNewBuildingImages((prev) => [
-                                  ...prev,
-                                  ...newFiles,
-                                ])
-                                e.target.value = "" // 입력 필드 초기화
-                              }}
-                              style={{ display: "none" }}
-                            />
-
-                            {newBuildingImages.length > 0 && (
-                              <div style={{ marginTop: 12 }}>
-                                <div
-                                  style={{
-                                    fontSize: 14,
-                                    fontWeight: 600,
-                                    color: "#333",
-                                    marginBottom: 8,
-                                  }}
-                                >
-                                  선택된 파일 ({newBuildingImages.length}개):
-                                </div>
-                                <div
-                                  style={{
-                                    maxHeight: 120,
-                                    overflowY: "auto",
-                                    border: "1px solid #e0e0e0",
-                                    borderRadius: "8px",
-                                    padding: "8px",
-                                    background: "#fff",
-                                  }}
-                                >
-                                  {newBuildingImages.map((file, index) => (
-                                    <div
-                                      key={index}
-                                      style={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
-                                        padding: "6px 8px",
-                                        marginBottom: "4px",
-                                        background: "#f8f9fa",
-                                        borderRadius: "4px",
-                                        fontSize: 13,
-                                      }}
-                                    >
-                                      <span
-                                        style={{
-                                          color: "#333",
-                                          overflow: "hidden",
-                                          textOverflow: "ellipsis",
-                                          whiteSpace: "nowrap",
-                                          flex: 1,
-                                          marginRight: 8,
-                                        }}
-                                      >
-                                        {file.name}
-                                      </span>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setNewBuildingImages((prev) =>
-                                            prev.filter((_, i) => i !== index)
-                                          )
-                                        }}
-                                        style={{
-                                          background: "#dc3545",
-                                          color: "white",
-                                          border: "none",
-                                          borderRadius: "4px",
-                                          padding: "2px 6px",
-                                          fontSize: 12,
-                                          cursor: "pointer",
-                                          minWidth: "20px",
-                                          height: "20px",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "center",
-                                        }}
-                                        title="삭제"
-                                      >
-                                        ×
-                                      </button>
-                                    </div>
-                                  ))}
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => setNewBuildingImages([])}
-                                  style={{
-                                    background: "#6c757d",
-                                    color: "white",
-                                    border: "none",
-                                    padding: "6px 12px",
-                                    borderRadius: "4px",
-                                    fontSize: 12,
-                                    cursor: "pointer",
-                                    marginTop: 8,
-                                  }}
-                                >
-                                  모든 파일 제거
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                          {/* 새 이미지 업로드 부분 제거 */}
                         </>
                       )
                     })()}

@@ -74,6 +74,14 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     if (!window.confirm("선택한 이미지를 삭제하시겠습니까?")) return
 
     try {
+      console.log("삭제할 이미지들:", selectedImages)
+      console.log("건물 이름:", deletePopup.node_name)
+
+      const requestBody = {
+        image_urls: selectedImages,
+      }
+      console.log("요청 본문:", requestBody)
+
       // 선택된 이미지들을 배열로 한 번에 삭제
       const res = await fetch(
         `/api/room-route/${encodeURIComponent(deletePopup.node_name)}`,
@@ -82,12 +90,13 @@ function NaverMap({ isLoggedIn, menuOpen }) {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            image_urls: selectedImages, // 배열로 전송
-          }),
+          body: JSON.stringify(requestBody),
         }
       )
+
+      console.log("삭제 요청 응답:", res.status)
       const data = await res.json()
+      console.log("삭제 응답 데이터:", data)
 
       if (!data.success) {
         alert(data.error || "이미지 삭제 실패")

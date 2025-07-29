@@ -549,11 +549,19 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       const formData = new FormData()
       formData.append("desc", buildingDesc)
 
-      // 새로 추가된 이미지가 있는 경우에만 이미지 추가
+      console.log("새로 추가된 이미지 개수:", newBuildingImages.length)
+
+      // 새로 추가된 이미지가 있는 경우에만 이미지 추가 (건물 추가와 동일한 방식)
       if (newBuildingImages.length > 0) {
-        newBuildingImages.forEach((image) => {
-          formData.append("images", image)
+        newBuildingImages.forEach((image, index) => {
+          console.log(`이미지 ${index} 추가:`, image.name)
+          formData.append(`images[${index}]`, image) // 배열 인덱스로 전송
         })
+      }
+
+      console.log("전송할 FormData 내용:")
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, typeof value === "object" ? value.name : value)
       }
 
       const res = await fetch(
@@ -565,7 +573,11 @@ function NaverMap({ isLoggedIn, menuOpen }) {
           body: formData,
         }
       )
+
+      console.log("서버 응답 상태:", res.status)
       const data = await res.json()
+      console.log("서버 응답 데이터:", data)
+
       if (data && !data.error) {
         alert("정보 수정 완료!")
         // 최신 정보 다시 불러오기
@@ -604,6 +616,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         alert(data.error || "정보 수정 실패")
       }
     } catch (error) {
+      console.error("설명 수정 오류:", error)
       alert("서버 오류")
     }
     setBuildingDescLoading(false)
@@ -825,21 +838,38 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       const formData = new FormData()
       formData.append("desc", buildingDesc)
 
+      console.log("새로 추가된 이미지 개수:", newBuildingImages.length)
+
+      // 새로 추가된 이미지가 있는 경우에만 이미지 추가 (건물 추가와 동일한 방식)
       if (newBuildingImages.length > 0) {
-        newBuildingImages.forEach((image) => {
-          formData.append("images", image)
+        newBuildingImages.forEach((image, index) => {
+          console.log(`이미지 ${index} 추가:`, image.name)
+          formData.append(`images[${index}]`, image) // 배열 인덱스로 전송
         })
+      }
+
+      console.log("전송할 FormData 내용:")
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, typeof value === "object" ? value.name : value)
       }
 
       const res = await fetch(
         `/api/building-route?building=${encodeURIComponent(
           deletePopup.node_name
         )}`,
-        { method: "PUT", body: formData }
+        {
+          method: "PUT",
+          body: formData,
+        }
       )
+
+      console.log("서버 응답 상태:", res.status)
       const data = await res.json()
+      console.log("서버 응답 데이터:", data)
+
       if (data && !data.error) {
         alert("정보 수정 완료!")
+        // 최신 정보 다시 불러오기
         const res2 = await fetch("/api/building-route")
         const json2 = await res2.json()
         if (json2.all && Array.isArray(json2.all)) {
@@ -851,6 +881,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
           if (found) {
             setBuildingDesc(found.Description || found.Desc || found.desc || "")
 
+            // 이미지 배열 업데이트
             let newImageArr = []
             if (Array.isArray(found.Image) && found.Image.length > 0) {
               newImageArr = [...found.Image]
@@ -867,12 +898,14 @@ function NaverMap({ isLoggedIn, menuOpen }) {
             }
           }
         }
+        // 이미지 선택 초기화
         setNewBuildingImages([])
         setBuildingImageIndex(0)
       } else {
         alert(data.error || "정보 수정 실패")
       }
     } catch (error) {
+      console.error("설명 수정 오류:", error)
       alert("서버 오류")
     }
     setBuildingDescLoading(false)

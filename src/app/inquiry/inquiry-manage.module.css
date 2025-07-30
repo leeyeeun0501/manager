@@ -1,20 +1,20 @@
-/* inquiry-manage.css */
+/* inquiry-manage.module.css */
 
-.inquiry-root {
+.inquiryRoot {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   background: #f5f6fa;
 }
 
-.inquiry-content {
+.inquiryContent {
   max-width: 100%;
   margin: 0 auto;
   padding: 0px 0 0 0;
   overflow-x: hidden;
 }
 
-.inquiry-header {
+.inquiryHeader {
   width: 100vw;
   height: 72px;
   background: #f4f7fc;
@@ -30,7 +30,7 @@
   margin-bottom: 40px;
 }
 
-.inquiry-filter-section {
+.inquiryFilterSection {
   display: flex;
   align-items: center;
   margin-bottom: 18px;
@@ -43,13 +43,13 @@
   justify-content: flex-start;
 }
 
-.inquiry-filter-label {
+.inquiryFilterLabel {
   font-weight: 600;
   font-size: 16px;
   color: #222;
 }
 
-.inquiry-filter-select {
+.inquiryFilterSelect {
   height: 46px;
   min-width: 150px;
   font-size: 1.07rem;
@@ -62,19 +62,19 @@
   transition: border 0.15s;
 }
 
-.inquiry-filter-select:focus {
+.inquiryFilterSelect:focus {
   border: 1.5px solid #2574f5;
 }
 
-.inquiry-loading {
+.inquiryLoading {
   text-align: center;
   padding: 32px;
   color: #888;
   font-size: 16px;
 }
 
-.inquiry-table {
-  width: 100%;
+.inquiryTable {
+  width: auto;
   table-layout: auto;
   border-collapse: collapse;
   background: #fff;
@@ -83,32 +83,47 @@
   overflow: hidden;
 }
 
-.inquiry-table th,
-.inquiry-table td {
+.inquiryTable th,
+.inquiryTable td {
   border: 1px solid #eee;
-  padding: 8px 100px;
+  padding: 8px 70px;
   text-align: center;
   font-size: 0.95rem;
   word-break: break-all;
-  max-width: 300px;
-  min-width: 120px;
+  max-width: 150px;
+  min-width: 40px;
 }
 
-.inquiry-table th {
+.inquiryTable th {
   background: #eaf2fd;
   font-weight: 800;
   color: #2574f5;
   font-size: 1.05rem;
 }
 
-.center-table {
-  width: 100%;
+.centerTable {
+  width: auto;
   margin-left: auto;
   margin-right: auto;
   margin-top: 40px;
-  max-width: 1400px;
 }
 
-.inquiry-table tr:hover {
+.inquiryTable tr:hover {
   background: #f1f7ff;
+}
+
+.replyBtn {
+  padding: 6px 16px;
+  background: #2574f5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.replyBtn:hover {
+  background: #1e5bb8;
 }

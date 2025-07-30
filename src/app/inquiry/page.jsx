@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
 import Image from "next/image"
 import "../globals.css"
-import "./inquiry-manage.css"
+import styles from "./inquiry-manage.module.css"
 
 const CATEGORY_OPTIONS = [
   { value: "all", label: "문의 유형 전체" },
@@ -43,16 +43,16 @@ export default function InquiryPage() {
       : inquiries.filter((q) => (q.category || "general") === category)
 
   return (
-    <div className="inquiry-root">
-      <span className="inquiry-header">문의 관리 페이지</span>
+    <div className={styles.inquiryRoot}>
+      <span className={styles.inquiryHeader}>문의 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <div className="inquiry-content">
-        <div className="inquiry-filter-section">
+      <div className={styles.inquiryContent}>
+        <div className={styles.inquiryFilterSection}>
           <select
             id="category-select"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="inquiry-filter-select"
+            className={styles.inquiryFilterSelect}
           >
             {CATEGORY_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -63,24 +63,26 @@ export default function InquiryPage() {
         </div>
 
         {loading ? (
-          <div className="inquiry-loading">로딩 중...</div>
+          <div className={styles.inquiryLoading}>로딩 중...</div>
         ) : (
-          <table className="inquiry-table center-table">
+          <table className={`${styles.inquiryTable} ${styles.centerTable}`}>
             <thead>
               <tr>
-                <th>문의 코드</th>
                 <th>ID</th>
+                <th>문의 코드</th>
                 <th>문의 유형</th>
                 <th>제목</th>
                 <th>내용</th>
                 <th>사진</th>
+                <th>상태</th>
+                <th>관리</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={8}
                     style={{ textAlign: "center", padding: 32, color: "#888" }}
                   >
                     문의가 없습니다.
@@ -99,8 +101,8 @@ export default function InquiryPage() {
                         (opt) => opt.value === (q.category || "general")
                       )?.label || "일반"}
                     </td>
-                    <td>{q.title}</td>
-                    <td>{q.content}</td>
+                    <td>{q.title || "제목 없음"}</td>
+                    <td>{q.content || "내용 없음"}</td>
                     <td>
                       <Image
                         src={q.image_url || "/file.svg"}
@@ -113,6 +115,18 @@ export default function InquiryPage() {
                           background: "#f5f6fa",
                         }}
                       />
+                    </td>
+                    <td>{q.status || "대기중"}</td>
+                    <td>
+                      <button
+                        className={styles.replyBtn}
+                        onClick={() => {
+                          /* 답변 기능 */
+                        }}
+                        title="답변"
+                      >
+                        답변
+                      </button>
                     </td>
                   </tr>
                 ))

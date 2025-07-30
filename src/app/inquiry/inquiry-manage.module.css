@@ -200,7 +200,9 @@
   width: 90%;
   max-width: 600px;
   max-height: 80vh;
-  overflow-y: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
@@ -254,6 +256,14 @@
 
 .modalBody {
   padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.modalBody::-webkit-scrollbar {
+  display: none;
 }
 
 .inquiryInfo {
@@ -282,23 +292,31 @@
   font-weight: 600;
 }
 
+.answerSection {
+  margin-top: 24px;
+  text-align: center;
+}
+
 .answerSection h4 {
-  margin: 0 0 12px 0;
-  font-size: 1.1rem;
+  margin: 0 0 16px 0;
+  font-size: 16px;
   font-weight: 600;
-  color: #222;
+  color: #333;
 }
 
 .answerTextarea {
   width: 100%;
-  padding: 12px;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 16px;
   border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  font-family: inherit;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
   resize: vertical;
   min-height: 120px;
-  transition: border-color 0.2s;
+  font-family: inherit;
+  display: block;
 }
 
 .answerTextarea:focus {

@@ -76,7 +76,6 @@ export default function InquiryPage() {
                 <th>내용</th>
                 <th>사진</th>
                 <th>상태</th>
-                <th>관리</th>
               </tr>
             </thead>
             <tbody>

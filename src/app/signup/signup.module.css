@@ -13,8 +13,8 @@
   border-radius: 24px;
   padding: 40px 32px;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
-  min-width: 380px;
-  max-width: 420px;
+  min-width: 420px;
+  max-width: 480px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -38,7 +38,7 @@
 .email-id-input,
 .email-domain-input,
 .email-domain-select {
-  width: 350px;
+  width: 400px;
   padding: 14px 18px;
   margin-bottom: 18px;
   border-radius: 24px;
@@ -52,14 +52,14 @@
 .email-input-wrapper {
   display: flex;
   align-items: center;
-  gap: 12px;
-  width: 350px;
-  margin-bottom: 16px;
+  gap: 8px;
+  width: 400px;
+  margin-bottom: 18px;
   box-sizing: border-box;
 }
 
 .email-id-input {
-  flex: 2 1 0;
+  flex: 2;
   min-width: 0;
   padding: 14px 18px;
   border-radius: 24px;
@@ -76,12 +76,12 @@
   user-select: none;
   font-weight: bold;
   transform: translateY(-8px);
+  flex-shrink: 0;
 }
 
 .email-domain-select {
-  flex: 2 1 0;
+  flex: 1;
   min-width: 0;
-  max-width: 140px;
   padding: 14px 18px;
   border-radius: 24px;
   font-size: 17px;
@@ -94,7 +94,7 @@
 }
 
 .email-domain-input {
-  flex: 2 1 0;
+  flex: 1;
   min-width: 0;
   padding: 14px 18px;
   border-radius: 24px;
@@ -116,7 +116,7 @@
 }
 
 .signup-btn {
-  width: 350px;
+  width: 400px;
   padding: 14px 18px;
   border-radius: 24px;
   border: none;

@@ -9,6 +9,7 @@ export default function SignupPage() {
   const [form, setForm] = useState({
     id: "",
     pw: "",
+    pwConfirm: "",
     name: "",
     phone: "",
     emailId: "",
@@ -53,6 +54,19 @@ export default function SignupPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
+
+    // 비밀번호 확인 검증
+    if (form.pw !== form.pwConfirm) {
+      setError("비밀번호가 일치하지 않습니다.")
+      return
+    }
+
+    // 비밀번호 길이 검증
+    if (form.pw.length < 6) {
+      setError("비밀번호는 6자 이상이어야 합니다.")
+      return
+    }
+
     const domain =
       form.emailDomain === "직접입력"
         ? form.customEmailDomain.trim()
@@ -119,6 +133,16 @@ export default function SignupPage() {
             type="password"
             placeholder="비밀번호"
             value={form.pw}
+            onChange={handleChange}
+            required
+            className={styles["signup-input"]}
+            autoComplete="new-password"
+          />
+          <input
+            name="pwConfirm"
+            type="password"
+            placeholder="비밀번호 확인"
+            value={form.pwConfirm}
             onChange={handleChange}
             required
             className={styles["signup-input"]}

@@ -2,12 +2,12 @@
 "use client"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
-import styles from "../management/management.module.css"
 import Image from "next/image"
 import "../globals.css"
+import "./inquiry-manage.css"
 
 const CATEGORY_OPTIONS = [
-  { value: "all", label: "전체" },
+  { value: "all", label: "문의 유형 전체" },
   { value: "general", label: "일반" },
   { value: "bug", label: "버그" },
   { value: "feature", label: "기능 요청" },
@@ -43,36 +43,16 @@ export default function InquiryPage() {
       : inquiries.filter((q) => (q.category || "general") === category)
 
   return (
-    <div className={styles["management-root"]}>
+    <div className="inquiry-root">
+      <span className="inquiry-header">문의 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <main className={styles["management-content"]}>
-        <h2 style={{ fontWeight: 700, fontSize: 24, marginBottom: 24 }}>
-          문의 목록
-        </h2>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            marginBottom: 18,
-            gap: 12,
-          }}
-        >
-          <label
-            htmlFor="category-select"
-            style={{ fontWeight: 600, fontSize: 16 }}
-          >
-            문의 유형
-          </label>
+      <div className="inquiry-content">
+        <div className="inquiry-filter-section">
           <select
             id="category-select"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            style={{
-              padding: "8px 16px",
-              borderRadius: 8,
-              border: "1px solid #ddd",
-              fontSize: 15,
-            }}
+            className="inquiry-filter-select"
           >
             {CATEGORY_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -81,42 +61,22 @@ export default function InquiryPage() {
             ))}
           </select>
         </div>
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 14,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-            padding: 24,
-          }}
-        >
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+
+        {loading ? (
+          <div className="inquiry-loading">로딩 중...</div>
+        ) : (
+          <table className="inquiry-table center-table">
             <thead>
-              <tr style={{ background: "#f5f6fa" }}>
-                <th style={{ padding: 10, fontWeight: 700, fontSize: 15 }}>
-                  ID
-                </th>
-                <th style={{ padding: 10, fontWeight: 700, fontSize: 15 }}>
-                  문의 유형
-                </th>
-                <th style={{ padding: 10, fontWeight: 700, fontSize: 15 }}>
-                  제목
-                </th>
-                <th style={{ padding: 10, fontWeight: 700, fontSize: 15 }}>
-                  내용
-                </th>
-                <th style={{ padding: 10, fontWeight: 700, fontSize: 15 }}>
-                  사진
-                </th>
+              <tr>
+                <th>ID</th>
+                <th>문의 유형</th>
+                <th>제목</th>
+                <th>내용</th>
+                <th>사진</th>
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={5} style={{ textAlign: "center", padding: 32 }}>
-                    로딩 중...
-                  </td>
-                </tr>
-              ) : filtered.length === 0 ? (
+              {filtered.length === 0 ? (
                 <tr>
                   <td
                     colSpan={5}
@@ -127,21 +87,16 @@ export default function InquiryPage() {
                 </tr>
               ) : (
                 filtered.map((q, idx) => (
-                  <tr
-                    key={q.id || idx}
-                    style={{ borderBottom: "1px solid #eee" }}
-                  >
-                    <td style={{ padding: 10, textAlign: "center" }}>
-                      {q.id || "-"}
-                    </td>
-                    <td style={{ padding: 10, textAlign: "center" }}>
+                  <tr key={q.id || idx}>
+                    <td>{q.id || "-"}</td>
+                    <td>
                       {CATEGORY_OPTIONS.find(
                         (opt) => opt.value === (q.category || "general")
                       )?.label || "일반"}
                     </td>
-                    <td style={{ padding: 10 }}>{q.title}</td>
-                    <td style={{ padding: 10 }}>{q.content}</td>
-                    <td style={{ padding: 10, textAlign: "center" }}>
+                    <td>{q.title}</td>
+                    <td>{q.content}</td>
+                    <td>
                       <Image
                         src={q.image_url || "/file.svg"}
                         alt="문의 사진"
@@ -159,8 +114,8 @@ export default function InquiryPage() {
               )}
             </tbody>
           </table>
-        </div>
-      </main>
+        )}
+      </div>
     </div>
   )
 }

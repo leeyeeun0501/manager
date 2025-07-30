@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
+import { AUTH_API_BASE } from "../apibase"
 
 // 문의 목록 조회 (GET)
 export async function GET(request) {
@@ -10,7 +11,9 @@ export async function GET(request) {
     if (inquiry_code) {
       // 특정 문의 코드로 조회
       const res = await fetch(
-        `${API_BASE}/inquiry?inquiry_code=${encodeURIComponent(inquiry_code)}`
+        `${AUTH_API_BASE}/inquiry?inquiry_code=${encodeURIComponent(
+          inquiry_code
+        )}`
       )
       if (!res.ok) {
         return NextResponse.json(
@@ -22,7 +25,7 @@ export async function GET(request) {
       return NextResponse.json({ inquiry: data.inquiry })
     } else {
       // 문의 목록 조회
-      const res = await fetch(`${API_BASE}/inquiry`)
+      const res = await fetch(`${AUTH_API_BASE}/inquiry`)
       if (!res.ok) {
         return NextResponse.json(
           { error: "문의 목록을 불러올 수 없습니다." },
@@ -71,7 +74,7 @@ export async function PUT(request) {
     }
 
     const res = await fetch(
-      `${API_BASE}/inquiry/${encodeURIComponent(inquiry_code)}/answer`,
+      `${AUTH_API_BASE}/inquiry/${encodeURIComponent(inquiry_code)}/answer`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -95,46 +98,6 @@ export async function PUT(request) {
     })
   } catch (error) {
     console.error("답변 등록 오류:", error)
-    return NextResponse.json(
-      { error: "서버 오류가 발생했습니다." },
-      { status: 500 }
-    )
-  }
-}
-
-// 문의 삭제 (DELETE)
-export async function DELETE(request) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const inquiry_code = searchParams.get("inquiry_code")
-
-    if (!inquiry_code) {
-      return NextResponse.json(
-        { error: "문의 코드가 필요합니다." },
-        { status: 400 }
-      )
-    }
-
-    const res = await fetch(
-      `${API_BASE}/inquiry/${encodeURIComponent(inquiry_code)}`,
-      {
-        method: "DELETE",
-      }
-    )
-
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: "문의 삭제에 실패했습니다." },
-        { status: res.status }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: "문의가 성공적으로 삭제되었습니다.",
-    })
-  } catch (error) {
-    console.error("문의 삭제 오류:", error)
     return NextResponse.json(
       { error: "서버 오류가 발생했습니다." },
       { status: 500 }

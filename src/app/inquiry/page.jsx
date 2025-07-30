@@ -78,7 +78,8 @@ export default function InquiryPage() {
   // 모달·사진·답변 함수
   const openModal = (inquiry) => {
     setSelectedInquiry(inquiry)
-    setAnswerText("")
+    // 기존 답변이 있으면 미리 표시
+    setAnswerText(inquiry.answer || "")
     setIsModalOpen(true)
   }
   const closeModal = () => {
@@ -317,7 +318,7 @@ export default function InquiryPage() {
                 </p>
               </div>
               <div className={styles.answerSection}>
-                <h4>답변 작성</h4>
+                <h4>{selectedInquiry.answer ? "답변 수정" : "답변 작성"}</h4>
                 <textarea
                   className={styles.answerTextarea}
                   value={answerText}

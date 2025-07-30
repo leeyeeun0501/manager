@@ -2,6 +2,7 @@
 import { usePathname, useRouter } from "next/navigation"
 import Menu from "./components/menu"
 import ProfileButton from "./components/profilebutton"
+import NotificationButton from "./components/notificationbutton"
 import Script from "next/script"
 import { useEffect } from "react"
 
@@ -9,6 +10,7 @@ export default function RootLayout({ children }) {
   const pathname = usePathname()
   const router = useRouter()
   const hideMenuAndProfile = pathname === "/login" || pathname === "/signup"
+  const hideNotification = pathname === "/inquiry"
 
   useEffect(() => {
     const id = localStorage.getItem("id")
@@ -65,6 +67,18 @@ export default function RootLayout({ children }) {
             </div>
             <Menu />
           </>
+        )}
+        {!hideNotification && (
+          <div
+            style={{
+              position: "fixed",
+              top: 24,
+              right: 80,
+              zIndex: 2000,
+            }}
+          >
+            <NotificationButton />
+          </div>
         )}
         {children}
       </body>

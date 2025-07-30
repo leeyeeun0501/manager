@@ -87,7 +87,7 @@
   width: auto;
   margin-left: auto;
   margin-right: auto;
-  margin-top: 40px;
+  margin-top: 5px;
 }
 
 .deleteCell {
@@ -103,44 +103,37 @@
 /* 페이징 스타일 */
 .userPaginationRow {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 16px;
-  margin-top: 32px;
-  margin-bottom: 40px;
+  align-items: center;
+  gap: 18px;
+  margin-top: 16px;
+  margin-bottom: 2px;
 }
 
 .userPaginationBtn {
-  padding: 8px 20px;
-  background: #fff;
-  color: #b3d1fa;
-  border: 1px solid #b3d1fa;
-  border-radius: 8px;
+  padding: 7px 18px;
+  border-radius: 9px;
+  border: 1.5px solid #b3d1fa;
+  background: #f5faff;
+  font-weight: 700;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  min-width: 60px;
+  font-size: 1rem;
+  color: #2574f5;
+  transition: background 0.15s, border 0.15s;
 }
 
 .userPaginationBtn:hover:not(:disabled) {
-  background: #f8fbff;
-  border-color: #8bb8f7;
-  color: #8bb8f7;
+  background: #eaf2fd;
+  border: 1.5px solid #2574f5;
 }
 
 .userPaginationBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: #f8f9fa;
-  border-color: #e9ecef;
-  color: #adb5bd;
 }
 
 .userPaginationInfo {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 1.07rem;
+  font-weight: 700;
   color: #2574f5;
-  min-width: 40px;
-  text-align: center;
 }

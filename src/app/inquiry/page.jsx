@@ -6,20 +6,12 @@ import { FaRegCommentDots } from "react-icons/fa"
 import "../globals.css"
 import styles from "./inquiry-manage.module.css"
 
-const CATEGORY_OPTIONS = [
-  { value: "all", label: "문의 유형 전체" },
-  { value: "path", label: "경로 안내 오류" },
-  { value: "place", label: "장소/정보 오류" },
-  { value: "bug", label: "버그 신고" },
-  { value: "feature", label: "기능 제안" },
-  { value: "etc", label: "기타 문의" },
-]
-
 export default function InquiryPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [inquiries, setInquiries] = useState([])
   const [category, setCategory] = useState("all")
   const [loading, setLoading] = useState(true)
+  const [categoryOptions, setCategoryOptions] = useState([])
 
   // 모달 관련
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -69,8 +61,32 @@ export default function InquiryPage() {
         created_at: item.Created_At,
       }))
       setInquiries(mappedList)
+
+      // 서버에서 받아온 카테고리로 옵션 생성
+      const categories = [
+        ...new Set(mappedList.map((item) => item.category).filter(Boolean)),
+      ]
+
+      // 기본 카테고리 옵션들
+      const defaultCategories = [
+        "경로 안내 오류",
+        "장소/정보 오류",
+        "버그 신고",
+        "기능 제안",
+        "기타 문의",
+      ]
+
+      // 서버 카테고리와 기본 카테고리를 합쳐서 중복 제거
+      const allCategories = [...new Set([...categories, ...defaultCategories])]
+
+      const options = [
+        { value: "all", label: "문의 유형 전체" },
+        ...allCategories.map((cat) => ({ value: cat, label: cat })),
+      ]
+      setCategoryOptions(options)
     } catch (err) {
       setInquiries([])
+      setCategoryOptions([{ value: "all", label: "문의 유형 전체" }])
     }
     setLoading(false)
   }
@@ -138,7 +154,7 @@ export default function InquiryPage() {
   const filtered =
     category === "all"
       ? inquiries
-      : inquiries.filter((q) => (q.category || "general") === category)
+      : inquiries.filter((q) => q.category === category)
   const totalInquiries = filtered.length
   const totalPages = Math.max(1, Math.ceil(totalInquiries / itemsPerPage))
   const pagedInquiries = filtered.slice(
@@ -158,7 +174,7 @@ export default function InquiryPage() {
             onChange={(e) => setCategory(e.target.value)}
             className={styles.inquiryFilterSelect}
           >
-            {CATEGORY_OPTIONS.map((opt) => (
+            {categoryOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
@@ -207,11 +223,7 @@ export default function InquiryPage() {
                           `INQ-${String(q.id || idx).padStart(4, "0")}`}
                       </td>
                       <td>{q.id || "-"}</td>
-                      <td>
-                        {CATEGORY_OPTIONS.find(
-                          (opt) => opt.value === (q.category || "general")
-                        )?.label || "일반"}
-                      </td>
+                      <td>{q.category || "일반"}</td>
                       <td>{q.title || "제목 없음"}</td>
                       <td>{q.content || "내용 없음"}</td>
                       <td>

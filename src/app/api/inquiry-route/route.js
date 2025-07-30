@@ -30,6 +30,10 @@ export async function PUT(request) {
     const body = await request.json()
     const { inquiry_code, answer } = body
 
+    console.log("받은 데이터:", body)
+    console.log("문의 코드:", inquiry_code)
+    console.log("답변:", answer)
+
     if (!inquiry_code) {
       return NextResponse.json(
         { error: "문의 코드가 필요합니다." },
@@ -45,19 +49,17 @@ export async function PUT(request) {
     }
 
     const answerData = {
+      inquiry_code: inquiry_code,
       answer: answer.trim(),
-      status: "answered",
-      answered_at: new Date().toISOString(),
     }
 
-    const res = await fetch(
-      `${AUTH_API_BASE}/inquiry/${encodeURIComponent(inquiry_code)}/answer`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(answerData),
-      }
-    )
+    console.log("서버로 전송할 데이터:", answerData)
+
+    const res = await fetch(`${AUTH_API_BASE}/inquiry/answer`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(answerData),
+    })
 
     if (!res.ok) {
       const errorData = await res.json()

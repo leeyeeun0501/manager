@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
 import Image from "next/image"
+import { FaRegCommentDots } from "react-icons/fa"
 import "../globals.css"
 import styles from "./inquiry-manage.module.css"
 
@@ -25,8 +26,11 @@ export default function InquiryPage() {
   const [selectedInquiry, setSelectedInquiry] = useState(null)
   const [answerText, setAnswerText] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  // 사진 모달
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
+  const [selectedImage, setSelectedImage] = useState("")
 
-  // 페이징 관련
+  // 페이징
   const itemsPerPage = 20
   const [currentPage, setCurrentPage] = useState(() => {
     if (typeof window !== "undefined") {
@@ -35,31 +39,23 @@ export default function InquiryPage() {
     }
     return 1
   })
-
   useEffect(() => {
     fetchInquiries()
-    // eslint-disable-next-line
   }, [])
-
   useEffect(() => {
     localStorage.setItem("INQUIRY_MANAGE_PAGE", currentPage)
   }, [currentPage])
 
-  // 문의 불러오기 (API 구조에 맞게 파싱, 로그 추가)
+  // 문의 불러오기
   const fetchInquiries = async () => {
     setLoading(true)
     try {
       const res = await fetch("/api/inquiry-route")
       const data = await res.json()
-      console.log("문의 목록 응답:", data)
       let list = []
-      if (Array.isArray(data)) {
-        list = data
-      } else if (Array.isArray(data.inquiries)) {
-        list = data.inquiries
-      }
-
-      // 서버 필드명을 클라이언트 필드명으로 매핑
+      if (Array.isArray(data)) list = data
+      else if (Array.isArray(data.inquiries)) list = data.inquiries
+      // 서버 필드명 → 클라이언트 필드명 매핑
       const mappedList = list.map((item) => ({
         id: item.User_Id,
         inquiry_code: item.Inquiry_Code,
@@ -72,17 +68,14 @@ export default function InquiryPage() {
         answered_at: item.Answered_At,
         created_at: item.Created_At,
       }))
-
-      console.log("매핑된 데이터:", mappedList)
       setInquiries(mappedList)
     } catch (err) {
-      console.error("데이터 가져오기 오류:", err)
       setInquiries([])
     }
     setLoading(false)
   }
 
-  // 모달 열기/닫기
+  // 모달·사진·답변 함수
   const openModal = (inquiry) => {
     setSelectedInquiry(inquiry)
     setAnswerText("")
@@ -93,26 +86,39 @@ export default function InquiryPage() {
     setSelectedInquiry(null)
     setAnswerText("")
   }
-
-  // 답변 등록
+  const openImageModal = (imageUrl) => {
+    setSelectedImage(imageUrl)
+    setIsImageModalOpen(true)
+  }
+  const closeImageModal = () => {
+    setIsImageModalOpen(false)
+    setSelectedImage("")
+  }
   const submitAnswer = async () => {
     if (!answerText.trim()) {
       alert("답변 내용을 입력해주세요.")
       return
     }
+
+    const requestData = {
+      inquiry_code:
+        selectedInquiry.inquiry_code ||
+        `INQ-${String(selectedInquiry.id).padStart(4, "0")}`,
+      answer: answerText.trim(),
+    }
+
+    console.log("전송할 데이터:", requestData)
+    console.log("선택된 문의:", selectedInquiry)
+
     setSubmitting(true)
     try {
       const res = await fetch("/api/inquiry-route", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          inquiry_code:
-            selectedInquiry.inquiry_code ||
-            `INQ-${String(selectedInquiry.id).padStart(4, "0")}`,
-          answer: answerText.trim(),
-        }),
+        body: JSON.stringify(requestData),
       })
       const data = await res.json()
+      console.log("서버 응답:", data)
       if (res.ok && data.success) {
         alert("답변이 성공적으로 등록되었습니다.")
         closeModal()
@@ -127,13 +133,11 @@ export default function InquiryPage() {
     setSubmitting(false)
   }
 
-  // 카테고리별 필터
+  // 카테고리, 페이징
   const filtered =
     category === "all"
       ? inquiries
       : inquiries.filter((q) => (q.category || "general") === category)
-
-  // 페이징
   const totalInquiries = filtered.length
   const totalPages = Math.max(1, Math.ceil(totalInquiries / itemsPerPage))
   const pagedInquiries = filtered.slice(
@@ -146,7 +150,6 @@ export default function InquiryPage() {
       <span className={styles.inquiryHeader}>문의 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className={styles.inquiryContent}>
-        {/* 필터 */}
         <div className={styles.inquiryFilterSection}>
           <select
             id="category-select"
@@ -197,8 +200,6 @@ export default function InquiryPage() {
                     <tr
                       key={q.inquiry_code || q.id || idx}
                       className={styles.inquiryTableRow}
-                      onClick={() => openModal(q)}
-                      style={{ cursor: "pointer" }}
                     >
                       <td>
                         {q.inquiry_code ||
@@ -223,7 +224,9 @@ export default function InquiryPage() {
                               borderRadius: 8,
                               objectFit: "cover",
                               background: "#f5f6fa",
+                              cursor: "pointer",
                             }}
+                            onClick={() => openImageModal(q.image_url)}
                           />
                         ) : (
                           <Image
@@ -238,8 +241,21 @@ export default function InquiryPage() {
                         )}
                       </td>
                       <td>{q.status || "대기중"}</td>
-                      <td>
-                        <span className={styles.replyText}>답변</span>
+                      <td style={{ textAlign: "center" }}>
+                        <button
+                          className={styles.answerBtn}
+                          onClick={() => openModal(q)}
+                          title="답변 작성"
+                          style={{
+                            border: "none",
+                            background: "none",
+                            cursor: "pointer",
+                            fontSize: 22,
+                            color: "#3b8dff",
+                          }}
+                        >
+                          <FaRegCommentDots />
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -326,6 +342,35 @@ export default function InquiryPage() {
               >
                 {submitting ? "저장 중..." : "저장"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 사진 모달 */}
+      {isImageModalOpen && selectedImage && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h3>문의 사진</h3>
+              <button
+                className={styles.modalCloseBtn}
+                onClick={closeImageModal}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <Image
+                src={selectedImage}
+                alt="문의 사진"
+                width={600}
+                height={600}
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "80vh",
+                  objectFit: "contain",
+                }}
+              />
             </div>
           </div>
         </div>

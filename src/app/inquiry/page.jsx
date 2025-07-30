@@ -8,10 +8,11 @@ import styles from "./inquiry-manage.module.css"
 
 const CATEGORY_OPTIONS = [
   { value: "all", label: "문의 유형 전체" },
-  { value: "general", label: "일반" },
-  { value: "bug", label: "버그" },
-  { value: "feature", label: "기능 요청" },
-  { value: "etc", label: "기타" },
+  { value: "path", label: "경로 안내 오류" },
+  { value: "place", label: "장소/정보 오류" },
+  { value: "bug", label: "버그 신고" },
+  { value: "feature", label: "기능 제안" },
+  { value: "etc", label: "기타 문의" },
 ]
 
 export default function InquiryPage() {

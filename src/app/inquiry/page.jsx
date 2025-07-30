@@ -167,24 +167,24 @@ export default function InquiryPage() {
       <span className={styles.inquiryHeader}>문의 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className={styles.inquiryContent}>
-        <div className={styles.inquiryFilterSection}>
-          <select
-            id="category-select"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className={styles.inquiryFilterSelect}
-          >
-            {categoryOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
         {loading ? (
           <div className={styles.inquiryLoading}>로딩 중...</div>
         ) : (
           <>
+            <div className={styles.inquiryFilterSection}>
+              <select
+                id="category-select"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className={styles.inquiryFilterSelect}
+              >
+                {categoryOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
             <table className={`${styles.inquiryTable} ${styles.centerTable}`}>
               <thead>
                 <tr>

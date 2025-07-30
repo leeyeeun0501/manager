@@ -4,7 +4,7 @@ import "../globals.css"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
 import { FaTrashAlt } from "react-icons/fa"
-import "./user-manage.css"
+import styles from "./user-manage.module.css"
 
 export default function UserManagePage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -116,17 +116,17 @@ export default function UserManagePage() {
   }
 
   return (
-    <div className="user-root">
-      <span className="user-header">사용자 관리 페이지</span>
+    <div className={styles.userRoot}>
+      <span className={styles.userHeader}>사용자 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <div className="user-content">
+      <div className={styles.userContent}>
         {loading ? (
           <div>로딩 중...</div>
         ) : error ? (
           <div style={{ color: "red" }}>{error}</div>
         ) : (
           <>
-            <table className="user-table center-table">
+            <table className={`${styles.userTable} ${styles.centerTable}`}>
               <thead>
                 <tr>
                   <th>아이디</th>
@@ -167,7 +167,7 @@ export default function UserManagePage() {
                       </td>
                       <td>
                         <button
-                          className="trash-btn"
+                          className={styles.trashBtn}
                           onClick={() => handleDelete(user.Id)}
                           title="삭제"
                         >
@@ -187,19 +187,19 @@ export default function UserManagePage() {
             </table>
 
             {/* 페이징 */}
-            <div className="user-pagination-row">
+            <div className={styles.userPaginationRow}>
               <button
-                className="user-pagination-btn"
+                className={styles.userPaginationBtn}
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               >
                 이전
               </button>
-              <span className="user-pagination-info">
+              <span className={styles.userPaginationInfo}>
                 {currentPage} / {totalPages || 1}
               </span>
               <button
-                className="user-pagination-btn"
+                className={styles.userPaginationBtn}
                 disabled={currentPage >= totalPages}
                 onClick={() =>
                   setCurrentPage((p) => Math.min(totalPages, p + 1))

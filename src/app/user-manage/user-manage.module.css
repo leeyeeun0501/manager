@@ -1,20 +1,20 @@
-/* user-manage.css */
+/* user-manage.module.css */
 
-.user-root {
+.userRoot {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   background: #f5f6fa;
 }
 
-.user-content {
+.userContent {
   max-width: 100%;
   margin: 0 auto;
   padding: 0px 0 0 0;
   overflow-x: hidden;
 }
 
-.user-header {
+.userHeader {
   width: 100vw;
   height: 72px;
   background: #f4f7fc;
@@ -30,7 +30,7 @@
   margin-bottom: 40px;
 }
 
-.user-table {
+.userTable {
   width: auto;
   table-layout: auto;
   border-collapse: collapse;
@@ -40,8 +40,8 @@
   overflow: hidden;
 }
 
-.user-table th,
-.user-table td {
+.userTable th,
+.userTable td {
   border: 1px solid #eee;
   padding: 8px 70px;
   text-align: center;
@@ -51,24 +51,24 @@
   min-width: 40px;
 }
 
-.user-table th {
+.userTable th {
   background: #eaf2fd;
   font-weight: 800;
   color: #2574f5;
   font-size: 1.05rem;
 }
 
-.email-trash-cell {
+.emailTrashCell {
   position: relative;
   text-align: left;
   padding-right: 38px;
 }
 
-.email-trash-cell span {
+.emailTrashCell span {
   vertical-align: middle;
 }
 
-.trash-btn {
+.trashBtn {
   background: none;
   border: none;
   color: #e74c3c;
@@ -79,28 +79,28 @@
   transition: color 0.15s;
 }
 
-.trash-btn:hover {
+.trashBtn:hover {
   color: #b71c1c;
 }
 
-.center-table {
+.centerTable {
   width: auto;
   margin-left: auto;
   margin-right: auto;
   margin-top: 40px;
 }
 
-.delete-cell {
+.deleteCell {
   text-align: center;
   padding: 8px 4px;
   position: relative;
 }
 
-.user-table tr:hover {
+.userTable tr:hover {
   background: #f1f7ff;
 }
 
-.user-pagination-row {
+.userPaginationRow {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -109,7 +109,7 @@
   margin-bottom: 2px;
 }
 
-.user-pagination-btn {
+.userPaginationBtn {
   padding: 7px 18px;
   border-radius: 9px;
   border: 1.5px solid #b3d1fa;
@@ -121,17 +121,17 @@
   transition: background 0.15s, border 0.15s;
 }
 
-.user-pagination-btn:hover:not(:disabled) {
+.userPaginationBtn:hover:not(:disabled) {
   background: #eaf2fd;
   border: 1.5px solid #2574f5;
 }
 
-.user-pagination-btn:disabled {
+.userPaginationBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.user-pagination-info {
+.userPaginationInfo {
   font-size: 1.07rem;
   font-weight: 700;
   color: #2574f5;

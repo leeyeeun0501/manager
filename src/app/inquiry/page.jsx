@@ -68,6 +68,7 @@ export default function InquiryPage() {
           <table className="inquiry-table center-table">
             <thead>
               <tr>
+                <th>문의 코드</th>
                 <th>ID</th>
                 <th>문의 유형</th>
                 <th>제목</th>
@@ -79,7 +80,7 @@ export default function InquiryPage() {
               {filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     style={{ textAlign: "center", padding: 32, color: "#888" }}
                   >
                     문의가 없습니다.
@@ -89,6 +90,10 @@ export default function InquiryPage() {
                 filtered.map((q, idx) => (
                   <tr key={q.id || idx}>
                     <td>{q.id || "-"}</td>
+                    <td>
+                      {q.inquiry_code ||
+                        `INQ-${String(q.id || idx).padStart(4, "0")}`}
+                    </td>
                     <td>
                       {CATEGORY_OPTIONS.find(
                         (opt) => opt.value === (q.category || "general")

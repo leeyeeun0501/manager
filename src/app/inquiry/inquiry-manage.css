@@ -35,11 +35,12 @@
   align-items: center;
   margin-bottom: 18px;
   gap: 12px;
-  margin-left: auto;
+  margin-left: 0;
   margin-right: auto;
   margin-top: 40px;
   max-width: 1200px;
   padding: 0 20px;
+  justify-content: flex-start;
 }
 
 .inquiry-filter-label {
@@ -49,12 +50,20 @@
 }
 
 .inquiry-filter-select {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 15px;
+  height: 46px;
+  min-width: 150px;
+  font-size: 1.07rem;
+  border-radius: 10px;
+  border: 1.5px solid #b3d1fa;
   background: #fff;
   color: #222;
+  padding: 0 18px;
+  outline: none;
+  transition: border 0.15s;
+}
+
+.inquiry-filter-select:focus {
+  border: 1.5px solid #2574f5;
 }
 
 .inquiry-loading {
@@ -65,7 +74,7 @@
 }
 
 .inquiry-table {
-  width: auto;
+  width: 100%;
   table-layout: auto;
   border-collapse: collapse;
   background: #fff;
@@ -77,12 +86,12 @@
 .inquiry-table th,
 .inquiry-table td {
   border: 1px solid #eee;
-  padding: 8px 70px;
+  padding: 8px 100px;
   text-align: center;
   font-size: 0.95rem;
   word-break: break-all;
-  max-width: 150px;
-  min-width: 40px;
+  max-width: 300px;
+  min-width: 120px;
 }
 
 .inquiry-table th {
@@ -93,10 +102,11 @@
 }
 
 .center-table {
-  width: auto;
+  width: 100%;
   margin-left: auto;
   margin-right: auto;
   margin-top: 40px;
+  max-width: 1400px;
 }
 
 .inquiry-table tr:hover {

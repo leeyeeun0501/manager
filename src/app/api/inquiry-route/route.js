@@ -4,37 +4,17 @@ import { AUTH_API_BASE } from "../apibase"
 
 // 문의 목록 조회 (GET)
 export async function GET(request) {
-  const { searchParams } = new URL(request.url)
-  const inquiry_code = searchParams.get("inquiry_code")
-
   try {
-    if (inquiry_code) {
-      // 특정 문의 코드로 조회
-      const res = await fetch(
-        `${AUTH_API_BASE}/inquiry?inquiry_code=${encodeURIComponent(
-          inquiry_code
-        )}`
+    // 문의 목록 조회
+    const res = await fetch(`${AUTH_API_BASE}/inquiry`)
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: "문의 목록을 불러올 수 없습니다." },
+        { status: 500 }
       )
-      if (!res.ok) {
-        return NextResponse.json(
-          { error: "문의를 찾을 수 없습니다." },
-          { status: 404 }
-        )
-      }
-      const data = await res.json()
-      return NextResponse.json({ inquiry: data.inquiry })
-    } else {
-      // 문의 목록 조회
-      const res = await fetch(`${AUTH_API_BASE}/inquiry`)
-      if (!res.ok) {
-        return NextResponse.json(
-          { error: "문의 목록을 불러올 수 없습니다." },
-          { status: 500 }
-        )
-      }
-      const data = await res.json()
-      return NextResponse.json({ inquiries: data.inquiries || [] })
     }
+    const data = await res.json()
+    return NextResponse.json({ inquiries: data.inquiries || [] })
   } catch (error) {
     console.error("문의 조회 오류:", error)
     return NextResponse.json(
@@ -47,8 +27,8 @@ export async function GET(request) {
 // 문의 답변 (PUT)
 export async function PUT(request) {
   try {
-    const { searchParams } = new URL(request.url)
-    const inquiry_code = searchParams.get("inquiry_code")
+    const body = await request.json()
+    const { inquiry_code, answer } = body
 
     if (!inquiry_code) {
       return NextResponse.json(
@@ -56,9 +36,6 @@ export async function PUT(request) {
         { status: 400 }
       )
     }
-
-    const body = await request.json()
-    const { answer } = body
 
     if (!answer) {
       return NextResponse.json(

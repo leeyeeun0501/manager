@@ -21,6 +21,12 @@ export default function InquiryPage() {
   const [category, setCategory] = useState("all")
   const [loading, setLoading] = useState(true)
 
+  // 모달 관련 상태
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedInquiry, setSelectedInquiry] = useState(null)
+  const [answerText, setAnswerText] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+
   // 페이징 관련
   const itemsPerPage = 20
   const [currentPage, setCurrentPage] = useState(() => {
@@ -50,6 +56,57 @@ export default function InquiryPage() {
       setInquiries([])
     }
     setLoading(false)
+  }
+
+  // 모달 열기
+  const openModal = (inquiry) => {
+    setSelectedInquiry(inquiry)
+    setAnswerText("")
+    setIsModalOpen(true)
+  }
+
+  // 모달 닫기
+  const closeModal = () => {
+    setIsModalOpen(false)
+    setSelectedInquiry(null)
+    setAnswerText("")
+  }
+
+  // 답변 제출
+  const submitAnswer = async () => {
+    if (!answerText.trim()) {
+      alert("답변 내용을 입력해주세요.")
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const res = await fetch("/api/inquiry-route", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inquiry_code:
+            selectedInquiry.inquiry_code ||
+            `INQ-${String(selectedInquiry.id).padStart(4, "0")}`,
+          answer: answerText.trim(),
+        }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok && data.success) {
+        alert("답변이 성공적으로 등록되었습니다.")
+        closeModal()
+        fetchInquiries() // 목록 새로고침
+      } else {
+        alert(data.error || "답변 등록에 실패했습니다.")
+      }
+    } catch (error) {
+      console.error("답변 등록 오류:", error)
+      alert("서버 오류가 발생했습니다.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   // 카테고리 필터링
@@ -100,7 +157,6 @@ export default function InquiryPage() {
                   <th>내용</th>
                   <th>사진</th>
                   <th>상태</th>
-                  <th>관리</th>
                 </tr>
               </thead>
               <tbody>
@@ -119,7 +175,12 @@ export default function InquiryPage() {
                   </tr>
                 ) : (
                   pagedInquiries.map((q, idx) => (
-                    <tr key={q.id || idx}>
+                    <tr
+                      key={q.id || idx}
+                      className={styles.inquiryTableRow}
+                      onClick={() => openModal(q)}
+                      style={{ cursor: "pointer" }}
+                    >
                       <td>{q.id || "-"}</td>
                       <td>
                         {q.inquiry_code ||
@@ -147,13 +208,7 @@ export default function InquiryPage() {
                       </td>
                       <td>{q.status || "대기중"}</td>
                       <td>
-                        <button
-                          className={styles.replyBtn}
-                          onClick={() => {}}
-                          title="답변"
-                        >
-                          답변
-                        </button>
+                        <span className={styles.replyText}>답변</span>
                       </td>
                     </tr>
                   ))
@@ -186,6 +241,69 @@ export default function InquiryPage() {
           </>
         )}
       </div>
+
+      {/* 답변 모달 */}
+      {isModalOpen && selectedInquiry && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h3>문의 답변</h3>
+              <button className={styles.modalCloseBtn} onClick={closeModal}>
+                ×
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <div className={styles.inquiryInfo}>
+                <h4>문의 정보</h4>
+                <p>
+                  <strong>문의 코드:</strong>{" "}
+                  {selectedInquiry.inquiry_code ||
+                    `INQ-${String(selectedInquiry.id).padStart(4, "0")}`}
+                </p>
+                <p>
+                  <strong>제목:</strong> {selectedInquiry.title || "제목 없음"}
+                </p>
+                <p>
+                  <strong>내용:</strong>{" "}
+                  {selectedInquiry.content || "내용 없음"}
+                </p>
+                <p>
+                  <strong>상태:</strong> {selectedInquiry.status || "대기중"}
+                </p>
+              </div>
+
+              <div className={styles.answerSection}>
+                <h4>답변 작성</h4>
+                <textarea
+                  className={styles.answerTextarea}
+                  value={answerText}
+                  onChange={(e) => setAnswerText(e.target.value)}
+                  placeholder="답변 내용을 입력하세요..."
+                  rows={6}
+                />
+              </div>
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button
+                className={styles.modalCancelBtn}
+                onClick={closeModal}
+                disabled={submitting}
+              >
+                취소
+              </button>
+              <button
+                className={styles.modalSubmitBtn}
+                onClick={submitAnswer}
+                disabled={submitting || !answerText.trim()}
+              >
+                {submitting ? "저장 중..." : "저장"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

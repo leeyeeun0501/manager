@@ -1,4 +1,3 @@
-// inquiry(문의 목록)
 "use client"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
@@ -21,7 +20,7 @@ export default function InquiryPage() {
   const [category, setCategory] = useState("all")
   const [loading, setLoading] = useState(true)
 
-  // 모달 관련 상태
+  // 모달 관련
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedInquiry, setSelectedInquiry] = useState(null)
   const [answerText, setAnswerText] = useState("")
@@ -39,46 +38,68 @@ export default function InquiryPage() {
 
   useEffect(() => {
     fetchInquiries()
+    // eslint-disable-next-line
   }, [])
 
-  // 페이징
   useEffect(() => {
     localStorage.setItem("INQUIRY_MANAGE_PAGE", currentPage)
   }, [currentPage])
 
+  // 문의 불러오기 (API 구조에 맞게 파싱, 로그 추가)
   const fetchInquiries = async () => {
     setLoading(true)
     try {
       const res = await fetch("/api/inquiry-route")
       const data = await res.json()
-      setInquiries(data.inquiries || [])
-    } catch {
+      console.log("문의 목록 응답:", data)
+      let list = []
+      if (Array.isArray(data)) {
+        list = data
+      } else if (Array.isArray(data.inquiries)) {
+        list = data.inquiries
+      }
+
+      // 서버 필드명을 클라이언트 필드명으로 매핑
+      const mappedList = list.map((item) => ({
+        id: item.User_Id,
+        inquiry_code: item.Inquiry_Code,
+        category: item.Category,
+        title: item.Title,
+        content: item.Content,
+        image_url: item.Image_Path,
+        status: item.Status,
+        answer: item.Answer,
+        answered_at: item.Answered_At,
+        created_at: item.Created_At,
+      }))
+
+      console.log("매핑된 데이터:", mappedList)
+      setInquiries(mappedList)
+    } catch (err) {
+      console.error("데이터 가져오기 오류:", err)
       setInquiries([])
     }
     setLoading(false)
   }
 
-  // 모달 열기
+  // 모달 열기/닫기
   const openModal = (inquiry) => {
     setSelectedInquiry(inquiry)
     setAnswerText("")
     setIsModalOpen(true)
   }
-
-  // 모달 닫기
   const closeModal = () => {
     setIsModalOpen(false)
     setSelectedInquiry(null)
     setAnswerText("")
   }
 
-  // 답변 제출
+  // 답변 등록
   const submitAnswer = async () => {
     if (!answerText.trim()) {
       alert("답변 내용을 입력해주세요.")
       return
     }
-
     setSubmitting(true)
     try {
       const res = await fetch("/api/inquiry-route", {
@@ -91,33 +112,30 @@ export default function InquiryPage() {
           answer: answerText.trim(),
         }),
       })
-
       const data = await res.json()
-
       if (res.ok && data.success) {
         alert("답변이 성공적으로 등록되었습니다.")
         closeModal()
-        fetchInquiries() // 목록 새로고침
+        fetchInquiries()
       } else {
         alert(data.error || "답변 등록에 실패했습니다.")
       }
     } catch (error) {
       console.error("답변 등록 오류:", error)
       alert("서버 오류가 발생했습니다.")
-    } finally {
-      setSubmitting(false)
     }
+    setSubmitting(false)
   }
 
-  // 카테고리 필터링
+  // 카테고리별 필터
   const filtered =
     category === "all"
       ? inquiries
       : inquiries.filter((q) => (q.category || "general") === category)
 
-  // 페이징 처리
+  // 페이징
   const totalInquiries = filtered.length
-  const totalPages = Math.ceil(totalInquiries / itemsPerPage)
+  const totalPages = Math.max(1, Math.ceil(totalInquiries / itemsPerPage))
   const pagedInquiries = filtered.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -128,6 +146,7 @@ export default function InquiryPage() {
       <span className={styles.inquiryHeader}>문의 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className={styles.inquiryContent}>
+        {/* 필터 */}
         <div className={styles.inquiryFilterSection}>
           <select
             id="category-select"
@@ -142,7 +161,6 @@ export default function InquiryPage() {
             ))}
           </select>
         </div>
-
         {loading ? (
           <div className={styles.inquiryLoading}>로딩 중...</div>
         ) : (
@@ -150,13 +168,14 @@ export default function InquiryPage() {
             <table className={`${styles.inquiryTable} ${styles.centerTable}`}>
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>문의 코드</th>
+                  <th>ID</th>
                   <th>문의 유형</th>
                   <th>제목</th>
                   <th>내용</th>
                   <th>사진</th>
                   <th>상태</th>
+                  <th>답변</th>
                 </tr>
               </thead>
               <tbody>
@@ -176,16 +195,16 @@ export default function InquiryPage() {
                 ) : (
                   pagedInquiries.map((q, idx) => (
                     <tr
-                      key={q.id || idx}
+                      key={q.inquiry_code || q.id || idx}
                       className={styles.inquiryTableRow}
                       onClick={() => openModal(q)}
                       style={{ cursor: "pointer" }}
                     >
-                      <td>{q.id || "-"}</td>
                       <td>
                         {q.inquiry_code ||
                           `INQ-${String(q.id || idx).padStart(4, "0")}`}
                       </td>
+                      <td>{q.id || "-"}</td>
                       <td>
                         {CATEGORY_OPTIONS.find(
                           (opt) => opt.value === (q.category || "general")
@@ -194,17 +213,29 @@ export default function InquiryPage() {
                       <td>{q.title || "제목 없음"}</td>
                       <td>{q.content || "내용 없음"}</td>
                       <td>
-                        <Image
-                          src={q.image_url || "/file.svg"}
-                          alt="문의 사진"
-                          width={48}
-                          height={48}
-                          style={{
-                            borderRadius: 8,
-                            objectFit: "cover",
-                            background: "#f5f6fa",
-                          }}
-                        />
+                        {!!q.image_url ? (
+                          <Image
+                            src={q.image_url}
+                            alt="문의 사진"
+                            width={48}
+                            height={48}
+                            style={{
+                              borderRadius: 8,
+                              objectFit: "cover",
+                              background: "#f5f6fa",
+                            }}
+                          />
+                        ) : (
+                          <Image
+                            src="/file.svg"
+                            alt="기본 이미지"
+                            width={32}
+                            height={32}
+                            style={{
+                              opacity: 0.5,
+                            }}
+                          />
+                        )}
                       </td>
                       <td>{q.status || "대기중"}</td>
                       <td>
@@ -215,7 +246,6 @@ export default function InquiryPage() {
                 )}
               </tbody>
             </table>
-
             {/* 페이징 */}
             <div className={styles.inquiryPaginationRow}>
               <button
@@ -226,7 +256,7 @@ export default function InquiryPage() {
                 이전
               </button>
               <span className={styles.inquiryPaginationInfo}>
-                {currentPage} / {totalPages || 1}
+                {currentPage} / {totalPages}
               </span>
               <button
                 className={styles.inquiryPaginationBtn}
@@ -241,7 +271,6 @@ export default function InquiryPage() {
           </>
         )}
       </div>
-
       {/* 답변 모달 */}
       {isModalOpen && selectedInquiry && (
         <div className={styles.modalOverlay}>
@@ -252,7 +281,6 @@ export default function InquiryPage() {
                 ×
               </button>
             </div>
-
             <div className={styles.modalBody}>
               <div className={styles.inquiryInfo}>
                 <h4>문의 정보</h4>
@@ -272,7 +300,6 @@ export default function InquiryPage() {
                   <strong>상태:</strong> {selectedInquiry.status || "대기중"}
                 </p>
               </div>
-
               <div className={styles.answerSection}>
                 <h4>답변 작성</h4>
                 <textarea
@@ -284,7 +311,6 @@ export default function InquiryPage() {
                 />
               </div>
             </div>
-
             <div className={styles.modalFooter}>
               <button
                 className={styles.modalCancelBtn}

@@ -5,7 +5,6 @@ import { AUTH_API_BASE } from "../apibase"
 // 문의 목록 조회 (GET)
 export async function GET(request) {
   try {
-    // 문의 목록 조회
     const res = await fetch(`${AUTH_API_BASE}/inquiry`)
     if (!res.ok) {
       return NextResponse.json(
@@ -14,7 +13,8 @@ export async function GET(request) {
       )
     }
     const data = await res.json()
-    return NextResponse.json({ inquiries: data.inquiries || [] })
+    // API로부터 받아온 데이터가 배열이면 inquiries: data, 객체에 나오면 inquiries: data.inquiries
+    return NextResponse.json({ inquiries: data.inquiries || data || [] })
   } catch (error) {
     console.error("문의 조회 오류:", error)
     return NextResponse.json(

@@ -230,15 +230,15 @@ export default function InquiryPage() {
                             onClick={() => openImageModal(q.image_url)}
                           />
                         ) : (
-                          <Image
-                            src="/file.svg"
-                            alt="기본 이미지"
-                            width={32}
-                            height={32}
+                          <span
                             style={{
-                              opacity: 0.5,
+                              color: "#999",
+                              fontSize: "0.85rem",
+                              fontStyle: "italic",
                             }}
-                          />
+                          >
+                            사진 없음
+                          </span>
                         )}
                       </td>
                       <td>{q.status || "대기중"}</td>

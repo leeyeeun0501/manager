@@ -487,11 +487,6 @@ export default function RoomManagePage() {
     }
   }
 
-  const handleBuildingChange = (e) => {
-    setFilterBuilding(e.target.value)
-    setFilterFloor("")
-  }
-
   useEffect(() => {
     setFilteredRooms(rooms)
   }, [rooms])
@@ -676,12 +671,10 @@ export default function RoomManagePage() {
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          // 구조가 배열로만 오면 fallback
           setStairsList(data)
           setStairsNodes([])
           console.log("stairsList(배열):", data)
         } else if (data) {
-          // stairs와 nodes 모두 처리
           setStairsList(Array.isArray(data.stairs) ? data.stairs : [])
           setStairsNodes(Array.isArray(data.nodes) ? data.nodes : [])
           console.log("stairsList(.stairs):", data.stairs)

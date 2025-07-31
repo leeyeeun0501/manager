@@ -8,15 +8,19 @@ export default function NotificationButton() {
   const [inquiryCount, setInquiryCount] = useState(0)
   const router = useRouter()
 
+  // 문의 수 조회
   useEffect(() => {
     const fetchInquiryCount = async () => {
       try {
         const response = await fetch("/api/inquiry-route")
         if (response.ok) {
           const data = await response.json()
+          console.log("API 응답 데이터:", data)
           const pendingInquiries =
-            data.inquiries?.filter((inquiry) => inquiry.status === "대기중") ||
+            data.inquiries?.filter((inquiry) => inquiry.status === "pending") ||
             []
+          console.log("Pending 문의:", pendingInquiries)
+          console.log("Pending 개수:", pendingInquiries.length)
           setInquiryCount(pendingInquiries.length)
         }
       } catch (error) {
@@ -54,29 +58,30 @@ export default function NotificationButton() {
       }}
     >
       <FaBell size={20} color="#555" />
-      {inquiryCount > 0 && (
-        <span
-          style={{
-            position: "absolute",
-            top: -3,
-            right: -3,
-            background: "#ff4444",
-            color: "white",
-            borderRadius: "50%",
-            width: 16,
-            height: 16,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "10px",
-            fontWeight: "700",
-            border: "2px solid #fff",
-            animation: "pulse 2s infinite",
-          }}
-        >
-          {inquiryCount > 99 ? "99+" : inquiryCount}
-        </span>
-      )}
+             {inquiryCount > 0 && (
+         <span
+           style={{
+             position: "absolute",
+             top: -3,
+             right: -3,
+             background: "#ff4444",
+             color: "white",
+             borderRadius: "50%",
+             width: 20,
+             height: 20,
+             display: "flex",
+             alignItems: "center",
+             justifyContent: "center",
+             fontSize: "12px",
+             fontWeight: "bold",
+             border: "2px solid #fff",
+             zIndex: 1000,
+             boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+           }}
+         >
+           {inquiryCount > 99 ? "99+" : inquiryCount}
+         </span>
+       )}
     </button>
   )
 }

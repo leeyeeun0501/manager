@@ -410,10 +410,10 @@ export default function RoomManagePage() {
         body: JSON.stringify({
           from_building: filterBuilding,
           from_floor: filterFloor,
-          from_node: edgeFromNode?.id,
+          from_node: getNodeSuffix(edgeFromNode?.id),
           to_building: filterBuilding,
           to_floor: filterFloor,
-          to_node: edgeToNode?.id,
+          to_node: getNodeSuffix(edgeToNode?.id),
         }),
       })
 
@@ -452,27 +452,56 @@ export default function RoomManagePage() {
 
   // 엣지 연결 해제 함수
   const handleDisconnectEdge = async (targetNodeId) => {
-    if (
-      !edgeModalNode?.id ||
-      !targetNodeId ||
-      !filterBuilding ||
-      !filterFloor
-    ) {
-      showToast("건물명, 층, 노드 정보가 올바르지 않습니다.")
+    if (!edgeModalNode?.id || !targetNodeId) {
+      showToast("노드 정보가 올바르지 않습니다.")
       return
     }
+
     try {
+      // from 노드는 edgeModalNode에서 building, floor 정보를 직접 사용
+      const fromNodeInfo = {
+        building: edgeModalNode.building,
+        floor: edgeModalNode.floor,
+        node: getNodeSuffix(edgeModalNode.id),
+      }
+
+      // to 노드는 targetNodeId를 파싱
+      const toNodeInfo = parseNodeInfo(targetNodeId)
+
+      // 디버깅을 위한 로그
+      console.log("Edge Modal Node:", edgeModalNode)
+      console.log("Target Node ID:", targetNodeId)
+      console.log("From Node Info:", fromNodeInfo)
+      console.log("To Node Info:", toNodeInfo)
+
+      // 파싱된 값들이 유효한지 확인
+      if (
+        !fromNodeInfo.building ||
+        !fromNodeInfo.floor ||
+        !fromNodeInfo.node ||
+        !toNodeInfo.building ||
+        !toNodeInfo.floor ||
+        !toNodeInfo.node
+      ) {
+        showToast("노드 ID 형식이 올바르지 않습니다.")
+        return
+      }
+
+      const requestBody = {
+        from_building: fromNodeInfo.building,
+        from_floor: fromNodeInfo.floor,
+        from_node: fromNodeInfo.node,
+        to_building: toNodeInfo.building,
+        to_floor: toNodeInfo.floor,
+        to_node: toNodeInfo.node,
+      }
+
+      console.log("Request Body:", requestBody)
+
       const res = await fetch("/api/map-route", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from_building: filterBuilding,
-          from_floor: filterFloor,
-          from_node: getNodeSuffix(edgeModalNode.id),
-          to_building: filterBuilding,
-          to_floor: filterFloor,
-          to_node: getNodeSuffix(targetNodeId),
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       const data = await res.json()
@@ -736,13 +765,26 @@ export default function RoomManagePage() {
         body: JSON.stringify({
           from_building: fromNode.building,
           from_floor: fromNode.floor,
-          from_node: fromNode.id,
+          from_node: getNodeSuffix(fromNode.id),
           to_building: toBuilding,
           to_floor: toFloor,
           to_node: toNode,
         }),
       })
-      // 생략
+
+      const text = await res.text()
+      let data = {}
+      try {
+        data = JSON.parse(text)
+      } catch {}
+
+      if (!res.ok) {
+        showToast(data.error || "계단 연결 실패")
+        return
+      }
+
+      showToast("계단이 성공적으로 연결되었습니다.")
+      reloadMapData() // 연결 후 맵 데이터 새로고침
     } catch (err) {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
     }
@@ -751,6 +793,17 @@ export default function RoomManagePage() {
   // 노드 정보 파싱
   const parseNodeInfo = (fullId) => {
     const parts = fullId.split("@")
+    console.log("Parsing node ID:", fullId, "Parts:", parts)
+
+    if (parts.length < 3) {
+      console.error("Invalid node ID format:", fullId)
+      return {
+        building: "",
+        floor: "",
+        node: "",
+      }
+    }
+
     return {
       building: parts[0],
       floor: parts[1],

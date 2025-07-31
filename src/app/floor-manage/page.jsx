@@ -59,10 +59,12 @@ export default function BuildingPage() {
   const floorFiltered = selectedFloor
     ? floors.filter((f) => String(f.floor) === String(selectedFloor))
     : floors
+
   const floorTotalPages = Math.max(
     1,
     Math.ceil((floorFiltered.length || 0) / pageSize)
   )
+
   const floorPaged = floorFiltered.slice(
     (floorPage - 1) * pageSize,
     floorPage * pageSize
@@ -316,7 +318,6 @@ export default function BuildingPage() {
             className={styles["add-floor-btn"]}
             onClick={() => {
               setShowAddFloor(true)
-              // 선택된 건물이 있으면 자동으로 설정
               if (selectedBuilding) {
                 setAddFloorBuilding(selectedBuilding)
               } else {
@@ -949,7 +950,6 @@ export default function BuildingPage() {
                     alert("도면이 성공적으로 추가되었습니다!")
                     setFileAddModal({ open: false, building: "", floor: "" })
 
-                    // 도면 추가 후 층 리스트 갱신
                     await fetchFloors(fileAddModal.building)
                   } catch (err) {
                     setAddFileError("도면 추가 중 오류가 발생했습니다.")

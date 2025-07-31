@@ -827,96 +827,116 @@ export default function RoomManagePage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {pagedRooms.map((room, idx) => (
-                      <tr
-                        key={
-                          room.building && room.floor && room.name
-                            ? `${room.building}-${room.floor}-${room.name}`
-                            : `row-${idx}`
-                        }
-                      >
-                        <td>{room.building}</td>
-                        <td>{room.floor}</td>
-                        <td>{room.name}</td>
-                        <td>{room.description}</td>
-                        <td>
-                          {Array.isArray(room.room_user)
-                            ? room.room_user.filter((v) => v && v.trim())
-                                .length > 1
-                              ? room.room_user
-                                  .filter((v) => v && v.trim())
-                                  .join(", ")
-                              : room.room_user.find((v) => v && v.trim()) || ""
-                            : room.room_user && room.room_user.trim()
-                            ? room.room_user
-                            : ""}
-                        </td>
-                        <td>
-                          {Array.isArray(room.user_phone)
-                            ? room.user_phone.filter((v) => v && v.trim())
-                                .length > 1
-                              ? room.user_phone
-                                  .filter((v) => v && v.trim())
-                                  .join(", ")
-                              : room.user_phone.find((v) => v && v.trim()) || ""
-                            : room.user_phone && room.user_phone.trim()
-                            ? room.user_phone
-                            : ""}
-                        </td>
-                        <td>
-                          {Array.isArray(room.user_email)
-                            ? room.user_email.filter((v) => v && v.trim())
-                                .length > 1
-                              ? room.user_email
-                                  .filter((v) => v && v.trim())
-                                  .join(", ")
-                              : room.user_email.find((v) => v && v.trim()) || ""
-                            : room.user_email && room.user_email.trim()
-                            ? room.user_email
-                            : ""}
-                        </td>
-                        <td>
-                          <button
-                            style={{
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: 0,
-                              marginLeft: 3,
-                            }}
-                            title="강의실 전체 정보 수정"
-                            onClick={() => {
-                              setEditRoom(room)
-                              setEditRoomName(room.name)
-                              setEditRoomDesc(room.description || "")
-                              setEditRoomUsers(
-                                Array.isArray(room.room_user)
-                                  ? room.room_user.map((user, i) => ({
-                                      user: user || "",
-                                      phone: Array.isArray(room.user_phone)
-                                        ? room.user_phone[i] || ""
-                                        : room.user_phone || "",
-                                      email: Array.isArray(room.user_email)
-                                        ? room.user_email[i] || ""
-                                        : room.user_email || "",
-                                    }))
-                                  : [
-                                      {
-                                        user: room.room_user || "",
-                                        phone: room.user_phone || "",
-                                        email: room.user_email || "",
-                                      },
-                                    ]
-                              )
-                              setEditRoomError("")
-                              setShowEditRoomModal(true)
-                            }}
-                          >
-                            <MdEditSquare size={20} color="#007bff" />
-                          </button>
+                    {pagedRooms.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan="8"
+                          style={{
+                            textAlign: "center",
+                            padding: "40px 20px",
+                            color: "#666",
+                            fontSize: "16px",
+                            fontWeight: "500",
+                          }}
+                        >
+                          데이터가 없습니다
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      pagedRooms.map((room, idx) => (
+                        <tr
+                          key={
+                            room.building && room.floor && room.name
+                              ? `${room.building}-${room.floor}-${room.name}`
+                              : `row-${idx}`
+                          }
+                        >
+                          <td>{room.building}</td>
+                          <td>{room.floor}</td>
+                          <td>{room.name}</td>
+                          <td>{room.description}</td>
+                          <td>
+                            {Array.isArray(room.room_user)
+                              ? room.room_user.filter((v) => v && v.trim())
+                                  .length > 1
+                                ? room.room_user
+                                    .filter((v) => v && v.trim())
+                                    .join(", ")
+                                : room.room_user.find((v) => v && v.trim()) ||
+                                  ""
+                              : room.room_user && room.room_user.trim()
+                              ? room.room_user
+                              : ""}
+                          </td>
+                          <td>
+                            {Array.isArray(room.user_phone)
+                              ? room.user_phone.filter((v) => v && v.trim())
+                                  .length > 1
+                                ? room.user_phone
+                                    .filter((v) => v && v.trim())
+                                    .join(", ")
+                                : room.user_phone.find((v) => v && v.trim()) ||
+                                  ""
+                              : room.user_phone && room.user_phone.trim()
+                              ? room.user_phone
+                              : ""}
+                          </td>
+                          <td>
+                            {Array.isArray(room.user_email)
+                              ? room.user_email.filter((v) => v && v.trim())
+                                  .length > 1
+                                ? room.user_email
+                                    .filter((v) => v && v.trim())
+                                    .join(", ")
+                                : room.user_email.find((v) => v && v.trim()) ||
+                                  ""
+                              : room.user_email && room.user_email.trim()
+                              ? room.user_email
+                              : ""}
+                          </td>
+                          <td>
+                            <button
+                              style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: 0,
+                                marginLeft: 3,
+                              }}
+                              title="강의실 전체 정보 수정"
+                              onClick={() => {
+                                setEditRoom(room)
+                                setEditRoomName(room.name)
+                                setEditRoomDesc(room.description || "")
+                                setEditRoomUsers(
+                                  Array.isArray(room.room_user)
+                                    ? room.room_user.map((user, i) => ({
+                                        user: user || "",
+                                        phone: Array.isArray(room.user_phone)
+                                          ? room.user_phone[i] || ""
+                                          : room.user_phone || "",
+                                        email: Array.isArray(room.user_email)
+                                          ? room.user_email[i] || ""
+                                          : room.user_email || "",
+                                      }))
+                                    : [
+                                        {
+                                          user: room.room_user || "",
+                                          phone: room.user_phone || "",
+                                          email: room.user_email || "",
+                                        },
+                                      ]
+                                )
+                                setEditRoomError("")
+                                setShowEditRoomModal(true)
+                              }}
+                            >
+                              <MdEditSquare size={20} color="#007bff" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
                 {/* 페이지네이션 */}

@@ -112,7 +112,6 @@
   padding: 8px 8px;
   border: 1px solid #eee;
   text-align: center;
-  /* word-break은 필요없음, 한 줄만 보여주기 위함 */
 }
 
 .user-table th {

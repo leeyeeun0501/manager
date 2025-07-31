@@ -437,9 +437,15 @@ export default function BuildingPage() {
                 <tr>
                   <td
                     colSpan={4}
-                    style={{ textAlign: "center", color: "#aaa" }}
+                    style={{
+                      textAlign: "center",
+                      padding: "40px 20px",
+                      color: "#666",
+                      fontSize: "16px",
+                      fontWeight: "500",
+                    }}
                   >
-                    데이터가 없습니다.
+                    데이터가 없습니다
                   </td>
                 </tr>
               )}

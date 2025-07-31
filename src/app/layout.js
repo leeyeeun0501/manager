@@ -10,7 +10,8 @@ export default function RootLayout({ children }) {
   const pathname = usePathname()
   const router = useRouter()
   const hideMenuAndProfile = pathname === "/login" || pathname === "/signup"
-  const hideNotification = pathname === "/inquiry"
+  const hideNotification =
+    pathname === "/inquiry" || pathname === "/login" || pathname === "/signup"
 
   useEffect(() => {
     const id = localStorage.getItem("id")

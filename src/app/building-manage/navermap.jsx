@@ -121,7 +121,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     setCurrentImageArr([])
   }, [deletePopup.node_name])
 
-  // 이미지 배열이 변경될 때마다 현재 이미지 배열 상태 업데이트
   useEffect(() => {
     if (!deletePopup.open || !deletePopup.node_name) return
 
@@ -174,14 +173,13 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     fetchBuildingData()
   }, [deletePopup.open, deletePopup.node_name])
 
-  // 이미지 인덱스가 배열 범위를 벗어나지 않도록 보정
   useEffect(() => {
     if (buildingImageIndex >= currentImageArr.length) {
       setBuildingImageIndex(Math.max(0, currentImageArr.length - 1))
     }
   }, [currentImageArr, buildingImageIndex])
 
-  // 네이버 지도 스크립트 중복 삽입 없이 1회만 로딩
+  // 네이버 지도 스크립트 로딩
   useEffect(() => {
     if (typeof window === "undefined") return
     const existing = document.querySelector('script[src*="maps.js"]')
@@ -628,7 +626,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files)
     setNewBuildingImages((prev) => [...prev, ...files])
-    e.target.value = "" // 입력 필드 초기화
+    e.target.value = ""
   }
 
   // nodes 데이터 fetch
@@ -842,11 +840,10 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
       console.log("새로 추가된 이미지 개수:", newBuildingImages.length)
 
-      // 새로 추가된 이미지가 있는 경우에만 이미지 추가 (건물 추가와 동일한 방식)
       if (newBuildingImages.length > 0) {
         newBuildingImages.forEach((image, index) => {
           console.log(`이미지 ${index} 추가:`, image.name)
-          formData.append(`images[${index}]`, image) // 배열 인덱스로 전송
+          formData.append(`images[${index}]`, image)
         })
       }
 
@@ -871,7 +868,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
       if (data && !data.error) {
         alert("정보 수정 완료!")
-        // 최신 정보 다시 불러오기
         const res2 = await fetch("/api/building-route")
         const json2 = await res2.json()
         if (json2.all && Array.isArray(json2.all)) {
@@ -883,7 +879,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
           if (found) {
             setBuildingDesc(found.Description || found.Desc || found.desc || "")
 
-            // 이미지 배열 업데이트
             let newImageArr = []
             if (Array.isArray(found.Image) && found.Image.length > 0) {
               newImageArr = [...found.Image]
@@ -900,7 +895,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
             }
           }
         }
-        // 이미지 선택 초기화
         setNewBuildingImages([])
         setBuildingImageIndex(0)
       } else {
@@ -913,7 +907,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     setBuildingDescLoading(false)
   }
 
-  // 다음 O 노드 이름 생성
+  // 다음 바깥 노드 이름 생성
   function getNextONodeName() {
     const oNumbers = nodes
       .map((n) => n.id || n.node_name)
@@ -1350,7 +1344,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                               ...prev,
                               ...newFiles,
                             ])
-                            e.target.value = "" // 입력 필드 초기화
+                            e.target.value = ""
                           }}
                           style={{ display: "none" }}
                         />
@@ -1563,14 +1557,12 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                   {/* 건물일 때만 설명 입력란 + 이미지 표시 + 수정 버튼 */}
                   {deletePopup.type === "building" &&
                     (() => {
-                      // nodes에서 현재 팝업에 해당하는 건물 찾기
                       const found = nodes.find(
                         (b) =>
                           b.Building_Name === deletePopup.node_name ||
                           b.name === deletePopup.node_name
                       )
 
-                      // 이미지 배열 생성 로직 개선
                       let imageArr = []
                       if (found) {
                         console.log("Image 필드:", found.Image)
@@ -1998,9 +1990,9 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         <div
           style={{
             position: "fixed",
-            top: 32, // 상단에서 32px 위치
-            left: "50%", // 가로 가운데 위치
-            transform: "translateX(-50%)", // 가로 방향으로 자기 너비의 절반만큼 왼쪽 이동하여 정확한 중앙 정렬
+            top: 32,
+            left: "50%",
+            transform: "translateX(-50%)",
             zIndex: 3500,
             background: "#00C3FF",
             color: "#fff",

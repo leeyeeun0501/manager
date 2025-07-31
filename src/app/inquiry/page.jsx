@@ -1,3 +1,4 @@
+// inquiry
 "use client"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
@@ -31,9 +32,12 @@ export default function InquiryPage() {
     }
     return 1
   })
+
+  // 문의 불러오기
   useEffect(() => {
     fetchInquiries()
   }, [])
+
   useEffect(() => {
     localStorage.setItem("INQUIRY_MANAGE_PAGE", currentPage)
   }, [currentPage])
@@ -47,7 +51,6 @@ export default function InquiryPage() {
       let list = []
       if (Array.isArray(data)) list = data
       else if (Array.isArray(data.inquiries)) list = data.inquiries
-      // 서버 필드명 → 클라이언트 필드명 매핑
       const mappedList = list.map((item) => ({
         id: item.User_Id,
         inquiry_code: item.Inquiry_Code,
@@ -62,12 +65,10 @@ export default function InquiryPage() {
       }))
       setInquiries(mappedList)
 
-      // 서버에서 받아온 카테고리로 옵션 생성
       const categories = [
         ...new Set(mappedList.map((item) => item.category).filter(Boolean)),
       ]
 
-      // 기본 카테고리 옵션들
       const defaultCategories = [
         "경로 안내 오류",
         "장소/정보 오류",
@@ -76,7 +77,6 @@ export default function InquiryPage() {
         "기타 문의",
       ]
 
-      // 서버 카테고리와 기본 카테고리를 합쳐서 중복 제거
       const allCategories = [...new Set([...categories, ...defaultCategories])]
 
       const options = [
@@ -94,23 +94,26 @@ export default function InquiryPage() {
   // 모달·사진·답변 함수
   const openModal = (inquiry) => {
     setSelectedInquiry(inquiry)
-    // 기존 답변이 있으면 미리 표시
     setAnswerText(inquiry.answer || "")
     setIsModalOpen(true)
   }
+
   const closeModal = () => {
     setIsModalOpen(false)
     setSelectedInquiry(null)
     setAnswerText("")
   }
+
   const openImageModal = (imageUrl) => {
     setSelectedImage(imageUrl)
     setIsImageModalOpen(true)
   }
+
   const closeImageModal = () => {
     setIsImageModalOpen(false)
     setSelectedImage("")
   }
+
   const submitAnswer = async () => {
     if (!answerText.trim()) {
       alert("답변 내용을 입력해주세요.")
@@ -155,8 +158,11 @@ export default function InquiryPage() {
     category === "all"
       ? inquiries
       : inquiries.filter((q) => q.category === category)
+
   const totalInquiries = filtered.length
+
   const totalPages = Math.max(1, Math.ceil(totalInquiries / itemsPerPage))
+
   const pagedInquiries = filtered.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage

@@ -46,7 +46,7 @@ export default function NaverMapSimple({ markers = [] }) {
   const [ready, setReady] = useState(false)
   const [pathData, setPathData] = useState([])
 
-  // 1. 네이버 지도 스크립트 중복 삽입 없이 1회만 로딩
+  // 네이버 지도 스크립트
   useEffect(() => {
     if (typeof window === "undefined") return
     const existing = document.querySelector('script[src*="maps.js"]')
@@ -61,10 +61,9 @@ export default function NaverMapSimple({ markers = [] }) {
     script.async = true
     script.onload = () => setReady(true)
     document.head.appendChild(script)
-    // cleanup 생략(한 번만 로드)
   }, [])
 
-  // 2. ready (스크립트 로드 완료) 후, 지도 객체 단 한번 생성
+  // ready (스크립트 로드 완료) 후, 지도 객체 생성
   useEffect(() => {
     if (!ready) return
     if (
@@ -75,7 +74,6 @@ export default function NaverMapSimple({ markers = [] }) {
     )
       return
     if (!mapInstanceRef.current) {
-      // center/zoom from localStorage → 없으면 기본값
       let center = new window.naver.maps.LatLng(36.3377622, 127.4460928)
       let zoom = 17
       try {
@@ -93,14 +91,13 @@ export default function NaverMapSimple({ markers = [] }) {
     }
   }, [ready])
 
-  // 3. tower-route 데이터 가져오기
+  // tower-route 데이터 가져오기
   useEffect(() => {
     const fetchPathData = async () => {
       try {
         const response = await fetch("/api/tower-route")
         const data = await response.json()
         if (data.nodes && Array.isArray(data.nodes)) {
-          // O가 포함된 노드 제외
           const filteredNodes = data.nodes.filter(
             (node) => node.id && !node.id.toString().includes("O")
           )
@@ -114,7 +111,7 @@ export default function NaverMapSimple({ markers = [] }) {
     fetchPathData()
   }, [])
 
-  // 4. markers가 변경될 때마다 마커 갱신
+  // markers가 변경될 때마다 마커 갱신
   useEffect(() => {
     if (
       typeof window === "undefined" ||
@@ -124,7 +121,6 @@ export default function NaverMapSimple({ markers = [] }) {
     )
       return
 
-    // 기존 marker 모두 제거
     markerObjsRef.current.forEach((m) => m.setMap(null))
     markerObjsRef.current = []
 
@@ -147,7 +143,7 @@ export default function NaverMapSimple({ markers = [] }) {
     })
   }, [markers, ready])
 
-  // 5. pathData가 변경될 때마다 경로 마커 그리기
+  // pathData가 변경될 때마다 경로 마커 그리기
   useEffect(() => {
     if (
       typeof window === "undefined" ||
@@ -158,12 +154,10 @@ export default function NaverMapSimple({ markers = [] }) {
     )
       return
 
-    // 기존 경로 마커 제거
     if (pathRef.current) {
       pathRef.current.forEach((marker) => marker.setMap(null))
     }
 
-    // 경로 마커 생성
     const pathMarkers = pathData.map((node) => {
       return new window.naver.maps.Marker({
         position: new window.naver.maps.LatLng(node.x, node.y),

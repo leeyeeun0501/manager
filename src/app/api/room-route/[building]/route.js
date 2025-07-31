@@ -31,7 +31,6 @@ export async function DELETE(request, { params }) {
     const { building } = await params
     console.log("삭제 요청 - 건물명:", building)
 
-    // 요청 본문에서 이미지 URL 배열 가져오기
     let imageUrls = []
     try {
       const body = await request.json()
@@ -39,7 +38,6 @@ export async function DELETE(request, { params }) {
       console.log("받은 이미지 URL들:", imageUrls)
     } catch (error) {
       console.error("요청 본문 파싱 실패:", error)
-      // 기존 방식 호환성을 위해 query parameter도 확인
       const { searchParams } = new URL(request.url)
       const imageUrl = searchParams.get("image_url")
       if (imageUrl) {
@@ -55,7 +53,6 @@ export async function DELETE(request, { params }) {
       )
     }
 
-    // 모든 이미지를 한 번에 묶어서 삭제 요청
     const url = `${API_BASE}/building/${encodeURIComponent(building)}/image`
     console.log("외부 API URL:", url)
     console.log("전송할 데이터:", { image_urls: imageUrls })
@@ -66,7 +63,7 @@ export async function DELETE(request, { params }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ image_urls: imageUrls }), // 배열로 한 번에 전송
+        body: JSON.stringify({ image_urls: imageUrls }),
       })
 
       console.log("외부 API 응답 상태:", response.status)
@@ -96,20 +93,17 @@ export async function DELETE(request, { params }) {
         )
       }
 
-      // 성공 응답 처리 - 먼저 텍스트로 읽어서 확인
       let result
       try {
         const responseText = await response.text()
         console.log("외부 API 응답 텍스트:", responseText)
 
-        // 텍스트가 JSON인지 확인
         if (
           responseText.trim().startsWith("{") ||
           responseText.trim().startsWith("[")
         ) {
           result = JSON.parse(responseText)
         } else {
-          // JSON이 아닌 텍스트인 경우
           result = { message: responseText }
         }
       } catch (parseError) {

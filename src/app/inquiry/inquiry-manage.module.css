@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   margin-bottom: 20px;
-  gap: 12px;
+  gap: 24px;
   margin-left: 0;
   margin-right: auto;
   margin-top: 0;
@@ -72,6 +72,55 @@
   padding: 32px;
   color: #888;
   font-size: 16px;
+}
+
+/* 문의 통계 스타일 */
+.inquiryStatsWrapper {
+  background: #eaf2fd;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin: 0 20px 30px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.inquiryStatsContainer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  justify-content: center;
+}
+
+.inquiryStatsBox {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 16px 20px;
+  min-width: 100px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.inquiryStatsBox:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.statsLabel {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.statsValue {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2574f5;
 }
 
 .inquiryTable {

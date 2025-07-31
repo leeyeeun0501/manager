@@ -33,6 +33,14 @@ export default function InquiryPage() {
     return 1
   })
 
+  // 문의 통계 상태
+  const [inquiryStats, setInquiryStats] = useState({
+    total: 0,
+    pending: 0,
+    answered: 0,
+    answerRate: 0,
+  })
+
   // 문의 불러오기
   useEffect(() => {
     fetchInquiries()
@@ -65,6 +73,24 @@ export default function InquiryPage() {
       }))
       setInquiries(mappedList)
 
+      // 문의 통계 계산
+      const total = mappedList.length
+      const pending = mappedList.filter(
+        (q) => q.status === "pending" || q.status === "대기중" || !q.status
+      ).length
+      const answered = mappedList.filter(
+        (q) => q.status === "answered" || q.status === "답변완료"
+      ).length
+      const answerRate = total > 0 ? Math.round((answered / total) * 100) : 0
+
+      const stats = {
+        total,
+        pending,
+        answered,
+        answerRate,
+      }
+      setInquiryStats(stats)
+
       const categories = [
         ...new Set(mappedList.map((item) => item.category).filter(Boolean)),
       ]
@@ -87,6 +113,7 @@ export default function InquiryPage() {
     } catch (err) {
       setInquiries([])
       setCategoryOptions([{ value: "all", label: "문의 유형 전체" }])
+      setInquiryStats({ total: 0, pending: 0, answered: 0, answerRate: 0 })
     }
     setLoading(false)
   }
@@ -191,6 +218,35 @@ export default function InquiryPage() {
                 ))}
               </select>
             </div>
+
+            {/* 문의 통계 */}
+            <div className={styles.inquiryStatsWrapper}>
+              <div className={styles.inquiryStatsContainer}>
+                <div className={styles.inquiryStatsBox}>
+                  <div className={styles.statsLabel}>전체</div>
+                  <div className={styles.statsValue}>{inquiryStats.total}</div>
+                </div>
+                <div className={styles.inquiryStatsBox}>
+                  <div className={styles.statsLabel}>대기중</div>
+                  <div className={styles.statsValue}>
+                    {inquiryStats.pending}
+                  </div>
+                </div>
+                <div className={styles.inquiryStatsBox}>
+                  <div className={styles.statsLabel}>답변완료</div>
+                  <div className={styles.statsValue}>
+                    {inquiryStats.answered}
+                  </div>
+                </div>
+                <div className={styles.inquiryStatsBox}>
+                  <div className={styles.statsLabel}>답변율</div>
+                  <div className={styles.statsValue}>
+                    {inquiryStats.answerRate}%
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <table className={`${styles.inquiryTable} ${styles.centerTable}`}>
               <thead>
                 <tr>

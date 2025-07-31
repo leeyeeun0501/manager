@@ -1,4 +1,3 @@
-// login
 "use client"
 import "../globals.css"
 import { useState } from "react"
@@ -25,8 +24,9 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (data.islogin) {
-        localStorage.setItem("id", data.id)
-        localStorage.setItem("name", data.name)
+        // localStorage key를 "userId"로 통일
+        localStorage.setItem("userId", data.id)
+        localStorage.setItem("userName", data.name)
         localStorage.setItem("islogin", data.islogin)
         router.push("/management")
       } else {

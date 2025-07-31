@@ -1,5 +1,5 @@
+// inquiry-route
 import { NextResponse } from "next/server"
-import { API_BASE } from "../apibase"
 import { AUTH_API_BASE } from "../apibase"
 
 // 문의 목록 조회 (GET)

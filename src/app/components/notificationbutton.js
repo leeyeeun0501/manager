@@ -16,8 +16,19 @@ export default function NotificationButton() {
         if (response.ok) {
           const data = await response.json()
           console.log("API 응답 데이터:", data)
+          console.log("문의 목록:", data.inquiries)
+
+          // 첫 번째 문의의 구조 확인
+          if (data.inquiries && data.inquiries.length > 0) {
+            console.log("첫 번째 문의 구조:", data.inquiries[0])
+            console.log(
+              "첫 번째 문의의 모든 키:",
+              Object.keys(data.inquiries[0])
+            )
+          }
+
           const pendingInquiries =
-            data.inquiries?.filter((inquiry) => inquiry.status === "pending") ||
+            data.inquiries?.filter((inquiry) => inquiry.Status === "pending") ||
             []
           console.log("Pending 문의:", pendingInquiries)
           console.log("Pending 개수:", pendingInquiries.length)
@@ -58,30 +69,53 @@ export default function NotificationButton() {
       }}
     >
       <FaBell size={20} color="#555" />
-             {inquiryCount > 0 && (
-         <span
-           style={{
-             position: "absolute",
-             top: -3,
-             right: -3,
-             background: "#ff4444",
-             color: "white",
-             borderRadius: "50%",
-             width: 20,
-             height: 20,
-             display: "flex",
-             alignItems: "center",
-             justifyContent: "center",
-             fontSize: "12px",
-             fontWeight: "bold",
-             border: "2px solid #fff",
-             zIndex: 1000,
-             boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
-           }}
-         >
-           {inquiryCount > 99 ? "99+" : inquiryCount}
-         </span>
-       )}
+      {/* 임시 테스트용 - 항상 표시 */}
+      <span
+        style={{
+          position: "absolute",
+          top: -3,
+          right: -3,
+          background: "#ff4444",
+          color: "white",
+          borderRadius: "50%",
+          width: 20,
+          height: 20,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "12px",
+          fontWeight: "bold",
+          border: "2px solid #fff",
+          zIndex: 1000,
+          boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+        }}
+      >
+        {inquiryCount}
+      </span>
+      {inquiryCount > 0 && (
+        <span
+          style={{
+            position: "absolute",
+            top: -3,
+            right: -3,
+            background: "#ff4444",
+            color: "white",
+            borderRadius: "50%",
+            width: 20,
+            height: 20,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "12px",
+            fontWeight: "bold",
+            border: "2px solid #fff",
+            zIndex: 1000,
+            boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+          }}
+        >
+          {inquiryCount > 99 ? "99+" : inquiryCount}
+        </span>
+      )}
     </button>
   )
 }

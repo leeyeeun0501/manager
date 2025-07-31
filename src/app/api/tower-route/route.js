@@ -2,13 +2,9 @@
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 
-// 임시 로컬 저장소 (외부 API가 작동하지 않을 때 사용)
-let localNodes = []
-
 // 전체 데이터 조회 (GET)
 export async function GET() {
   try {
-    // 먼저 외부 API 시도
     try {
       const res = await fetch(`${API_BASE}/path/`, {
         method: "GET",
@@ -26,11 +22,8 @@ export async function GET() {
           : []
         return NextResponse.json({ nodes })
       }
-    } catch (externalError) {
-      // 외부 API 연결 실패 시 로컬 데이터 사용
-    }
+    } catch (externalError) {}
 
-    // 외부 API 실패 시 로컬 데이터 반환
     return NextResponse.json({ nodes: localNodes })
   } catch (err) {
     return NextResponse.json({ error: "서버 오류" }, { status: 500 })
@@ -86,13 +79,11 @@ export async function PUT(request) {
 // 건물/노드 추가 (POST)
 export async function POST(request) {
   try {
-    // Content-Type 확인하여 FormData인지 JSON인지 판단
     const contentType = request.headers.get("content-type") || ""
 
     let type, node_name, x, y, desc, images
 
     if (contentType.includes("multipart/form-data")) {
-      // FormData 처리 (이미지 포함)
       const formData = await request.formData()
 
       type = formData.get("type")
@@ -101,7 +92,6 @@ export async function POST(request) {
       y = formData.get("y")
       desc = formData.get("desc")
 
-      // 배열 인덱스로 이미지들 가져오기
       images = []
       let index = 0
       while (formData.get(`images[${index}]`)) {
@@ -109,7 +99,6 @@ export async function POST(request) {
         index++
       }
     } else {
-      // JSON 처리 (기존 방식)
       const json = await request.json()
       type = json.type
       node_name = json.node_name
@@ -132,7 +121,6 @@ export async function POST(request) {
       )
     }
 
-    // FormData로 외부 API 호출
     const formDataToSend = new FormData()
     formDataToSend.append("type", type)
     formDataToSend.append("node_name", node_name)
@@ -147,7 +135,6 @@ export async function POST(request) {
       })
     }
 
-    // 먼저 외부 API 시도
     try {
       const res = await fetch(`${API_BASE}/path/create`, {
         method: "POST",
@@ -162,7 +149,6 @@ export async function POST(request) {
 
       return NextResponse.json({ success: true, node: data })
     } catch (externalError) {
-      // 외부 API 실패 시 로컬 저장소에 저장
       const newNode = {
         id: Date.now().toString(),
         type,
@@ -204,7 +190,6 @@ export async function DELETE(request) {
       )
     }
 
-    // 먼저 외부 API 시도
     try {
       const res = await fetch(`${API_BASE}/path/`, {
         method: "DELETE",
@@ -220,7 +205,6 @@ export async function DELETE(request) {
 
       return NextResponse.json({ success: true, message: "삭제 성공", data })
     } catch (externalError) {
-      // 외부 API 실패 시 로컬 데이터에서 삭제
       const initialLength = localNodes.length
       localNodes = localNodes.filter(
         (node) => !(node.type === type && node.node_name === node_name)

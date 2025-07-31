@@ -98,7 +98,7 @@ export default function RoomManagePage() {
   ])
 
   // SVG 노드 파싱 함수
-  const parseSvgNodes = (svgXml) => {
+  const parseSvgNodes = (svgXml, building, floor) => {
     const parser = new DOMParser()
     const doc = parser.parseFromString(svgXml, "image/svg+xml")
     const nodes = []
@@ -117,8 +117,11 @@ export default function RoomManagePage() {
     const allElements = navigationLayer.querySelectorAll("*[id]")
 
     allElements.forEach((element) => {
-      const id = element.getAttribute("id")
-      if (!id) return
+      const nodeSuffix = element.getAttribute("id")
+      if (!nodeSuffix) return
+
+      // 전체 노드 ID 생성 (Building@Floor@node_id 형식)
+      const fullNodeId = `${building}@${floor}@${nodeSuffix}`
 
       let x = 0,
         y = 0,
@@ -212,7 +215,7 @@ export default function RoomManagePage() {
       }
 
       nodes.push({
-        id,
+        id: fullNodeId,
         x,
         y,
         width,
@@ -381,7 +384,11 @@ export default function RoomManagePage() {
                 setSvgRaw(processedSvg)
                 setRoomNodes(nodesInfo)
                 setEdges(edgesInfo)
-                const parsedNodes = parseSvgNodes(svgXml)
+                const parsedNodes = parseSvgNodes(
+                  svgXml,
+                  filterBuilding,
+                  filterFloor
+                )
                 setSvgNodes(parsedNodes)
               })
           }
@@ -634,7 +641,11 @@ export default function RoomManagePage() {
                 setSvgRaw(processedSvg)
                 setRoomNodes(nodesInfo)
                 setEdges(edgesInfo)
-                const parsedNodes = parseSvgNodes(svgXml)
+                const parsedNodes = parseSvgNodes(
+                  svgXml,
+                  filterBuilding,
+                  filterFloor
+                )
                 setSvgNodes(parsedNodes)
               })
               .catch(() => {
@@ -741,19 +752,33 @@ export default function RoomManagePage() {
 
   // 중복 엣지 체크
   function isEdgeDuplicate(edges, fromId, toId) {
-    const fromSuffix = getNodeSuffix(fromId)
-    const toSuffix = getNodeSuffix(toId)
-    return edges.some(
-      (e) =>
-        getNodeSuffix(e.from) === fromSuffix && getNodeSuffix(e.to) === toSuffix
-    )
+    // 건물, 층, 노드를 모두 고려한 정확한 중복 체크
+    const fromInfo = parseNodeInfo(fromId)
+    const toInfo = parseNodeInfo(toId)
+
+    return edges.some((e) => {
+      const eFromInfo = parseNodeInfo(e.from)
+      const eToInfo = parseNodeInfo(e.to)
+
+      return (
+        eFromInfo.building === fromInfo.building &&
+        eFromInfo.floor === fromInfo.floor &&
+        eFromInfo.node === fromInfo.node &&
+        eToInfo.building === toInfo.building &&
+        eToInfo.floor === toInfo.floor &&
+        eToInfo.node === toInfo.node
+      )
+    })
   }
 
   // 계단 연결
   async function connectEdgeToStairs(fromNode, toNodeInfo) {
     const { building: toBuilding, floor: toFloor, node: toNode } = toNodeInfo
 
-    if (isEdgeDuplicate(edges, fromNode?.id, toNode)) {
+    // 전체 노드 ID 생성 (toNodeInfo를 사용하여 정확한 중복 체크)
+    const toNodeFullId = `${toBuilding}@${toFloor}@${toNode}`
+
+    if (isEdgeDuplicate(edges, fromNode?.id, toNodeFullId)) {
       showToast("이미 연결된 엣지입니다.")
       return
     }
@@ -1099,18 +1124,35 @@ export default function RoomManagePage() {
                           zIndex: 2,
                         }}
                       >
-                        {/* edges 배열이 있다면, id 파싱 후 연결선 표시 */}
+                        {/* edges 배열이 있다면, 현재 층의 연결된 노드만 선으로 표시 */}
                         {edges &&
                           edges.map((edge, idx) => {
-                            const fromSuffix = getNodeSuffix(edge.from)
-                            const toSuffix = getNodeSuffix(edge.to)
+                            // 엣지의 양쪽 노드 정보 파싱
+                            const fromInfo = parseNodeInfo(edge.from)
+                            const toInfo = parseNodeInfo(edge.to)
+
+                            // 현재 선택된 건물과 층에 해당하는 엣지만 표시
+                            if (
+                              fromInfo.building !== filterBuilding ||
+                              fromInfo.floor !== filterFloor ||
+                              toInfo.building !== filterBuilding ||
+                              toInfo.floor !== filterFloor
+                            ) {
+                              return null
+                            }
+
+                            // 현재 층의 SVG 노드에서 해당 노드들 찾기
                             const fromNode = svgNodes.find(
-                              (node) => getNodeSuffix(node.id) === fromSuffix
+                              (node) => node.id === edge.from
                             )
                             const toNode = svgNodes.find(
-                              (node) => getNodeSuffix(node.id) === toSuffix
+                              (node) => node.id === edge.to
                             )
-                            if (!fromNode || !toNode) return null
+
+                            if (!fromNode || !toNode) {
+                              return null
+                            }
+
                             return (
                               <line
                                 key={idx}

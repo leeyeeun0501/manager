@@ -31,7 +31,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
 
   // 로그아웃 핸들러
   const handleLogout = async () => {
-    const id = localStorage.getItem("id")
+    const id = localStorage.getItem("userId")
     try {
       const res = await fetch("/api/logout-route", {
         method: "POST",
@@ -39,7 +39,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
         body: JSON.stringify({ id }),
       })
       if (res.ok) {
-        localStorage.removeItem("id")
+        localStorage.removeItem("userId")
         localStorage.removeItem("userName")
         localStorage.removeItem("islogin")
         sessionStorage.removeItem("passwordVerified")

@@ -8,7 +8,7 @@ export default function ProfileButton() {
 
   return (
     <button
-      onClick={() => router.push("/mypage")}
+      onClick={() => router.push("/mypage/verify-password")}
       aria-label="마이페이지로 이동"
       style={{
         background: "transparent",

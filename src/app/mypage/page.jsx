@@ -23,6 +23,7 @@ export default function MyPage() {
     email: "",
   })
   const [pw, setPw] = useState("")
+  const [pwConfirm, setPwConfirm] = useState("")
   const [editMsg, setEditMsg] = useState("")
   const [loading, setLoading] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -111,6 +112,13 @@ export default function MyPage() {
   const handleEdit = async (e) => {
     e.preventDefault()
     setEditMsg("")
+
+    // 비밀번호가 입력된 경우 확인
+    if (pw && pw !== pwConfirm) {
+      setEditMsg("새 비밀번호가 일치하지 않습니다.")
+      return
+    }
+
     setLoading(true)
     try {
       const domain =
@@ -131,6 +139,7 @@ export default function MyPage() {
         setShowPopup(true)
         setTimeout(() => setShowPopup(false), 2000)
         setPw("")
+        setPwConfirm("")
       } else {
         setEditMsg(data.error || "수정 실패")
       }
@@ -268,6 +277,13 @@ export default function MyPage() {
             value={pw}
             onChange={(e) => setPw(e.target.value)}
             placeholder="새 비밀번호"
+          />
+          <input
+            className={styles["mypage-input"]}
+            type="password"
+            value={pwConfirm}
+            onChange={(e) => setPwConfirm(e.target.value)}
+            placeholder="새 비밀번호 확인"
           />
           <button
             type="submit"

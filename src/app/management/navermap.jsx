@@ -120,16 +120,23 @@ export default function NaverMapSimple({ markers = [] }) {
   useEffect(() => {
     const fetchBuildingData = async () => {
       try {
+        // 기존 데이터 초기화
+        setBuildingData([])
+
         const response = await fetch("/api/tower-route")
         const data = await response.json()
+
         if (data.nodes && Array.isArray(data.nodes)) {
           const buildings = data.nodes.filter(
             (node) => node.id && !node.id.toString().includes("O")
           )
           setBuildingData(buildings)
+        } else {
+          setBuildingData([])
         }
       } catch (error) {
         console.error("건물 데이터 조회 실패:", error)
+        setBuildingData([])
       }
     }
 
@@ -139,9 +146,15 @@ export default function NaverMapSimple({ markers = [] }) {
   // 건물 상세 정보 가져오기
   useEffect(() => {
     const fetchBuildingDetails = async () => {
-      if (!selectedBuilding) return
+      if (!selectedBuilding) {
+        setBuildingDetails(null)
+        return
+      }
 
       try {
+        // 이전 건물 정보 초기화
+        setBuildingDetails(null)
+
         const buildingName = selectedBuilding.node_name || selectedBuilding.id
 
         // 전체 건물 목록에서 해당 건물 찾기
@@ -219,16 +232,30 @@ export default function NaverMapSimple({ markers = [] }) {
       typeof window === "undefined" ||
       !window.naver ||
       !window.naver.maps ||
-      !mapInstanceRef.current ||
-      buildingData.length === 0
+      !mapInstanceRef.current
     )
       return
 
     // 기존 건물 마커와 원 제거
-    buildingMarkersRef.current.forEach((marker) => marker.setMap(null))
-    buildingCirclesRef.current.forEach((circle) => circle.setMap(null))
+    buildingMarkersRef.current.forEach((marker) => {
+      if (marker && typeof marker.setMap === "function") {
+        try {
+          marker.setMap(null)
+        } catch (e) {}
+      }
+    })
+    buildingCirclesRef.current.forEach((circle) => {
+      if (circle && typeof circle.setMap === "function") {
+        try {
+          circle.setMap(null)
+        } catch (e) {}
+      }
+    })
     buildingMarkersRef.current = []
     buildingCirclesRef.current = []
+
+    // buildingData가 없으면 마커 생성하지 않음
+    if (!buildingData || buildingData.length === 0) return
 
     buildingData.forEach((building) => {
       // building-manage와 동일한 원형 마커
@@ -401,7 +428,10 @@ export default function NaverMapSimple({ markers = [] }) {
               건물 정보
             </h3>
             <button
-              onClick={() => setSelectedBuilding(null)}
+              onClick={() => {
+                setSelectedBuilding(null)
+                setBuildingDetails(null)
+              }}
               style={{
                 background: "none",
                 border: "none",
@@ -519,7 +549,10 @@ export default function NaverMapSimple({ markers = [] }) {
             }}
           >
             <button
-              onClick={() => setSelectedBuilding(null)}
+              onClick={() => {
+                setSelectedBuilding(null)
+                setBuildingDetails(null)
+              }}
               style={{
                 padding: "8px 16px",
                 borderRadius: "8px",
@@ -539,7 +572,10 @@ export default function NaverMapSimple({ markers = [] }) {
       {/* 모달 배경 오버레이 */}
       {selectedBuilding && (
         <div
-          onClick={() => setSelectedBuilding(null)}
+          onClick={() => {
+            setSelectedBuilding(null)
+            setBuildingDetails(null)
+          }}
           style={{
             position: "fixed",
             top: 0,

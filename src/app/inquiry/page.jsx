@@ -204,11 +204,16 @@ export default function InquiryPage() {
           <div className={styles.inquiryLoading}>로딩 중...</div>
         ) : (
           <>
-            <div className={styles.inquiryFilterSection}>
+            {/* 필터 + 통계가 한 줄에 있는 컨테이너 */}
+            <div className={styles.filterAndStatsRow}>
+              {/* 카테고리 콤보박스 */}
               <select
                 id="category-select"
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => {
+                  setCategory(e.target.value)
+                  setCurrentPage(1)
+                }}
                 className={styles.inquiryFilterSelect}
               >
                 {categoryOptions.map((opt) => (
@@ -217,10 +222,8 @@ export default function InquiryPage() {
                   </option>
                 ))}
               </select>
-            </div>
 
-            {/* 문의 통계 */}
-            <div className={styles.inquiryStatsWrapper}>
+              {/* 통계 카드 묶음 - 한 줄 가운데 정렬 */}
               <div className={styles.inquiryStatsContainer}>
                 <div className={styles.inquiryStatsBox}>
                   <div className={styles.statsLabel}>전체</div>

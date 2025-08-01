@@ -30,6 +30,20 @@
   margin-bottom: 40px;
 }
 
+/* 필터 + 통계 행 컨테이너 */
+.filterAndStatsRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* 왼쪽 정렬로 변경 */
+  gap: 30px;
+  margin-bottom: 30px;
+  flex-wrap: nowrap;
+  /* 필요시 max-width 조절 가능 */
+  width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
 .inquiryFilterSection {
   display: flex;
   align-items: center;
@@ -50,10 +64,11 @@
   color: #222;
 }
 
+/* 콤보박스 스타일 기존 유지 (필요시 약간 조절) */
 .inquiryFilterSelect {
   height: 46px;
-  min-width: 150px;
-  font-size: 1.07rem;
+  min-width: 180px;
+  font-size: 1.1rem;
   border-radius: 10px;
   border: 1.5px solid #b3d1fa;
   background: #fff;
@@ -61,6 +76,7 @@
   padding: 0 18px;
   outline: none;
   transition: border 0.15s;
+  flex-shrink: 0;
 }
 
 .inquiryFilterSelect:focus {
@@ -85,42 +101,44 @@
   justify-content: center;
 }
 
+/* 통계 카드 묶음: 왼쪽 정렬로 변경 */
 .inquiryStatsContainer {
   display: flex;
+  justify-content: flex-start;
   align-items: center;
-  gap: 20px;
-  justify-content: center;
+  gap: 40px;
+  flex-grow: 1;
+  max-width: 750px;
 }
 
+/* 통계 카드 box 크고 강조 효과 추가 */
 .inquiryStatsBox {
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  padding: 16px 20px;
-  min-width: 100px;
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 36px 44px;
+  min-width: 160px;
+  min-height: 120px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: transform 0.2s ease;
-}
-
-.inquiryStatsBox:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  cursor: default;
 }
 
 .statsLabel {
-  font-size: 0.85rem;
-  color: #666;
-  margin-bottom: 6px;
-  font-weight: 500;
+  font-size: 1.25rem;
+  color: #3c7dd9;
+  margin-bottom: 16px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
 }
 
 .statsValue {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #2574f5;
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #1551c0;
+  letter-spacing: 2.5px;
 }
 
 .inquiryTable {

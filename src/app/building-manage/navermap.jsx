@@ -1974,7 +1974,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                         }}
                         onClick={handleUpdateBuildingDesc}
                       >
-                        {buildingDescLoading ? "수정 중..." : "설명 수정"}
+                        {buildingDescLoading ? "수정 중..." : "수정"}
                       </button>
                     )}
                   </div>

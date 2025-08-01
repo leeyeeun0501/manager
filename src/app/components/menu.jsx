@@ -25,7 +25,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
   // 사용자 이름 설정
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setUserName(localStorage.getItem("name") || "")
+      setUserName(localStorage.getItem("userName") || "")
     }
   }, [menuOpen])
 
@@ -40,7 +40,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
       })
       if (res.ok) {
         localStorage.removeItem("id")
-        localStorage.removeItem("name")
+        localStorage.removeItem("userName")
         localStorage.removeItem("islogin")
         setMenuOpen(false)
         router.push("/login")

@@ -9,9 +9,15 @@ import { useEffect } from "react"
 export default function RootLayout({ children }) {
   const pathname = usePathname()
   const router = useRouter()
-  const hideMenuAndProfile = pathname === "/login" || pathname === "/signup"
+  const hideMenuAndProfile =
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    pathname === "/mypage/verify-password"
   const hideNotification =
-    pathname === "/inquiry" || pathname === "/login" || pathname === "/signup"
+    pathname === "/inquiry" ||
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    pathname === "/mypage/verify-password"
 
   useEffect(() => {
     const id = localStorage.getItem("id")

@@ -41,29 +41,47 @@ export default function MyPage() {
 
   // 마이 페이지 정보
   useEffect(() => {
-    const id = typeof window !== "undefined" ? localStorage.getItem("id") : ""
+    const id =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : ""
+    console.log("마이페이지 - localStorage id:", id)
     setUser((u) => ({ ...u, id: id || "" }))
-    if (!id) return
+    if (!id) {
+      console.log("마이페이지 - id가 없음")
+      return
+    }
     fetch(`/api/mypage-route?id=${encodeURIComponent(id)}`)
       .then((res) => res.json())
       .then((data) => {
-        if (
-          data.success &&
-          data.user &&
-          Array.isArray(data.user) &&
-          data.user[0]
-        ) {
-          const userData = data.user[0]
+        console.log("마이페이지 - API 응답:", data)
+        if (data.success && data.user) {
+          // 데이터가 배열인지 객체인지 확인
+          let userData
+          if (Array.isArray(data.user)) {
+            userData = data.user[0]
+          } else {
+            userData = data.user
+          }
+
+          console.log("마이페이지 - 사용자 데이터:", userData)
+          console.log("마이페이지 - 사용자 데이터 키들:", Object.keys(userData))
+
+          const updatedUser = {
+            id: userData.Id || userData.id || "",
+            name: userData.Name || userData.name || "",
+            phone: userData.Phone || userData.phone || "",
+            email: userData.Email || userData.email || "",
+          }
+          console.log("마이페이지 - 업데이트할 사용자 정보:", updatedUser)
+
           setUser((u) => ({
             ...u,
-            id: userData.Id || "",
-            name: userData.Name || "",
-            phone: userData.Phone || "",
-            email: userData.Email || "",
+            ...updatedUser,
           }))
+
           // 이메일 분리
-          if (userData.Email) {
-            const parts = userData.Email.split("@")
+          const email = userData.Email || userData.email
+          if (email) {
+            const parts = email.split("@")
             setEmailId(parts[0] || "")
             const domainList = [
               "wsu.ac.kr",
@@ -80,9 +98,13 @@ export default function MyPage() {
               setCustomEmailDomain(parts[1] || "")
             }
           }
+        } else {
+          console.log("마이페이지 - 데이터 구조 문제:", data)
         }
       })
-      .catch(() => {})
+      .catch((error) => {
+        console.error("마이페이지 - API 오류:", error)
+      })
   }, [])
 
   // 수정 핸들러
@@ -120,10 +142,12 @@ export default function MyPage() {
 
   // 로그아웃 핸들러
   const handleLogout = () => {
-    const id = typeof window !== "undefined" ? localStorage.getItem("id") : ""
+    const id =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : ""
     if (typeof window !== "undefined") {
-      localStorage.removeItem("id")
-      localStorage.removeItem("name")
+      localStorage.removeItem("userId")
+      localStorage.removeItem("userName")
+      localStorage.removeItem("islogin")
     }
     fetch("/api/logout-route", {
       method: "POST",
@@ -147,8 +171,9 @@ export default function MyPage() {
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.success) {
         if (typeof window !== "undefined") {
-          localStorage.removeItem("id")
-          localStorage.removeItem("name")
+          localStorage.removeItem("userId")
+          localStorage.removeItem("userName")
+          localStorage.removeItem("islogin")
         }
         fetch("/api/logout-route", { method: "POST" })
         alert("계정이 삭제되었습니다.")

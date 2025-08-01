@@ -77,7 +77,7 @@ export default function LoginPage() {
             className={styles["login-btn"]}
             disabled={loading}
           >
-            {loading ? "로딩중..." : "로그인"}
+            {loading ? "로딩 중..." : "로그인"}
           </button>
 
           {error && <div className={styles["login-error"]}>{error}</div>}

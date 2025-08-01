@@ -48,6 +48,19 @@ export default function MyPage() {
     setUser((u) => ({ ...u, id: id || "" }))
     if (!id) {
       console.log("마이페이지 - id가 없음")
+      // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
+      if (typeof window !== "undefined") {
+        window.location.href = "/login"
+      }
+      return
+    }
+
+    // 비밀번호 확인 없이 직접 접근한 경우 verify-password 페이지로 리다이렉트
+    const hasVerifiedPassword = sessionStorage.getItem("passwordVerified")
+    if (!hasVerifiedPassword) {
+      if (typeof window !== "undefined") {
+        window.location.href = "/mypage/verify-password"
+      }
       return
     }
     fetch(`/api/mypage-route?id=${encodeURIComponent(id)}`)
@@ -157,6 +170,7 @@ export default function MyPage() {
       localStorage.removeItem("userId")
       localStorage.removeItem("userName")
       localStorage.removeItem("islogin")
+      sessionStorage.removeItem("passwordVerified")
     }
     fetch("/api/logout-route", {
       method: "POST",
@@ -183,6 +197,7 @@ export default function MyPage() {
           localStorage.removeItem("userId")
           localStorage.removeItem("userName")
           localStorage.removeItem("islogin")
+          sessionStorage.removeItem("passwordVerified")
         }
         fetch("/api/logout-route", { method: "POST" })
         alert("계정이 삭제되었습니다.")

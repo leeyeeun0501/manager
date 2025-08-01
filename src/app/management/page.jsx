@@ -102,8 +102,12 @@ export default function ManagementPage() {
 
     let websocketInstance = null
     let reconnectTimeoutId = null
+    let isConnecting = false
 
     const connectWebSocket = () => {
+      if (isConnecting) return // 이미 연결 중이면 중복 연결 방지
+      isConnecting = true
+
       try {
         const websocketUrl = "ws://16.176.179.75:3002/friend/ws"
         console.log("웹소켓 자동 연결 시도:", websocketUrl)
@@ -111,6 +115,7 @@ export default function ManagementPage() {
         const newWs = new WebSocket(websocketUrl)
 
         newWs.onopen = () => {
+          isConnecting = false
           setIsWebSocketConnected(true)
           setWs(newWs)
           // 항상 최신 userIdRef.current를 전송
@@ -125,16 +130,21 @@ export default function ManagementPage() {
         }
 
         newWs.onclose = (event) => {
+          isConnecting = false
           setIsWebSocketConnected(false)
           setWs(null)
-          reconnectTimeoutId = setTimeout(() => {
-            if (!isWebSocketConnected) {
-              connectWebSocket()
-            }
-          }, 3000)
+          // 정상적인 종료가 아닐 때만 재연결
+          if (event.code !== 1000) {
+            reconnectTimeoutId = setTimeout(() => {
+              if (!isWebSocketConnected) {
+                connectWebSocket()
+              }
+            }, 3000)
+          }
         }
 
         newWs.onerror = (error) => {
+          isConnecting = false
           setIsWebSocketConnected(false)
         }
 
@@ -163,6 +173,7 @@ export default function ManagementPage() {
 
         websocketInstance = newWs
       } catch (error) {
+        isConnecting = false
         console.error("웹소켓 연결 오류:", error)
       }
     }

@@ -42,6 +42,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
         localStorage.removeItem("id")
         localStorage.removeItem("userName")
         localStorage.removeItem("islogin")
+        sessionStorage.removeItem("passwordVerified")
         setMenuOpen(false)
         router.push("/login")
       } else {
@@ -59,6 +60,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
     { label: "Room 관리", icon: <FaDoorOpen />, path: "/room-manage" },
     { label: "User 관리", icon: <FaUser />, path: "/user-manage" },
     { label: "문의 관리", icon: <FaQuestionCircle />, path: "/inquiry" },
+    { label: "마이페이지", icon: <FaUser />, path: "/mypage/verify-password" },
   ]
 
   return (

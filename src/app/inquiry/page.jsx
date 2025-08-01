@@ -76,10 +76,10 @@ export default function InquiryPage() {
       // 문의 통계 계산
       const total = mappedList.length
       const pending = mappedList.filter(
-        (q) => q.status === "pending" || q.status === "대기중" || !q.status
+        (q) => q.status === "pending" || q.status === "대기 중" || !q.status
       ).length
       const answered = mappedList.filter(
-        (q) => q.status === "answered" || q.status === "답변완료"
+        (q) => q.status === "answered" || q.status === "답변 완료"
       ).length
       const answerRate = total > 0 ? Math.round((answered / total) * 100) : 0
 

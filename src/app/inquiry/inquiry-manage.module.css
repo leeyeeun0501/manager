@@ -30,25 +30,23 @@
   margin-bottom: 40px;
 }
 
-/* 통계 카드 묶음 - 왼쪽 정렬 */
-.inquiryStatsContainer {
+/* 필터 + 통계 행 컨테이너 */
+.filterAndStatsRow {
   display: flex;
-  justify-content: flex-start;
   align-items: center;
-  gap: 36px;
-  margin-bottom: 38px; /* management와 동일한 마진 */
-  padding: 0 20px;
-}
-
-/* 필터 섹션 - 표 위에 배치 */
-.filterSection {
-  display: flex;
   justify-content: flex-start;
-  align-items: center;
-  margin-bottom: 20px;
+  gap: 30px;
+  margin-bottom: 25px;
   padding: 0 20px;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* 통계 카드 묶음 */
+.inquiryStatsContainer {
+  display: flex;
+  align-items: center;
+  gap: 36px;
 }
 
 .inquiryFilterSection {

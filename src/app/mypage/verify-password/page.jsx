@@ -60,11 +60,6 @@ export default function VerifyPasswordPage() {
     <div className={styles["mypage-container"]}>
       <div className={styles["mypage-box"]}>
         <div className={styles["mypage-title"]}>비밀번호 확인</div>
-        <div
-          style={{ textAlign: "center", marginBottom: "20px", color: "#666" }}
-        >
-          마이페이지에 접근하기 위해 현재 비밀번호를 입력해주세요.
-        </div>
         <form onSubmit={handleVerifyPassword} className={styles["mypage-form"]}>
           <input
             className={styles["mypage-input"]}

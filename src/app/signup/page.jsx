@@ -4,6 +4,7 @@ import "../globals.css"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import styles from "./signup.module.css"
+import LoadingOverlay from "../components/loadingoverlay"
 
 export default function SignupPage() {
   const [form, setForm] = useState({
@@ -17,6 +18,7 @@ export default function SignupPage() {
     customEmailDomain: "",
   })
   const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   // 전화번호 하이픈 자동 삽입 함수
@@ -54,16 +56,19 @@ export default function SignupPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
+    setLoading(true)
 
     // 비밀번호 확인 검증
     if (form.pw !== form.pwConfirm) {
       setError("비밀번호가 일치하지 않습니다.")
+      setLoading(false)
       return
     }
 
     // 비밀번호 길이 검증
     if (form.pw.length < 6) {
       setError("비밀번호는 6자 이상이어야 합니다.")
+      setLoading(false)
       return
     }
 
@@ -74,10 +79,12 @@ export default function SignupPage() {
 
     if (!form.emailId.trim()) {
       setError("이메일 아이디를 입력해주세요.")
+      setLoading(false)
       return
     }
     if (!domain) {
       setError("이메일 도메인을 입력해주세요.")
+      setLoading(false)
       return
     }
     const email = `${form.emailId.trim()}@${domain}`
@@ -104,6 +111,8 @@ export default function SignupPage() {
       }
     } catch {
       setError("회원가입 중 오류가 발생했습니다.")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -115,6 +124,7 @@ export default function SignupPage() {
 
   return (
     <div className={styles["signup-container"]}>
+      {loading && <LoadingOverlay />}
       <div className={styles["signup-box"]}>
         <h2 className={styles["signup-title"]}>회원가입</h2>
         <form onSubmit={handleSubmit} className={styles["signup-form"]}>
@@ -212,8 +222,12 @@ export default function SignupPage() {
             )}
           </div>
 
-          <button type="submit" className={styles["signup-btn"]}>
-            회원가입
+          <button
+            type="submit"
+            className={styles["signup-btn"]}
+            disabled={loading}
+          >
+            {loading ? "처리 중..." : "회원가입"}
           </button>
           {error && <div className={styles["signup-error"]}>{error}</div>}
         </form>

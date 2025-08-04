@@ -4,12 +4,14 @@ import "../globals.css"
 import React, { useState, useEffect } from "react"
 import NaverMap from "./navermap"
 import Menu from "../components/menu"
+import LoadingOverlay from "../components/loadingoverlay"
 import "./building-manage.css"
 
 export default function TowerPage() {
   const [latLng, setLatLng] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [nodes, setNodes] = useState({})
+  const [loading, setLoading] = useState(true)
 
   // 건물 노드
   useEffect(() => {
@@ -21,10 +23,14 @@ export default function TowerPage() {
         }
       })
       .catch(console.error)
+      .finally(() => {
+        setLoading(false)
+      })
   }, [])
 
   return (
     <div className="tower-root">
+      {loading && <LoadingOverlay />}
       <div className="tower-header">맵 관리 페이지</div>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className="tower-map-wrapper">

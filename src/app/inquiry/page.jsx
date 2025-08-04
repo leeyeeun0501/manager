@@ -2,6 +2,7 @@
 "use client"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
+import LoadingOverlay from "../components/loadingoverlay"
 import Image from "next/image"
 import { FaRegCommentDots } from "react-icons/fa"
 import "../globals.css"
@@ -197,12 +198,11 @@ export default function InquiryPage() {
 
   return (
     <div className={styles.inquiryRoot}>
+      {loading && <LoadingOverlay />}
       <span className={styles.inquiryHeader}>문의 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className={styles.inquiryContent}>
-        {loading ? (
-          <div className={styles.inquiryLoading}>로딩 중...</div>
-        ) : (
+        {!loading && (
           <>
             {/* 콤보박스 + 통계 카드 한 줄 */}
             <div className={styles.filterAndStatsRow}>

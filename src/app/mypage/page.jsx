@@ -3,6 +3,7 @@
 import "../globals.css"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
+import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./mypage.module.css"
 
 // 전화번호 하이픈 자동 삽입 함수
@@ -213,6 +214,7 @@ export default function MyPage() {
 
   return (
     <div className={styles["mypage-container"]}>
+      {loading && <LoadingOverlay />}
       {/* 메뉴바: 항상 최상단에 위치 */}
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       {/* 팝업 메시지 */}

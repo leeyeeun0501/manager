@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
 import styles from "./management.module.css"
 import NaverMapSimple from "./navermap"
+import LoadingOverlay from "../components/loadingoverlay"
 import "../globals.css"
 
 export default function ManagementPage() {
@@ -16,6 +17,7 @@ export default function ManagementPage() {
   const [isWebSocketConnected, setIsWebSocketConnected] = useState(false)
   const [ws, setWs] = useState(null)
   const [userId, setUserId] = useState("") // 로그인한 관리자 ID
+  const [loading, setLoading] = useState(true) // 초기 로딩 상태
 
   // 항상 최신 userId를 기억하기 위한 useRef
   const userIdRef = useRef("")
@@ -35,30 +37,35 @@ export default function ManagementPage() {
 
   // 건물, 강의실, 사용자 수 조회
   useEffect(() => {
-    fetch("/api/building-route?type=names")
-      .then((res) => res.json())
-      .then((data) => {
-        setSummary((prev) => ({
-          ...prev,
-          building: Array.isArray(data.names) ? data.names.length : 0,
-        }))
-      })
-    fetch("/api/room-route")
-      .then((res) => res.json())
-      .then((data) => {
-        setSummary((prev) => ({
-          ...prev,
-          classroom: Array.isArray(data.rooms) ? data.rooms.length : 0,
-        }))
-      })
-    fetch("/api/user-route")
-      .then((res) => res.json())
-      .then((data) => {
-        setSummary((prev) => ({
-          ...prev,
-          user: Array.isArray(data.users) ? data.users.length : 0,
-        }))
-      })
+    const fetchData = async () => {
+      try {
+        const [buildingRes, roomRes, userRes] = await Promise.all([
+          fetch("/api/building-route?type=names"),
+          fetch("/api/room-route"),
+          fetch("/api/user-route"),
+        ])
+
+        const [buildingData, roomData, userData] = await Promise.all([
+          buildingRes.json(),
+          roomRes.json(),
+          userRes.json(),
+        ])
+
+        setSummary({
+          building: Array.isArray(buildingData.names)
+            ? buildingData.names.length
+            : 0,
+          classroom: Array.isArray(roomData.rooms) ? roomData.rooms.length : 0,
+          user: Array.isArray(userData.users) ? userData.users.length : 0,
+        })
+      } catch (error) {
+        console.error("데이터 로딩 오류:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
   }, [])
 
   // 사용자 위치 정보(마커) 주기적 갱신
@@ -208,6 +215,7 @@ export default function ManagementPage() {
 
   return (
     <div className={styles["management-root"]}>
+      {loading && <LoadingOverlay />}
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <main className={styles["management-content"]}>
         <div className={styles["dashboard-summary-row"]}>

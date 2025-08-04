@@ -3,6 +3,7 @@
 import "../globals.css"
 import React, { useRef, useState, useEffect } from "react"
 import Menu from "../components/menu"
+import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./room-manage.module.css"
 import { MdEditSquare } from "react-icons/md"
 
@@ -838,6 +839,7 @@ export default function RoomManagePage() {
 
   return (
     <div className={styles["room-root"]}>
+      {loading && <LoadingOverlay />}
       <span className={styles["room-header"]}>강의실 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className={styles["room-content"]}>

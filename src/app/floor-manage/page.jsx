@@ -3,6 +3,7 @@
 import "../globals.css"
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
+import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./floor-manage.module.css"
 import { FaTrashAlt, FaPaperclip } from "react-icons/fa"
 
@@ -13,6 +14,7 @@ export default function BuildingPage() {
   const [floors, setFloors] = useState([])
   const [selectedFloor, setSelectedFloor] = useState("")
   const [floorPage, setFloorPage] = useState(1)
+  const [loading, setLoading] = useState(true)
   const pageSize = 10
 
   const [editMapBuilding, setEditMapBuilding] = useState("")
@@ -106,6 +108,8 @@ export default function BuildingPage() {
         setBuildingInfos(infos)
       } catch (err) {
         setBuildingInfos([])
+      } finally {
+        setLoading(false)
       }
     }
     fetchBuildings()
@@ -258,6 +262,7 @@ export default function BuildingPage() {
 
   return (
     <div className={styles["building-root"]}>
+      {loading && <LoadingOverlay />}
       <span className={styles["building-header"]}>층 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className={styles["building-content"]}>

@@ -3,6 +3,7 @@ import "../globals.css"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import styles from "./login.module.css"
+import LoadingOverlay from "../components/loadingoverlay"
 
 export default function LoginPage() {
   const [id, setId] = useState("")
@@ -47,6 +48,7 @@ export default function LoginPage() {
 
   return (
     <div className={styles["login-container"]}>
+      {loading && <LoadingOverlay />}
       <div className={styles["login-box"]}>
         <h2 className={styles["login-title"]}>로그인</h2>
         <form onSubmit={handleLogin} className={styles["login-form"]}>

@@ -4,6 +4,7 @@ import "../globals.css"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
 import { FaTrashAlt } from "react-icons/fa"
+import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./user-manage.module.css"
 
 export default function UserManagePage() {
@@ -117,12 +118,11 @@ export default function UserManagePage() {
 
   return (
     <div className={styles.userRoot}>
+      {loading && <LoadingOverlay />}
       <span className={styles.userHeader}>사용자 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className={styles.userContent}>
-        {loading ? (
-          <div>로딩 중...</div>
-        ) : error ? (
+        {error ? (
           <div style={{ color: "red" }}>{error}</div>
         ) : (
           <>

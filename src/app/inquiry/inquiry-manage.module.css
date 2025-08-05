@@ -30,7 +30,6 @@
   margin-bottom: 40px;
 }
 
-/* 필터 + 통계 행 컨테이너 */
 .filterAndStatsRow {
   display: flex;
   align-items: center;
@@ -42,7 +41,6 @@
   box-sizing: border-box;
 }
 
-/* 통계 카드 묶음 */
 .inquiryStatsContainer {
   display: flex;
   align-items: center;
@@ -69,7 +67,6 @@
   color: #222;
 }
 
-/* 콤보박스 스타일 기존 유지 (필요시 약간 조절) */
 .inquiryFilterSelect {
   height: 46px;
   min-width: 180px;
@@ -95,7 +92,6 @@
   font-size: 16px;
 }
 
-/* 문의 통계 스타일 */
 .inquiryStatsWrapper {
   background: #eaf2fd;
   border-radius: 12px;
@@ -106,7 +102,6 @@
   justify-content: center;
 }
 
-/* 통계 카드 묶음 - management 페이지와 동일한 스타일 */
 .inquiryStatsContainer {
   display: flex;
   justify-content: center;
@@ -114,7 +109,6 @@
   gap: 36px;
 }
 
-/* 통계 카드 box - management 페이지와 동일한 스타일 */
 .inquiryStatsBox {
   background: #fff;
   border-radius: 18px;
@@ -208,7 +202,6 @@
   background: #1e5bb8;
 }
 
-/* 페이징 스타일 */
 .inquiryPaginationRow {
   display: flex;
   justify-content: center;
@@ -246,7 +239,6 @@
   color: #2574f5;
 }
 
-/* 모달 스타일 */
 .modalOverlay {
   position: fixed;
   top: 0;

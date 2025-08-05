@@ -20,6 +20,7 @@ export default function InquiryPage() {
   const [selectedInquiry, setSelectedInquiry] = useState(null)
   const [answerText, setAnswerText] = useState("")
   const [submitting, setSubmitting] = useState(false)
+
   // 사진 모달
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState("")

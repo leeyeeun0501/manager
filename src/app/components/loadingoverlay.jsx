@@ -1,4 +1,4 @@
-// src/app/components/LoadingOverlay.jsx
+// LoadingOverlay
 import React from "react"
 
 export default function LoadingOverlay() {

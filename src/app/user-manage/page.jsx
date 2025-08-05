@@ -90,7 +90,7 @@ export default function UserManagePage() {
       const data = await res.json()
       if (!res.ok || !data.success) throw new Error(data.error || "삭제 실패")
       alert("사용자가 삭제되었습니다.")
-      await fetchUsers(true) // 🔸 삭제 후에도 페이지 정보 유지
+      await fetchUsers(true)
     } catch (err) {
       alert(err.message)
     }

@@ -1,3 +1,4 @@
+// layout.js
 "use client"
 import { usePathname, useRouter } from "next/navigation"
 import Menu from "./components/menu"

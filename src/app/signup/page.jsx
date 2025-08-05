@@ -58,14 +58,12 @@ export default function SignupPage() {
     setError("")
     setLoading(true)
 
-    // 비밀번호 확인 검증
     if (form.pw !== form.pwConfirm) {
       setError("비밀번호가 일치하지 않습니다.")
       setLoading(false)
       return
     }
 
-    // 비밀번호 길이 검증
     if (form.pw.length < 6) {
       setError("비밀번호는 6자 이상이어야 합니다.")
       setLoading(false)

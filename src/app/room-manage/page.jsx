@@ -466,23 +466,14 @@ export default function RoomManagePage() {
     }
 
     try {
-      // from 노드는 edgeModalNode에서 building, floor 정보를 직접 사용
       const fromNodeInfo = {
         building: edgeModalNode.building,
         floor: edgeModalNode.floor,
         node: getNodeSuffix(edgeModalNode.id),
       }
 
-      // to 노드는 targetNodeId를 파싱
       const toNodeInfo = parseNodeInfo(targetNodeId)
 
-      // 디버깅을 위한 로그
-      console.log("Edge Modal Node:", edgeModalNode)
-      console.log("Target Node ID:", targetNodeId)
-      console.log("From Node Info:", fromNodeInfo)
-      console.log("To Node Info:", toNodeInfo)
-
-      // 파싱된 값들이 유효한지 확인
       if (
         !fromNodeInfo.building ||
         !fromNodeInfo.floor ||
@@ -582,9 +573,8 @@ export default function RoomManagePage() {
       fetchRooms()
       return
     }
-    setFilterFloor("") // 층 선택값을 먼저 리셋
+    setFilterFloor("")
     fetchFloors(filterBuilding)
-    // fetchRooms는 여기서 호출하지 않음
   }, [filterBuilding])
 
   // 층 선택 시
@@ -753,7 +743,6 @@ export default function RoomManagePage() {
 
   // 중복 엣지 체크
   function isEdgeDuplicate(edges, fromId, toId) {
-    // 건물, 층, 노드를 모두 고려한 정확한 중복 체크
     const fromInfo = parseNodeInfo(fromId)
     const toInfo = parseNodeInfo(toId)
 
@@ -776,7 +765,6 @@ export default function RoomManagePage() {
   async function connectEdgeToStairs(fromNode, toNodeInfo) {
     const { building: toBuilding, floor: toFloor, node: toNode } = toNodeInfo
 
-    // 전체 노드 ID 생성 (toNodeInfo를 사용하여 정확한 중복 체크)
     const toNodeFullId = `${toBuilding}@${toFloor}@${toNode}`
 
     if (isEdgeDuplicate(edges, fromNode?.id, toNodeFullId)) {

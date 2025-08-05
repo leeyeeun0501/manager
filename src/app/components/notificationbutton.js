@@ -18,7 +18,6 @@ export default function NotificationButton() {
           console.log("API 응답 데이터:", data)
           console.log("문의 목록:", data.inquiries)
 
-          // 첫 번째 문의의 구조 확인
           if (data.inquiries && data.inquiries.length > 0) {
             console.log("첫 번째 문의 구조:", data.inquiries[0])
             console.log(
@@ -41,7 +40,6 @@ export default function NotificationButton() {
 
     fetchInquiryCount()
 
-    // 30초마다 문의 수 업데이트
     const interval = setInterval(fetchInquiryCount, 30000)
 
     return () => clearInterval(interval)

@@ -120,7 +120,6 @@ export default function NaverMapSimple({ markers = [] }) {
   useEffect(() => {
     const fetchBuildingData = async () => {
       try {
-        // 기존 데이터 초기화
         setBuildingData([])
 
         const response = await fetch("/api/tower-route")
@@ -152,12 +151,10 @@ export default function NaverMapSimple({ markers = [] }) {
       }
 
       try {
-        // 이전 건물 정보 초기화
         setBuildingDetails(null)
 
         const buildingName = selectedBuilding.node_name || selectedBuilding.id
 
-        // 전체 건물 목록에서 해당 건물 찾기
         const res = await fetch("/api/building-route")
         const json = await res.json()
 
@@ -226,7 +223,7 @@ export default function NaverMapSimple({ markers = [] }) {
     })
   }, [markers, ready])
 
-  // 건물 마커 생성 및 클릭 이벤트 (building-manage와 동일한 스타일)
+  // 건물 마커 생성 및 클릭 이벤트
   useEffect(() => {
     if (
       typeof window === "undefined" ||

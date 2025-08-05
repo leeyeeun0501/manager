@@ -34,6 +34,7 @@ export default function MyPage() {
   const [emailId, setEmailId] = useState("")
   const [emailDomain, setEmailDomain] = useState("wsu.ac.kr")
   const [customEmailDomain, setCustomEmailDomain] = useState("")
+
   function handleEmailChange(e) {
     const { name, value } = e.target
     if (name === "emailId") setEmailId(value)
@@ -49,7 +50,6 @@ export default function MyPage() {
     setUser((u) => ({ ...u, id: id || "" }))
     if (!id) {
       console.log("마이페이지 - id가 없음")
-      // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
       if (typeof window !== "undefined") {
         window.location.href = "/login"
       }
@@ -127,7 +127,6 @@ export default function MyPage() {
     e.preventDefault()
     setEditMsg("")
 
-    // 비밀번호가 입력된 경우 확인
     if (pw && pw !== pwConfirm) {
       setEditMsg("새 비밀번호가 일치하지 않습니다.")
       return

@@ -1,3 +1,4 @@
+// management
 "use client"
 import React, { useEffect, useState, useRef } from "react"
 import Menu from "../components/menu"
@@ -16,11 +17,11 @@ export default function ManagementPage() {
   const [userMarkers, setUserMarkers] = useState([])
   const [isWebSocketConnected, setIsWebSocketConnected] = useState(false)
   const [ws, setWs] = useState(null)
-  const [userId, setUserId] = useState("") // 로그인한 관리자 ID
-  const [loading, setLoading] = useState(true) // 초기 로딩 상태
+  const [userId, setUserId] = useState("")
+  const [loading, setLoading] = useState(true)
 
-  // 항상 최신 userId를 기억하기 위한 useRef
   const userIdRef = useRef("")
+
   useEffect(() => {
     userIdRef.current = userId
   }, [userId])
@@ -31,7 +32,7 @@ export default function ManagementPage() {
     if (storedId) {
       setUserId(storedId)
     } else {
-      setUserId("admin") // fallback (로그인 세션 없을때)
+      setUserId("admin")
     }
   }, [])
 
@@ -112,7 +113,7 @@ export default function ManagementPage() {
     let isConnecting = false
 
     const connectWebSocket = () => {
-      if (isConnecting) return // 이미 연결 중이면 중복 연결 방지
+      if (isConnecting) return
       isConnecting = true
 
       try {

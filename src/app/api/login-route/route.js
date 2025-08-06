@@ -5,7 +5,7 @@ import { AUTH_API_BASE } from "../apibase"
 
 // 로그인 API 요청
 async function login(id, pw) {
-  const res = await fetch(`${AUTH_API_BASE}/user/login`, {
+  const res = await fetch(`${AUTH_API_BASE}/user/admin_login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, pw }),

@@ -4,7 +4,7 @@ import { AUTH_API_BASE } from "../apibase"
 
 // 회원가입 API 요청
 async function registerUser({ id, pw, name, phone, email }) {
-  const res = await fetch(`${AUTH_API_BASE}/user/register`, {
+  const res = await fetch(`${AUTH_API_BASE}/user/admin_register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, pw, name, phone, email }),

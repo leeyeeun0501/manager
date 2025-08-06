@@ -284,6 +284,8 @@ export default function BuildingPage() {
               onChange={(e) => {
                 setSelectedBuilding(e.target.value)
                 setSelectedFloor("")
+                // 건물 변경 시 1페이지로 이동
+                setFloorPage(1)
               }}
               style={{ minWidth: 150 }}
             >
@@ -299,6 +301,8 @@ export default function BuildingPage() {
               value={selectedFloor}
               onChange={(e) => {
                 setSelectedFloor(e.target.value)
+                // 필터 변경 시 1페이지로 이동
+                setFloorPage(1)
               }}
               disabled={!selectedBuilding}
               style={{ minWidth: 120 }}
@@ -450,7 +454,11 @@ export default function BuildingPage() {
                       fontWeight: "500",
                     }}
                   >
-                    데이터가 없습니다
+                    {selectedBuilding && selectedFloor
+                      ? `${selectedBuilding} ${selectedFloor}층 데이터가 없습니다`
+                      : selectedBuilding
+                      ? `${selectedBuilding} 건물의 층 데이터가 없습니다`
+                      : "데이터가 없습니다"}
                   </td>
                 </tr>
               )}

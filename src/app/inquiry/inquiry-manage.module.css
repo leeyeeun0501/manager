@@ -157,6 +157,15 @@
   white-space: nowrap;
 }
 
+/* 사진 컬럼 크기 고정 */
+.inquiryTable th:nth-child(6),
+.inquiryTable td:nth-child(6) {
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+  padding: 8px 12px;
+}
+
 .inquiryTable th {
   background: #eaf2fd;
   font-weight: 800;

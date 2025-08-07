@@ -26,7 +26,7 @@ export default function InquiryPage() {
   const [selectedImage, setSelectedImage] = useState("")
 
   // 페이징
-  const itemsPerPage = 10
+  const itemsPerPage = 7
   const [currentPage, setCurrentPage] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("INQUIRY_MANAGE_PAGE")

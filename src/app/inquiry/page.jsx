@@ -25,6 +25,12 @@ export default function InquiryPage() {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState("")
 
+  // 번역 관련 상태
+  const [showTranslation, setShowTranslation] = useState(false)
+  const [translatedTitle, setTranslatedTitle] = useState("")
+  const [translatedContent, setTranslatedContent] = useState("")
+  const [isTranslating, setIsTranslating] = useState(false)
+
   // 페이징
   const itemsPerPage = 7
   const [currentPage, setCurrentPage] = useState(() => {
@@ -138,6 +144,10 @@ export default function InquiryPage() {
     setIsModalOpen(false)
     setSelectedInquiry(null)
     setAnswerText("")
+    setShowTranslation(false)
+    setTranslatedTitle("")
+    setTranslatedContent("")
+    setIsTranslating(false)
   }
 
   const openImageModal = (imageUrl) => {
@@ -148,6 +158,56 @@ export default function InquiryPage() {
   const closeImageModal = () => {
     setIsImageModalOpen(false)
     setSelectedImage("")
+  }
+
+  // 번역 함수
+  const handleTranslate = async () => {
+    if (!selectedInquiry) return
+
+    setIsTranslating(true)
+    setShowTranslation(true)
+
+    try {
+      // 제목 번역
+      const titleResponse = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: selectedInquiry.title || "제목 없음",
+          targetLang: "ko",
+        }),
+      })
+      const titleData = await titleResponse.json()
+      setTranslatedTitle(titleData.translatedText || "번역 실패")
+
+      // 내용 번역
+      const contentResponse = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: selectedInquiry.content || "내용 없음",
+          targetLang: "ko",
+        }),
+      })
+      const contentData = await contentResponse.json()
+      setTranslatedContent(contentData.translatedText || "번역 실패")
+    } catch (error) {
+      console.error("번역 오류:", error)
+      setTranslatedTitle("번역 중 오류가 발생했습니다.")
+      setTranslatedContent("번역 중 오류가 발생했습니다.")
+    } finally {
+      setIsTranslating(false)
+    }
+  }
+
+  const toggleTranslation = () => {
+    if (showTranslation) {
+      setShowTranslation(false)
+      setTranslatedTitle("")
+      setTranslatedContent("")
+    } else {
+      handleTranslate()
+    }
   }
 
   const submitAnswer = async () => {
@@ -386,7 +446,37 @@ export default function InquiryPage() {
             </div>
             <div className={styles.modalBody}>
               <div className={styles.inquiryInfo}>
-                <h4>문의 정보</h4>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "12px",
+                  }}
+                >
+                  <h4>문의 정보</h4>
+                  <button
+                    onClick={toggleTranslation}
+                    disabled={isTranslating}
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: "6px",
+                      border: "1px solid #2574f5",
+                      background: showTranslation ? "#2574f5" : "transparent",
+                      color: showTranslation ? "white" : "#2574f5",
+                      cursor: "pointer",
+                      fontSize: "0.9rem",
+                      fontWeight: "600",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    {isTranslating
+                      ? "번역 중..."
+                      : showTranslation
+                      ? "번역 숨기기"
+                      : "번역 보기"}
+                  </button>
+                </div>
                 <p>
                   <strong>문의 코드:</strong>{" "}
                   {selectedInquiry.inquiry_code ||
@@ -402,6 +492,35 @@ export default function InquiryPage() {
                 <p>
                   <strong>상태:</strong> {selectedInquiry.status || "대기중"}
                 </p>
+
+                {/* 번역 결과 표시 */}
+                {showTranslation && (
+                  <div
+                    style={{
+                      marginTop: "16px",
+                      padding: "12px",
+                      background: "#f8f9fa",
+                      borderRadius: "6px",
+                      border: "1px solid #e9ecef",
+                    }}
+                  >
+                    <h5
+                      style={{
+                        margin: "0 0 8px 0",
+                        color: "#2574f5",
+                        fontSize: "0.95rem",
+                      }}
+                    >
+                      한국어 번역
+                    </h5>
+                    <p style={{ margin: "4px 0", fontSize: "0.9rem" }}>
+                      <strong>제목:</strong> {translatedTitle}
+                    </p>
+                    <p style={{ margin: "4px 0", fontSize: "0.9rem" }}>
+                      <strong>내용:</strong> {translatedContent}
+                    </p>
+                  </div>
+                )}
               </div>
               <div className={styles.answerSection}>
                 <h4>{selectedInquiry.answer ? "답변 수정" : "답변 작성"}</h4>

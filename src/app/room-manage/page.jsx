@@ -1297,7 +1297,25 @@ export default function RoomManagePage() {
                 >
                   <strong>ID:</strong>
                   <span style={{ fontWeight: 400, marginLeft: 4 }}>
-                    {edgeModalNode.id}
+                    {(() => {
+                      const parts = edgeModalNode.id.split("@")
+                      const lastPart = parts[parts.length - 1]
+
+                      // b로 시작하거나 stairs가 포함된 경우 호를 붙이지 않음
+                      if (
+                        lastPart.toLowerCase().startsWith("b") ||
+                        lastPart.toLowerCase().includes("stairs")
+                      ) {
+                        return lastPart
+                      }
+
+                      // 숫자로 끝나는 경우 호를 붙임
+                      if (/^\d+$/.test(lastPart)) {
+                        return `${lastPart}호`
+                      }
+
+                      return lastPart
+                    })()}
                   </span>
                 </div>
                 {/* 연결된 노드 목록 */}
@@ -1325,8 +1343,14 @@ export default function RoomManagePage() {
                       if (suffix.toLowerCase().includes("stairs")) {
                         // 예: "1층 left_stairs 엣지 연결 해제"
                         labelText = `${floor}층 ${suffix} 엣지 연결 해제`
+                      } else if (suffix.toLowerCase().startsWith("b")) {
+                        // b로 시작하는 경우 호를 붙이지 않음
+                        labelText = `${suffix} 엣지 연결 해제`
+                      } else if (/^\d+$/.test(suffix)) {
+                        // 숫자인 경우 호를 붙임
+                        labelText = `${suffix}호 엣지 연결 해제`
                       } else {
-                        // stairs 외 다른 엣지는 기존 방식 또는 id 그대로
+                        // 기타 경우
                         labelText = `${suffix} 엣지 연결 해제`
                       }
 
@@ -1561,7 +1585,27 @@ export default function RoomManagePage() {
                                 color: "#333",
                               }}
                             >
-                              {node.floor}층 - {node.name || node.id}
+                              {node.floor}층 -{" "}
+                              {(() => {
+                                const displayName = node.name || node.id
+                                const parts = displayName.split("@")
+                                const lastPart = parts[parts.length - 1]
+
+                                // b2나 stairs가 포함된 경우 호를 붙이지 않음
+                                if (
+                                  lastPart.toLowerCase().includes("b2") ||
+                                  lastPart.toLowerCase().includes("stairs")
+                                ) {
+                                  return lastPart
+                                }
+
+                                // 숫자로 끝나는 경우 호를 붙임
+                                if (/^\d+$/.test(lastPart)) {
+                                  return `${lastPart}호`
+                                }
+
+                                return lastPart
+                              })()}
                             </li>
                           ))}
                         </ul>

@@ -152,6 +152,9 @@
   word-break: break-all;
   max-width: 150px;
   min-width: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .inquiryTable th {

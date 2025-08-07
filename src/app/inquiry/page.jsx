@@ -26,7 +26,7 @@ export default function InquiryPage() {
   const [selectedImage, setSelectedImage] = useState("")
 
   // 페이징
-  const itemsPerPage = 20
+  const itemsPerPage = 10
   const [currentPage, setCurrentPage] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("INQUIRY_MANAGE_PAGE")
@@ -42,6 +42,13 @@ export default function InquiryPage() {
     answered: 0,
     answerRate: 0,
   })
+
+  // 텍스트 자르기 함수
+  const truncateText = (text, maxLength = 20) => {
+    if (!text) return ""
+    if (text.length <= maxLength) return text
+    return text.substring(0, maxLength) + "..."
+  }
 
   // 문의 불러오기
   useEffect(() => {
@@ -287,8 +294,12 @@ export default function InquiryPage() {
                       </td>
                       <td>{q.id || "-"}</td>
                       <td>{q.category || "일반"}</td>
-                      <td>{q.title || "제목 없음"}</td>
-                      <td>{q.content || "내용 없음"}</td>
+                      <td title={q.title || "제목 없음"}>
+                        {truncateText(q.title || "제목 없음", 15)}
+                      </td>
+                      <td title={q.content || "내용 없음"}>
+                        {truncateText(q.content || "내용 없음", 20)}
+                      </td>
                       <td>
                         {!!q.image_url ? (
                           <Image

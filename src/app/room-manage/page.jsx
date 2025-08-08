@@ -1591,9 +1591,9 @@ export default function RoomManagePage() {
                                 const parts = displayName.split("@")
                                 const lastPart = parts[parts.length - 1]
 
-                                // b2나 stairs가 포함된 경우 호를 붙이지 않음
+                                // b로 시작하거나 stairs가 포함된 경우 호를 붙이지 않음
                                 if (
-                                  lastPart.toLowerCase().includes("b2") ||
+                                  lastPart.toLowerCase().startsWith("b") ||
                                   lastPart.toLowerCase().includes("stairs")
                                 ) {
                                   return lastPart

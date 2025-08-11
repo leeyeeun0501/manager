@@ -1429,13 +1429,10 @@ export default function RoomManagePage() {
                     엣지 연결
                   </button>
                   {/*  계단 노드에서만 노출되는 버튼 */}
-                  {edgeModalNode?.id?.includes("stairs") && (
+                  {(edgeModalNode?.id?.toLowerCase().includes("stairs") ||
+                    edgeModalNode?.id?.toLowerCase().includes("to")) && (
                     <button
                       onClick={() => {
-                        console.log(
-                          "클릭됨: building =",
-                          edgeModalNode.building
-                        )
                         setStairsBuilding(edgeModalNode.building)
                         setStairsFloor(edgeModalNode.floor)
                         setStairsId(edgeModalNode.id)

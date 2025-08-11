@@ -608,7 +608,7 @@ export default function RoomManagePage() {
         .then((res) => res.json())
         .then((data) => {
           const fileList = Array.isArray(data) ? data : [data]
-          const svgUrl = fileList[0]?.File
+          const rawSvgUrl = fileList[0]?.File
           const nodesInfo = fileList[0]?.nodes || {}
           let edgesInfo = fileList[0]?.edges
           if (!edgesInfo) {
@@ -624,7 +624,10 @@ export default function RoomManagePage() {
             })
           }
 
+          // 캐시 무력화: svgUrl 뒤에 ts=timestamp 파라미터 추가
+          let svgUrl = rawSvgUrl
           if (svgUrl) {
+            svgUrl += (svgUrl.includes("?") ? "&" : "?") + "ts=" + Date.now()
             fetch(svgUrl)
               .then((res) => res.text())
               .then((svgXml) => {

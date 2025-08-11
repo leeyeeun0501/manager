@@ -1,3 +1,3 @@
 // apibase
-export const API_BASE = "http://16.176.5.144:3000" // 일반
-export const AUTH_API_BASE = "http://16.176.5.144:3001" // 회원
+export const API_BASE = "http://3.27.121.170:3000" // 일반
+export const AUTH_API_BASE = "http://3.27.121.170:3001" // 회원

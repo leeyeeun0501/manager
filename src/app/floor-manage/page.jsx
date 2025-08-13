@@ -23,7 +23,7 @@ export default function BuildingPage() {
   // 층 추가 폼 상태
   const [showAddFloor, setShowAddFloor] = useState(false)
   const [addFloorBuilding, setAddFloorBuilding] = useState("")
-  const [addFloorNum, setAddFloorNum] = useState("")
+  const [addFloorNum, setAddFloorNum] = useState("1")
   const [addFloorFile, setAddFloorFile] = useState(null)
   const [addFloorError, setAddFloorError] = useState("")
   const addFloorFileRef = useRef(null)
@@ -72,10 +72,52 @@ export default function BuildingPage() {
     floorPage * pageSize
   )
 
+  const floorList = [
+    "B5",
+    "B4",
+    "B3",
+    "B2",
+    "B1",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20",
+  ]
+
   // 층 콤보박스 옵션
   const floorNames = Array.from(
     new Set(floors.map((f) => String(f.floor)).filter(Boolean))
   ).sort((a, b) => Number(a) - Number(b))
+
+  const currentFloorIndex = floorList.indexOf(addFloorNum)
+
+  const handleFloorUp = () => {
+    if (currentFloorIndex < floorList.length - 1) {
+      setAddFloorNum(floorList[currentFloorIndex + 1])
+    }
+  }
+
+  const handleFloorDown = () => {
+    if (currentFloorIndex > 0) {
+      setAddFloorNum(floorList[currentFloorIndex - 1])
+    }
+  }
 
   // 층 정보 fetch 함수 분리
   async function fetchFloors(buildingName = selectedBuilding) {
@@ -145,7 +187,7 @@ export default function BuildingPage() {
       alert("층 추가가 완료되었습니다!")
       setShowAddFloor(false)
       setAddFloorBuilding("")
-      setAddFloorNum("")
+      setAddFloorNum("1")
       setAddFloorFile(null)
       if (addFloorFileRef.current) addFloorFileRef.current.value = ""
 
@@ -574,28 +616,66 @@ export default function BuildingPage() {
                     </option>
                   ))}
                 </select>
-                <input
-                  type="text"
-                  value={addFloorNum}
-                  onChange={(e) => setAddFloorNum(e.target.value)}
-                  placeholder="층수"
-                  required
+                {/* 층 선택: 화살표 방식 */}
+                <div
                   style={{
+                    display: "flex",
+                    alignItems: "center",
                     width: "90%",
-                    height: 48,
-                    padding: "0 12px",
-                    borderRadius: 14,
-                    border: "1.5px solid #b3d1fa",
-                    fontSize: 16,
-                    background: "#fff",
-                    color: "#222",
-                    fontFamily: "inherit",
-                    outline: "none",
-                    boxSizing: "border-box",
                     margin: "0 auto",
-                    display: "block",
+                    border: "1.5px solid #b3d1fa",
+                    borderRadius: 14,
+                    height: 48,
+                    background: "#fff",
+                    padding: "0 8px",
+                    boxSizing: "border-box",
                   }}
-                />
+                >
+                  <button
+                    type="button"
+                    onClick={handleFloorDown}
+                    style={{
+                      border: "none",
+                      background: "transparent",
+                      fontSize: 18,
+                      cursor: "pointer",
+                      color: "#2574f5",
+                      padding: "0 8px",
+                    }}
+                  >
+                    ▼
+                  </button>
+                  <input
+                    type="text"
+                    value={addFloorNum}
+                    readOnly
+                    required
+                    style={{
+                      flex: 1,
+                      textAlign: "center",
+                      fontSize: 16,
+                      border: "none",
+                      outline: "none",
+                      background: "transparent",
+                      color: "#222",
+                      fontFamily: "inherit",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleFloorUp}
+                    style={{
+                      border: "none",
+                      background: "transparent",
+                      fontSize: 18,
+                      cursor: "pointer",
+                      color: "#2574f5",
+                      padding: "0 8px",
+                    }}
+                  >
+                    ▲
+                  </button>
+                </div>{" "}
                 <div
                   style={{
                     width: "90%",
@@ -647,7 +727,7 @@ export default function BuildingPage() {
                     onClick={() => {
                       setShowAddFloor(false)
                       setAddFloorBuilding("")
-                      setAddFloorNum("")
+                      setAddFloorNum("1")
                       setAddFloorFile(null)
                       setAddFloorError("")
                       if (addFloorFileRef.current)

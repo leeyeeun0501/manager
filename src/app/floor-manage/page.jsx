@@ -628,22 +628,9 @@ export default function BuildingPage() {
                     background: "#fff",
                     padding: "0 8px",
                     boxSizing: "border-box",
+                    justifyContent: "space-between",
                   }}
                 >
-                  <button
-                    type="button"
-                    onClick={handleFloorDown}
-                    style={{
-                      border: "none",
-                      background: "transparent",
-                      fontSize: 18,
-                      cursor: "pointer",
-                      color: "#2574f5",
-                      padding: "0 8px",
-                    }}
-                  >
-                    ▼
-                  </button>
                   <input
                     type="text"
                     value={addFloorNum}
@@ -651,7 +638,7 @@ export default function BuildingPage() {
                     required
                     style={{
                       flex: 1,
-                      textAlign: "center",
+                      textAlign: "left",
                       fontSize: 16,
                       border: "none",
                       outline: "none",
@@ -660,21 +647,42 @@ export default function BuildingPage() {
                       fontFamily: "inherit",
                     }}
                   />
-                  <button
-                    type="button"
-                    onClick={handleFloorUp}
+                  <div
                     style={{
-                      border: "none",
-                      background: "transparent",
-                      fontSize: 18,
-                      cursor: "pointer",
-                      color: "#2574f5",
-                      padding: "0 8px",
+                      display: "flex",
+                      flexDirection: "row", // ✅ 강제로 가로
+                      gap: 4,
+                      alignItems: "center",
                     }}
                   >
-                    ▲
-                  </button>
-                </div>{" "}
+                    <button
+                      type="button"
+                      onClick={handleFloorUp}
+                      style={{
+                        border: "none",
+                        background: "transparent",
+                        fontSize: 18,
+                        cursor: "pointer",
+                        color: "#2574f5",
+                      }}
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleFloorDown}
+                      style={{
+                        border: "none",
+                        background: "transparent",
+                        fontSize: 18,
+                        cursor: "pointer",
+                        color: "#2574f5",
+                      }}
+                    >
+                      ▼
+                    </button>
+                  </div>
+                </div>
                 <div
                   style={{
                     width: "90%",

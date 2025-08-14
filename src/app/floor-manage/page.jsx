@@ -590,7 +590,6 @@ export default function BuildingPage() {
                   value={addFloorBuilding}
                   onChange={(e) => setAddFloorBuilding(e.target.value)}
                   required
-                  disabled={selectedBuilding !== ""}
                   style={{
                     width: "90%",
                     height: 48,
@@ -598,15 +597,15 @@ export default function BuildingPage() {
                     borderRadius: 14,
                     border: "1.5px solid #b3d1fa",
                     fontSize: 16,
-                    background: selectedBuilding !== "" ? "#f5f5f5" : "#fff",
-                    color: selectedBuilding !== "" ? "#666" : "#222",
+                    background: "#fff",
+                    color: "#222",
                     fontFamily: "inherit",
                     outline: "none",
                     boxSizing: "border-box",
                     margin: "0 auto",
                     display: "block",
                     appearance: "none",
-                    cursor: selectedBuilding !== "" ? "not-allowed" : "pointer",
+                    cursor: "pointer",
                   }}
                 >
                   <option value="">건물 선택</option>

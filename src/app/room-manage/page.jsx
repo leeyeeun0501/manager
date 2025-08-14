@@ -522,6 +522,7 @@ export default function RoomManagePage() {
   useEffect(() => {
     if (!search.trim()) {
       setFilteredRooms(rooms)
+      setCurrentPage(1)
       return
     }
     const keyword = search.toLowerCase()

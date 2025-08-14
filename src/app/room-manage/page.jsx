@@ -354,6 +354,13 @@ export default function RoomManagePage() {
   const reloadMapData = () => {
     if (filterBuilding && filterFloor) {
       setMapLoading(true)
+
+      // 🟢 상태 초기화: 이전 노드/엣지 완전 비우기
+      setSvgRaw("")
+      setSvgNodes([])
+      setRoomNodes({})
+      setEdges([])
+
       fetch(
         `/api/map-route?building=${encodeURIComponent(
           filterBuilding
@@ -378,7 +385,10 @@ export default function RoomManagePage() {
             })
           }
           if (svgUrl) {
-            fetch(svgUrl)
+            // 캐시 무력화
+            const cacheBustUrl =
+              svgUrl + (svgUrl.includes("?") ? "&" : "?") + "ts=" + Date.now()
+            fetch(cacheBustUrl)
               .then((res) => res.text())
               .then((svgXml) => {
                 const processedSvg = processSvg(svgXml)
@@ -601,6 +611,7 @@ export default function RoomManagePage() {
   useEffect(() => {
     if (filterBuilding && filterFloor) {
       setMapLoading(true)
+
       fetch(
         `/api/map-route?building=${encodeURIComponent(
           filterBuilding
@@ -612,6 +623,7 @@ export default function RoomManagePage() {
           const rawSvgUrl = fileList[0]?.File
           const nodesInfo = fileList[0]?.nodes || {}
           let edgesInfo = fileList[0]?.edges
+
           if (!edgesInfo) {
             edgesInfo = []
             Object.entries(nodesInfo).forEach(([from, arr]) => {
@@ -625,17 +637,29 @@ export default function RoomManagePage() {
             })
           }
 
-          // 캐시 무력화: svgUrl 뒤에 ts=timestamp 파라미터 추가
-          let svgUrl = rawSvgUrl
-          if (svgUrl) {
-            svgUrl += (svgUrl.includes("?") ? "&" : "?") + "ts=" + Date.now()
+          if (rawSvgUrl) {
+            // 도면 URL 캐시 무력화 쿼리 추가
+            const svgUrl =
+              rawSvgUrl +
+              (rawSvgUrl.includes("?") ? "&" : "?") +
+              "ts=" +
+              Date.now()
+
+            // 상태 초기화를 fetch 이전에 확실히 수행
+            setSvgRaw("")
+            setSvgNodes([])
+            setRoomNodes({})
+            setEdges([])
+
             fetch(svgUrl)
               .then((res) => res.text())
               .then((svgXml) => {
                 const processedSvg = processSvg(svgXml)
+
                 setSvgRaw(processedSvg)
                 setRoomNodes(nodesInfo)
                 setEdges(edgesInfo)
+
                 const parsedNodes = parseSvgNodes(
                   svgXml,
                   filterBuilding,
@@ -664,6 +688,7 @@ export default function RoomManagePage() {
         })
         .finally(() => setMapLoading(false))
     } else {
+      // 건물/층 선택 초기화 시 상태 리셋
       setSvgRaw("")
       setRoomNodes({})
       setEdges([])

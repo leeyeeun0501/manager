@@ -81,7 +81,14 @@ export default function InquiryPage() {
         title: item.Title,
         content: item.Content,
         image_url: item.Image_Path,
-        status: item.Status,
+        // 여기서 변환
+        status: item.Status
+          ? item.Status === "pending"
+            ? "답변 대기"
+            : item.Status === "answered"
+            ? "답변 완료"
+            : item.Status
+          : "답변 대기",
         answer: item.Answer,
         answered_at: item.Answered_At,
         created_at: item.Created_At,

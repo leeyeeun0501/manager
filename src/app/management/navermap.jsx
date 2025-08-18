@@ -10,7 +10,7 @@ function createSpeechBubbleMarkerContent(userId) {
       display: flex;
       justify-content: center;
       align-items: center;
-      width: 42px;
+      width: 80px; /* 폭 넉넉히 */
       height: 34px;
       border-radius: 11px;
       background: white;
@@ -20,8 +20,8 @@ function createSpeechBubbleMarkerContent(userId) {
       color: #111;
       box-shadow: 0px 2px 6px rgba(0,0,0,0.08);
       text-align: center;
-      word-break: break-all;
-      white-space: normal;
+      word-break: normal; /* 변경 */
+      white-space: nowrap; /* 변경 */
       line-height: 1.1;
       letter-spacing: 1px;
       padding: 2px 3px 0 3px;

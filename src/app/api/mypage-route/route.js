@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server"
 import { AUTH_API_BASE } from "../apibase"
 
-// 회원정보 검색 (GET)
+// 로그인 시 해당 아이디 회원정보 검색 (GET)
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const id = searchParams.get("id")
@@ -36,7 +36,7 @@ export async function GET(request) {
   }
 }
 
-// 회원정보 수정 (PUT)
+// 회원정보 수정 - 비밀번호, 전화번호, 이메일 (PUT)
 export async function PUT(request) {
   try {
     const { id, pw, phone, email } = await request.json()

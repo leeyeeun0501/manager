@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 
-// 전체 노드 데이터 조회 (GET)
+// 외부 전체 노드 데이터 조회 (GET)
 export async function GET() {
   try {
     const edgesRes = await fetch(`${API_BASE}/path/edges`, {
@@ -19,12 +19,11 @@ export async function GET() {
 
     return NextResponse.json({ edges: edgesData })
   } catch (err) {
-    console.log("서버 오류:", err)
     return NextResponse.json({ error: "서버 오류" }, { status: 500 })
   }
 }
 
-// 엣지 연결 (POST)
+// 외부 엣지 연결 (POST)
 export async function POST(request) {
   try {
     const { from_node, to_node } = await request.json()
@@ -60,7 +59,7 @@ export async function POST(request) {
   }
 }
 
-// 엣지 연결 해제 (DELETE)
+// 외부 엣지 연결 해제 (DELETE)
 export async function DELETE(request) {
   try {
     const { from_node, to_node } = await request.json()
@@ -89,7 +88,6 @@ export async function DELETE(request) {
 
     return NextResponse.json({ success: true, edge: data })
   } catch (err) {
-    console.log("DELETE 서버 오류:", err)
     return NextResponse.json(
       { success: false, error: "서버 오류" },
       { status: 500 }

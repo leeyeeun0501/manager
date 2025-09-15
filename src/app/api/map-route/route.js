@@ -38,7 +38,7 @@ export async function GET(request) {
   })
 }
 
-// 도면 노드 엣지 연결 (POST)
+// 내부 도면 노드 엣지 연결 (POST)
 export async function POST(request) {
   try {
     const body = await request.json()
@@ -98,7 +98,7 @@ export async function POST(request) {
   }
 }
 
-// 도면 노드 엣지 연결 해제 (DELETE)
+// 내부 도면 노드 엣지 연결 해제 (DELETE)
 export async function DELETE(request) {
   try {
     const body = await request.json()

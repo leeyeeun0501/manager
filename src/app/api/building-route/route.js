@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 
-// 전체 데이터 조회/건물 이름만 조회 (GET)
+// 건물 전체 데이터 조회/건물 이름만 조회 (GET)
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
 
@@ -49,36 +49,26 @@ export async function PUT(request) {
   const formData = await request.formData()
   const file = formData.get("file")
 
-  console.log("받은 FormData 키들:")
-  for (let [key, value] of formData.entries()) {
-    console.log(`${key}:`, typeof value === "object" ? value.name : value)
-  }
-
   // 배열 인덱스로 이미지들 가져오기
   const images = []
   let index = 0
   while (formData.get(`images[${index}]`)) {
     const image = formData.get(`images[${index}]`)
-    console.log(`이미지 ${index} 받음:`, image.name)
     images.push(image)
     index++
   }
 
-  // 추가: images 키로도 확인
+  // 추가: images 키로도 확인 ??????
   const imagesAlt = formData.getAll("images")
-  console.log("images 키로 받은 이미지들:", imagesAlt.length)
   if (imagesAlt.length > 0) {
     imagesAlt.forEach((image, idx) => {
-      console.log(`images[${idx}] 받음:`, image.name)
       if (!images.find((img) => img.name === image.name)) {
         images.push(image)
       }
     })
   }
 
-  console.log("총 이미지 개수:", images.length)
   const desc = formData.get("desc")
-  console.log("설명:", desc)
 
   if (!file && !desc && (!images || images.length === 0)) {
     return NextResponse.json(
@@ -90,26 +80,18 @@ export async function PUT(request) {
   const externalForm = new FormData()
   if (file) externalForm.append("file", file)
   if (images && images.length > 0) {
-    // 모든 이미지를 외부 API로 전송
     images.forEach((image, index) => {
-      console.log(`외부 API로 이미지 ${index} 전송:`, image.name)
       externalForm.append(`images[${index}]`, image)
     })
   }
   if (desc) externalForm.append("desc", desc)
 
-  console.log(
-    "외부 API URL:",
-    `${API_BASE}/building/${encodeURIComponent(building)}`
-  )
   const res = await fetch(
     `${API_BASE}/building/${encodeURIComponent(building)}`,
     { method: "PUT", body: externalForm }
   )
 
-  console.log("외부 API 응답 상태:", res.status)
   const text = await res.text()
-  console.log("외부 API 응답 텍스트:", text)
 
   let data = {}
   if (text) {

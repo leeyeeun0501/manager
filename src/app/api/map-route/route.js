@@ -1,7 +1,7 @@
 // map-route
 import { API_BASE } from "../apibase"
 
-// 전체 데이터 조회 (GET)
+// SVG 도면 파일 조회 - 건물, 층 선택 시 (GET)
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const building = searchParams.get("building")
@@ -38,7 +38,7 @@ export async function GET(request) {
   })
 }
 
-// 노드 엣지 연결 (POST)
+// 도면 노드 엣지 연결 (POST)
 export async function POST(request) {
   try {
     const body = await request.json()
@@ -98,7 +98,7 @@ export async function POST(request) {
   }
 }
 
-// 노드 엣지 연결 해제 (DELETE)
+// 도면 노드 엣지 연결 해제 (DELETE)
 export async function DELETE(request) {
   try {
     const body = await request.json()

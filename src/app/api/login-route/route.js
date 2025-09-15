@@ -37,7 +37,6 @@ export async function POST(request) {
       islogin: true,
     })
   } catch (err) {
-    console.error("로그인 처리 중 오류:", err)
     return NextResponse.json(
       { success: false, error: "서버 오류가 발생했습니다." },
       { status: 500 }

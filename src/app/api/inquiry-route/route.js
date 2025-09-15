@@ -13,7 +13,6 @@ export async function GET(request) {
       )
     }
     const data = await res.json()
-    // API로부터 받아온 데이터가 배열이면 inquiries: data, 객체에 나오면 inquiries: data.inquiries
     return NextResponse.json({ inquiries: data.inquiries || data || [] })
   } catch (error) {
     console.error("문의 조회 오류:", error)
@@ -29,10 +28,6 @@ export async function PUT(request) {
   try {
     const body = await request.json()
     const { inquiry_code, answer } = body
-
-    console.log("받은 데이터:", body)
-    console.log("문의 코드:", inquiry_code)
-    console.log("답변:", answer)
 
     if (!inquiry_code) {
       return NextResponse.json(
@@ -52,8 +47,6 @@ export async function PUT(request) {
       inquiry_code: inquiry_code,
       answer: answer.trim(),
     }
-
-    console.log("서버로 전송할 데이터:", answerData)
 
     const res = await fetch(`${AUTH_API_BASE}/inquiry/answer`, {
       method: "PUT",

@@ -157,7 +157,6 @@
   white-space: nowrap;
 }
 
-/* 사진 컬럼 크기 고정 */
 .inquiryTable th:nth-child(6),
 .inquiryTable td:nth-child(6) {
   width: 80px;

@@ -408,7 +408,7 @@ export default function RoomManagePage() {
     }
   }
 
-  // 엣지 연결 함수
+  // 내부 도면 엣지 연결 함수
   const connectEdge = async () => {
     if (isEdgeDuplicate(edges, edgeFromNode?.id, edgeToNode?.id)) {
       showToast("이미 연결된 엣지입니다.")
@@ -468,7 +468,7 @@ export default function RoomManagePage() {
       otherNodeSuffix: getNodeSuffix(e.to),
     }))
 
-  // 엣지 연결 해제 함수
+  // 내부 도면 엣지 연결 해제 함수
   const handleDisconnectEdge = async (targetNodeId) => {
     if (!edgeModalNode?.id || !targetNodeId) {
       showToast("노드 정보가 올바르지 않습니다.")

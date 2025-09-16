@@ -125,9 +125,8 @@ export async function POST(req, { params }) {
   }
 }
 
-
 // 강의실 삭제 (DELETE)
-// 아직 안 씀
+// 못 씀
 export async function DELETE(request, { params }) {
   const { building, floor } = params
   const { room_name } = await request.json()

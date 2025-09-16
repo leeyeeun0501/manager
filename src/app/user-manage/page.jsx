@@ -78,7 +78,7 @@ export default function UserManagePage() {
     localStorage.setItem("USER_MANAGE_PAGE", currentPage)
   }, [currentPage])
 
-  // 삭제 핸들러
+  // 사용자 삭제 핸들러
   const handleDelete = async (id) => {
     if (!confirm("정말로 사용자를 삭제하시겠습니까?")) return
     try {

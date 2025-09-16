@@ -52,7 +52,7 @@ export default function SignupPage() {
     }
   }
 
-  // 제출 핸들러
+  // 비번 한 번 더 확인 핸들러
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")

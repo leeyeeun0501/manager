@@ -26,7 +26,7 @@ export default function ManagementPage() {
     userIdRef.current = userId
   }, [userId])
 
-  // localStorage에서 userId 불러오기
+  // userId
   useEffect(() => {
     const storedId = localStorage.getItem("userId")
     if (storedId) {
@@ -104,7 +104,8 @@ export default function ManagementPage() {
     return () => clearInterval(intervalId)
   }, [])
 
-  // 웹소켓 등록: userId가 준비된 이후에 연결
+  // 웹소켓 등록: userId가 준비된 이후에 연결 ?????
+  // 문의 실시간 알림
   useEffect(() => {
     if (!userId) return
 

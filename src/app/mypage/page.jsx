@@ -122,7 +122,7 @@ export default function MyPage() {
       })
   }, [])
 
-  // 수정 핸들러
+  // 비번, 이메일, 전화번호 수정 핸들러
   const handleEdit = async (e) => {
     e.preventDefault()
     setEditMsg("")

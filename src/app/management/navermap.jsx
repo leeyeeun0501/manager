@@ -109,7 +109,6 @@ export default function NaverMapSimple({ markers = [] }) {
           setPathData(filteredNodes)
         }
       } catch (error) {
-        console.error("경로 데이터 조회 실패:", error)
       }
     }
 
@@ -134,7 +133,6 @@ export default function NaverMapSimple({ markers = [] }) {
           setBuildingData([])
         }
       } catch (error) {
-        console.error("건물 데이터 조회 실패:", error)
         setBuildingData([])
       }
     }

@@ -56,7 +56,6 @@ export default function InquiryPage() {
     return text.substring(0, maxLength) + "..."
   }
 
-  // 문의 불러오기
   useEffect(() => {
     fetchInquiries()
   }, [])
@@ -167,7 +166,8 @@ export default function InquiryPage() {
     setSelectedImage("")
   }
 
-  // 번역 함수
+  // 번역 함수  ??????
+  // 수정 예정
   const handleTranslate = async () => {
     if (!selectedInquiry) return
 

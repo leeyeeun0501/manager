@@ -74,13 +74,9 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     if (!window.confirm("선택한 이미지를 삭제하시겠습니까?")) return
 
     try {
-      console.log("삭제할 이미지들:", selectedImages)
-      console.log("건물 이름:", deletePopup.node_name)
-
       const requestBody = {
         image_urls: selectedImages,
       }
-      console.log("요청 본문:", requestBody)
 
       // 선택된 이미지들을 배열로 한 번에 삭제
       const res = await fetch(
@@ -94,9 +90,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         }
       )
 
-      console.log("삭제 요청 응답:", res.status)
       const data = await res.json()
-      console.log("삭제 응답 데이터:", data)
 
       if (!data.success) {
         alert(data.error || "이미지 삭제 실패")
@@ -128,7 +122,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       try {
         const res = await fetch("/api/building-route")
         const json = await res.json()
-        console.log("API 전체 응답:", json)
 
         if (json.all && Array.isArray(json.all)) {
           const found = json.all.find(
@@ -136,7 +129,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
               b.Building_Name === deletePopup.node_name ||
               b.name === deletePopup.node_name
           )
-          console.log("찾은 건물 데이터:", found)
 
           if (found) {
             setCurrentBuilding(found)
@@ -153,8 +145,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
               newImageArr = [found.image_url]
             }
 
-            console.log("새로운 이미지 배열:", newImageArr)
-            console.log("이미지 배열 길이:", newImageArr.length)
             setCurrentImageArr(newImageArr)
             if (newImageArr.length > 0) {
               setExistingImageUrl(newImageArr[0])
@@ -162,7 +152,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
           }
         }
       } catch (error) {
-        console.error("건물 데이터 가져오기 실패:", error)
         setCurrentBuilding(null)
         setCurrentImageArr([])
         setBuildingDesc("")
@@ -537,7 +526,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     })
   }, [edges, nodes])
 
-  // 건물 설명 수정 버튼 클릭 시 서버로 PUT
+  // 건물 설명 수정
   async function handleUpdateBuildingDesc(e) {
     e.preventDefault()
     if (!deletePopup.node_name) {
@@ -549,17 +538,13 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       const formData = new FormData()
       formData.append("desc", buildingDesc)
 
-      console.log("새로 추가된 이미지 개수:", newBuildingImages.length)
-
       // 새로 추가된 이미지가 있는 경우에만 이미지 추가 (건물 추가와 동일한 방식)
       if (newBuildingImages.length > 0) {
         newBuildingImages.forEach((image, index) => {
-          console.log(`이미지 ${index} 추가:`, image.name)
-          formData.append(`images[${index}]`, image) // 배열 인덱스로 전송
+          formData.append(`images[${index}]`, image)
         })
       }
 
-      console.log("전송할 FormData 내용:")
       for (let [key, value] of formData.entries()) {
         console.log(`${key}:`, typeof value === "object" ? value.name : value)
       }
@@ -574,9 +559,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         }
       )
 
-      console.log("서버 응답 상태:", res.status)
       const data = await res.json()
-      console.log("서버 응답 데이터:", data)
 
       if (data && !data.error) {
         alert("정보 수정 완료!")
@@ -629,7 +612,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     e.target.value = ""
   }
 
-  // nodes 데이터 fetch
+  // nodes 데이터
   async function fetchNodes() {
     try {
       const res = await fetch("/api/tower-route")
@@ -640,7 +623,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     }
   }
 
-  // edges 데이터 fetch
+  // edges 데이터
   async function fetchEdges() {
     try {
       const res = await fetch("/api/node-route")
@@ -651,7 +634,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     }
   }
 
-  // 건물/노드 추가 팝업 저장 처리
+  // 건물/노드 추가 저장
   async function handleAddNode(e) {
     e.preventDefault()
     if (addPopup.x == null || addPopup.y == null) {
@@ -677,7 +660,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
     let res
     if (type === "building") {
-      // 건물인 경우 FormData 사용하여 이미지와 함께 전송
       const formData = new FormData()
       formData.append("type", type)
       formData.append("node_name", finalNodeName)
@@ -695,7 +677,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         body: formData,
       })
     } else {
-      // 노드인 경우 기존 방식 사용
       const body = {
         type,
         node_name: finalNodeName,
@@ -722,7 +703,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     }
   }
 
-  // 삭제 처리 함수
+  // 건물/노드 삭제 처리 함수
   async function handleDeleteNode() {
     if (!deletePopup.type || !deletePopup.node_name) return
     if (!window.confirm("정말 삭제하시겠습니까?")) return
@@ -763,7 +744,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     }
   }
 
-  // 엣지 연결 함수
+  // 외부 노드 엣지 연결 함수
   async function handleEdgeConnect(from, to) {
     if (!from?.node_name || !to?.node_name) {
       alert("노드 정보가 올바르지 않습니다.")
@@ -801,7 +782,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     }
   }
 
-  // 엣지 연결 해제 함수
+  // 외부 노드 엣지 연결 해제 함수
   async function handleEdgeDisconnect(from_node, to_node) {
     if (!from_node || !to_node) {
       alert("노드 정보가 올바르지 않습니다.")
@@ -824,87 +805,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     } else {
       alert(data.error || "엣지 연결 해제 실패")
     }
-  }
-
-  // 건물 설명 수정 버튼 클릭 시 서버로 PUT
-  async function handleUpdateBuildingDesc(e) {
-    e.preventDefault()
-    if (!deletePopup.node_name) {
-      alert("건물 이름이 없습니다.")
-      return
-    }
-    setBuildingDescLoading(true)
-    try {
-      const formData = new FormData()
-      formData.append("desc", buildingDesc)
-
-      console.log("새로 추가된 이미지 개수:", newBuildingImages.length)
-
-      if (newBuildingImages.length > 0) {
-        newBuildingImages.forEach((image, index) => {
-          console.log(`이미지 ${index} 추가:`, image.name)
-          formData.append(`images[${index}]`, image)
-        })
-      }
-
-      console.log("전송할 FormData 내용:")
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, typeof value === "object" ? value.name : value)
-      }
-
-      const res = await fetch(
-        `/api/building-route?building=${encodeURIComponent(
-          deletePopup.node_name
-        )}`,
-        {
-          method: "PUT",
-          body: formData,
-        }
-      )
-
-      console.log("서버 응답 상태:", res.status)
-      const data = await res.json()
-      console.log("서버 응답 데이터:", data)
-
-      if (data && !data.error) {
-        alert("정보 수정 완료!")
-        const res2 = await fetch("/api/building-route")
-        const json2 = await res2.json()
-        if (json2.all && Array.isArray(json2.all)) {
-          const found = json2.all.find(
-            (b) =>
-              b.Building_Name === deletePopup.node_name ||
-              b.name === deletePopup.node_name
-          )
-          if (found) {
-            setBuildingDesc(found.Description || found.Desc || found.desc || "")
-
-            let newImageArr = []
-            if (Array.isArray(found.Image) && found.Image.length > 0) {
-              newImageArr = [...found.Image]
-            } else if (Array.isArray(found.image) && found.image.length > 0) {
-              newImageArr = [...found.image]
-            } else if (found.image) {
-              newImageArr = [found.image]
-            } else if (found.image_url) {
-              newImageArr = [found.image_url]
-            }
-            setCurrentImageArr(newImageArr)
-            if (newImageArr.length > 0) {
-              setExistingImageUrl(newImageArr[0])
-            }
-          }
-        }
-        setNewBuildingImages([])
-        setBuildingImageIndex(0)
-      } else {
-        alert(data.error || "정보 수정 실패")
-      }
-    } catch (error) {
-      console.error("설명 수정 오류:", error)
-      alert("서버 오류")
-    }
-    setBuildingDescLoading(false)
   }
 
   // 다음 바깥 노드 이름 생성
@@ -940,7 +840,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     }
   }
 
-  // 엣지 연결 시작
+  // 외부 노드 엣지 연결 시작
   function handleStartEdgeConnect(node) {
     setEdgeConnectMode({
       active: true,

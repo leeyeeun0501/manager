@@ -41,7 +41,6 @@ export async function DELETE(request) {
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
-      console.error("외부 서버 응답:", data)
       return NextResponse.json(
         { success: false, error: data.error || "외부 서버 오류" },
         { status: res.status }
@@ -56,7 +55,7 @@ export async function DELETE(request) {
   }
 }
 
-// 회원정보 수정 (PUT)
+// 로그인 시 해당 아이디 회원정보 수정 (PUT)
 export async function PUT(request) {
   try {
     const { id, pw, phone, email } = await request.json()

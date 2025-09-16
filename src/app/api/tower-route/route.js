@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 
-// 전체 데이터 조회 (GET)
+// 건물/노드 위치 전체 데이터 조회 (GET)
 export async function GET() {
   try {
     try {
@@ -30,7 +30,8 @@ export async function GET() {
   }
 }
 
-// 경로 노드 정보 수정 (PUT)
+// 경로 노드 정보 수정 (PUT)  !!!!!
+// 드래그 수정 해야 됨
 export async function PUT(request) {
   try {
     const { node_name, x, y } = await request.json()
@@ -42,7 +43,6 @@ export async function PUT(request) {
       )
     }
 
-    // 먼저 외부 API 시도
     try {
       const res = await fetch(`${API_BASE}/path/`, {
         method: "PUT",
@@ -55,10 +55,8 @@ export async function PUT(request) {
         return NextResponse.json({ message: "노드 정보 수정 성공", data })
       }
     } catch (externalError) {
-      // 외부 API 연결 실패 시 로컬 데이터 수정
     }
 
-    // 외부 API 실패 시 로컬 데이터 수정
     const nodeIndex = localNodes.findIndex(
       (node) => node.node_name === node_name
     )

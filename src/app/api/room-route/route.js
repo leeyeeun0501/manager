@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 
-// 전체 데이터 조회 (GET)
+// 강의실 전체 데이터 조회 (GET)
 export async function GET() {
   try {
     const res = await fetch(`${API_BASE}/room`, {

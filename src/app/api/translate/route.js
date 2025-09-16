@@ -1,3 +1,6 @@
+// 문의 번역 기능 !!!!!
+// 번역 API 사용 후 모든 언어 번역
+
 export async function POST(request) {
   try {
     const { text, targetLang = "ko" } = await request.json()
@@ -41,7 +44,6 @@ export async function POST(request) {
       targetLang,
     })
   } catch (error) {
-    console.error("번역 API 오류:", error)
     return Response.json(
       { error: "번역 중 오류가 발생했습니다." },
       { status: 500 }

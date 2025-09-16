@@ -1,4 +1,4 @@
-// category-route
+// category-route 보류
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 

@@ -326,7 +326,6 @@ export default function BuildingPage() {
               onChange={(e) => {
                 setSelectedBuilding(e.target.value)
                 setSelectedFloor("")
-                // 건물 변경 시 1페이지로 이동
                 setFloorPage(1)
               }}
               style={{ minWidth: 150 }}
@@ -343,7 +342,6 @@ export default function BuildingPage() {
               value={selectedFloor}
               onChange={(e) => {
                 setSelectedFloor(e.target.value)
-                // 필터 변경 시 1페이지로 이동
                 setFloorPage(1)
               }}
               disabled={!selectedBuilding}
@@ -650,7 +648,7 @@ export default function BuildingPage() {
                   <div
                     style={{
                       display: "flex",
-                      flexDirection: "row", // ✅ 강제로 가로
+                      flexDirection: "row",
                       gap: 4,
                       alignItems: "center",
                     }}
@@ -913,7 +911,6 @@ export default function BuildingPage() {
                     }
                     alert("도면이 성공적으로 수정되었습니다!")
 
-                    // 도면 수정 후에 층 정보 갱신
                     await fetchFloors(selectedBuilding)
 
                     setMapModalOpen(false)

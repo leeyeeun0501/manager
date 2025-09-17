@@ -2,12 +2,14 @@
 "use client"
 import "../globals.css"
 import React, { useRef, useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./room-manage.module.css"
 import { MdEditSquare } from "react-icons/md"
 
 export default function RoomManagePage() {
+  const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [rooms, setRooms] = useState([])
   const [loading, setLoading] = useState(true)
@@ -1063,6 +1065,32 @@ export default function RoomManagePage() {
           </div>
           {/* 맵 */}
           <div className={styles["room-manage-map-wrap"]}>
+            <div style={{ textAlign: "right", marginBottom: "8px" }}>
+              <button
+                style={{
+                  padding: "6px 14px",
+                  fontSize: "14px",
+                  fontWeight: "bold",
+                  color: "#fff",
+                  backgroundColor:
+                    filterBuilding && filterFloor && svgRaw ? "#2574f5" : "#ccc",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor:
+                    filterBuilding && filterFloor && svgRaw
+                      ? "pointer"
+                      : "not-allowed",
+                }}
+                disabled={!(filterBuilding && filterFloor && svgRaw)}
+                onClick={() => {
+                  if (filterBuilding && filterFloor) {
+                    router.push(`/room-manage/edit?building=${filterBuilding}&floor=${filterFloor}`);
+                  }
+                }}
+              >
+                도면 편집
+              </button>
+            </div>
             <div
               style={{
                 position: "relative",

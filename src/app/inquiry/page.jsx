@@ -175,33 +175,34 @@ export default function InquiryPage() {
     setShowTranslation(true)
 
     try {
-      // 제목 번역
-      const titleResponse = await fetch("/api/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: selectedInquiry.title || "제목 없음",
-          targetLang: "ko",
-        }),
-      })
-      const titleData = await titleResponse.json()
-      setTranslatedTitle(titleData.translatedText || "번역 실패")
+      const textsToTranslate = [
+        selectedInquiry.title || "제목 없음",
+        selectedInquiry.content || "내용 없음",
+      ]
 
-      // 내용 번역
-      const contentResponse = await fetch("/api/translate", {
+      const response = await fetch("/api/translate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          text: selectedInquiry.content || "내용 없음",
+          texts: textsToTranslate,
           targetLang: "ko",
         }),
       })
-      const contentData = await contentResponse.json()
-      setTranslatedContent(contentData.translatedText || "번역 실패")
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "번역에 실패했습니다.")
+      }
+
+      const data = await response.json()
+      const [titleResult, contentResult] = data.results
+
+      setTranslatedTitle(titleResult?.translatedText || "번역 결과 없음")
+      setTranslatedContent(contentResult?.translatedText || "번역 결과 없음")
     } catch (error) {
       console.error("번역 오류:", error)
-      setTranslatedTitle("번역 중 오류가 발생했습니다.")
-      setTranslatedContent("번역 중 오류가 발생했습니다.")
+      setTranslatedTitle("번역 오류")
+      setTranslatedContent(error.message)
     } finally {
       setIsTranslating(false)
     }

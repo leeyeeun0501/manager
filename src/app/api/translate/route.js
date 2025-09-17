@@ -1,51 +1,61 @@
 // 문의 번역 기능 !!!!!
 // 번역 API 사용 후 모든 언어 번역
+import { TranslationServiceClient } from "@google-cloud/translate"
 
 export async function POST(request) {
   try {
-    const { text, targetLang = "ko" } = await request.json()
-
-    if (!text) {
+    const { texts, targetLang = "ko" } = await request.json()
+    if (!Array.isArray(texts) || texts.length === 0) {
       return Response.json(
-        { error: "번역할 텍스트가 없습니다." },
+        { error: "번역할 텍스트 배열이 없습니다." },
         { status: 400 }
       )
     }
 
-    // 간단한 번역 로직 (실제로는 Google Translate API 등을 사용해야 함)
-    // 여기서는 예시로 간단한 매핑을 사용합니다
-    const translations = {
-      下次自动登录: "다음에 자동 로그인",
-      "Next time automatic login": "다음에 자동 로그인",
-      sorry: "죄송합니다",
-      bug: "버그",
-      feature: "기능",
-      route_error: "경로 오류",
-      "Route Guidance Error": "경로 안내 오류",
-      "Feature Request": "기능 요청",
+    const projectId = process.env.GOOGLE_PROJECT_ID
+    if (!projectId || !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      console.error(
+        "Google Cloud 인증 정보가 .env.local 파일에 설정되지 않았습니다. (GOOGLE_PROJECT_ID, GOOGLE_APPLICATION_CREDENTIALS)"
+      )
+      return Response.json(
+        { error: "서버에 API 키가 설정되지 않았습니다." },
+        { status: 500 }
+      )
     }
 
-    // 번역된 텍스트 찾기
-    let translatedText = text
-    for (const [original, translated] of Object.entries(translations)) {
-      if (text.includes(original)) {
-        translatedText = text.replace(original, translated)
+    const location = "global"
+    const translationClient = new TranslationServiceClient()
+
+    const translate = async (text) => {
+      if (!text) return { translatedText: "", originalText: text }
+
+      const requestPayload = {
+        parent: `projects/${projectId}/locations/${location}`,
+        contents: [text],
+        mimeType: "text/plain",
+        targetLanguageCode: targetLang,
+      }
+
+      const [response] = await translationClient.translateText(requestPayload)
+      const translation = response.translations[0]
+
+      return {
+        translatedText: translation.translatedText,
+        originalText: text,
+        sourceLang: translation.detectedLanguageCode,
       }
     }
 
-    // 번역이 변경되지 않았다면 원본 텍스트 반환
-    if (translatedText === text) {
-      translatedText = `[번역됨] ${text}`
-    }
+    const results = await Promise.all(texts.map(translate))
 
     return Response.json({
-      translatedText,
-      originalText: text,
+      results,
       targetLang,
     })
   } catch (error) {
+    console.error("Google 번역 API 라우트에서 오류 발생:", error.message)
     return Response.json(
-      { error: "번역 중 오류가 발생했습니다." },
+      { error: error.message || "번역 중 알 수 없는 오류가 발생했습니다." },
       { status: 500 }
     )
   }

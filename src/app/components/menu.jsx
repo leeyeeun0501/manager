@@ -17,10 +17,11 @@ import React, { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import styles from "./menu.module.css"
 
-export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
+export default function HamburgerMenu() {
   const router = useRouter()
   const pathname = usePathname()
   const [userName, setUserName] = useState("")
+  const [menuOpen, setMenuOpen] = useState(false)
 
   // 사용자 이름 설정
   useEffect(() => {

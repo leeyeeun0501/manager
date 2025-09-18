@@ -2,7 +2,6 @@
 "use client"
 import React, { useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import Menu from "../../components/menu"
 import styles from "../room-manage.module.css"
 
 export default function RoomManageEditPage() {
@@ -10,7 +9,6 @@ export default function RoomManageEditPage() {
   const searchParams = useSearchParams()
   const building = searchParams.get("building") || ""
   const floor = searchParams.get("floor") || ""
-  const [menuOpen, setMenuOpen] = useState(false)
 
   const [svgRaw, setSvgRaw] = useState("")
   const [svgViewBox, setSvgViewBox] = useState({ x: 0, y: 0, width: 400, height: 400 })
@@ -308,7 +306,6 @@ export default function RoomManageEditPage() {
       }}
     >
       <span className={styles["room-header"]}>도면 편집 페이지</span>
-      <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       {building && floor && (
         <div
           style={{

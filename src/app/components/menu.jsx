@@ -100,20 +100,25 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
           <div className={styles.profileRole}>관리자</div>
         </div>
 
-        {menuItems.map((item) => (
-          <Link
-            key={item.label}
-            href={item.path}
-            className={`${styles.menuLink} ${
-              pathname === item.path ? styles.active : ""
-            }`}
-            onClick={() => setMenuOpen(false)}
-            tabIndex={0}
-          >
-            <span className={styles.menuIcon}>{item.icon}</span>
-            {item.label}
-          </Link>
-        ))}
+        {menuItems.map((item) => {
+          // 마이페이지의 경우 /mypage로 시작하는 모든 경로에서 활성화
+          const isActive = item.label === "마이페이지" 
+            ? pathname.startsWith("/mypage")
+            : pathname === item.path;
+          
+          return (
+            <Link
+              key={item.label}
+              href={item.path}
+              className={`${styles.menuLink} ${isActive ? styles.active : ""}`}
+              onClick={() => setMenuOpen(false)}
+              tabIndex={0}
+            >
+              <span className={styles.menuIcon}>{item.icon}</span>
+              {item.label}
+            </Link>
+          );
+        })}
 
         <button className={styles.logoutBtn} onClick={handleLogout}>
           <FaSignOutAlt style={{ marginRight: 12, fontSize: "1.1em" }} />

@@ -130,7 +130,6 @@ export default function UserManagePage() {
               <thead>
                 <tr>
                   <th>아이디</th>
-                  <th>비밀번호</th>
                   <th>이름</th>
                   <th>학번</th>
                   <th>전화번호</th>
@@ -152,7 +151,6 @@ export default function UserManagePage() {
                       }
                     >
                       <td>{user.Id || ""}</td>
-                      <td>{user.Pw || ""}</td>
                       <td>{user.Name || ""}</td>
                       <td>{user.Stu_Num || ""}</td>
                       <td>{user.Phone || ""}</td>
@@ -178,7 +176,7 @@ export default function UserManagePage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={8} style={{ textAlign: "center" }}>
+                    <td colSpan={7} style={{ textAlign: "center" }}>
                       사용자 데이터가 없습니다.
                     </td>
                   </tr>

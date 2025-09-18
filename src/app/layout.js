@@ -13,12 +13,14 @@ export default function RootLayout({ children }) {
   const hideMenuAndProfile =
     pathname === "/login" ||
     pathname === "/signup" ||
-    pathname === "/mypage/verify-password"
+    pathname === "/mypage/verify-password" ||
+    pathname === "/mypage"
   const hideNotification =
     pathname === "/inquiry" ||
     pathname === "/login" ||
     pathname === "/signup" ||
-    pathname === "/mypage/verify-password"
+    pathname === "/mypage/verify-password" ||
+    pathname === "/mypage"
 
   useEffect(() => {
     const id = localStorage.getItem("id")

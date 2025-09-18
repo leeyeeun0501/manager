@@ -73,14 +73,14 @@ export default function RoomManageEditPage() {
       svgViewBox
     })
 
-    // 새로운 노드 생성
+    // 새로운 노드 생성 (기존 노드와 같은 크기로 설정)
     const newNodeId = nodeType === "stairs" ? newNodeName.trim() : `b${nodeCounter}`
     const newNode = {
       id: `${building}@${floor}@${newNodeId}`,
       x: clickX,
       y: clickY,
-      width: 20,
-      height: 20,
+      width: 8, // 기존 노드들과 비슷한 크기
+      height: 8, // 기존 노드들과 비슷한 크기
       element: "circle",
       layer: "Navigation_Nodes",
       nodeType: nodeType,
@@ -178,7 +178,7 @@ export default function RoomManageEditPage() {
       doc.querySelector("svg").appendChild(navigationLayer)
     }
 
-    // 각 노드를 SVG 요소로 추가
+    // 각 노드를 SVG 요소로 추가 (기존 노드와 동일한 스타일)
     nodes.forEach(node => {
       const nodeId = node.id.split("@")[2] // building@floor@nodeId에서 nodeId만 추출
       
@@ -186,10 +186,8 @@ export default function RoomManageEditPage() {
       circle.setAttribute("id", nodeId)
       circle.setAttribute("cx", node.x)
       circle.setAttribute("cy", node.y)
-      circle.setAttribute("r", "10")
-      circle.setAttribute("fill", node.nodeType === "stairs" ? "#ff6b6b" : "#4ecdc4")
-      circle.setAttribute("stroke", "#333")
-      circle.setAttribute("stroke-width", "1")
+      circle.setAttribute("r", "2.1957438") // 기존 노드와 동일한 반지름
+      circle.setAttribute("style", "fill:#00ffff;fill-opacity:0;stroke:#ffffff;stroke-width:0") // 기존 노드와 동일한 스타일
       
       navigationLayer.appendChild(circle)
     })
@@ -574,8 +572,8 @@ export default function RoomManageEditPage() {
                         top: `${node.y - node.height / 2}px`,
                         width: `${node.width}px`,
                         height: `${node.height}px`,
-                        border: "2px solid #ff6b6b",
-                        backgroundColor: "rgba(255, 107, 107, 0.2)",
+                        border: "1px solid #ff6b6b",
+                        backgroundColor: "rgba(255, 107, 107, 0.1)",
                         borderRadius: "50%",
                         animation: "pulse 1.5s infinite",
                       }}

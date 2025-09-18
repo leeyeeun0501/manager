@@ -293,7 +293,20 @@ export default function RoomManageEditPage() {
   }, [building, floor])
 
   return (
-    <div className={styles["room-root"]}>
+    <div 
+      className={`${styles["room-root"]} ${styles["edit-page-root"]}`}
+      style={{
+        margin: 0,
+        padding: 0,
+        width: '100vw',
+        height: '100vh',
+        background: '#f4f7fc',
+        overflow: 'hidden',
+        position: 'fixed',
+        top: 0,
+        left: 0
+      }}
+    >
       <span className={styles["room-header"]}>도면 편집 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       {building && floor && (

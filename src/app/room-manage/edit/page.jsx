@@ -18,6 +18,10 @@ export default function RoomManageEditPage() {
   const [svgNodes, setSvgNodes] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [showNodeModal, setShowNodeModal] = useState(false)
+  const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const [newNodeName, setNewNodeName] = useState("")
+  const [newCategoryName, setNewCategoryName] = useState("")
 
   const CANVAS_WIDTH = 1000
   const CANVAS_HEIGHT = 700
@@ -27,6 +31,72 @@ export default function RoomManageEditPage() {
     const parts = (fullId || "").split("@")
     if (parts.length < 3) return { building: "", floor: "", node: "" }
     return { building: parts[0], floor: parts[1], node: parts[2] }
+  }
+
+  const handleAddNode = async () => {
+    if (!newNodeName.trim()) {
+      alert("노드 이름을 입력해주세요.")
+      return
+    }
+
+    try {
+      const response = await fetch("/api/node-route", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          building,
+          floor,
+          nodeName: newNodeName.trim(),
+        }),
+      })
+
+      if (response.ok) {
+        alert("노드가 성공적으로 추가되었습니다.")
+        setNewNodeName("")
+        setShowNodeModal(false)
+        // 페이지 새로고침으로 업데이트된 노드 목록 가져오기
+        window.location.reload()
+      } else {
+        const errorData = await response.json()
+        alert(`노드 추가 실패: ${errorData.message || "알 수 없는 오류"}`)
+      }
+    } catch (error) {
+      console.error("노드 추가 오류:", error)
+      alert("노드 추가 중 오류가 발생했습니다.")
+    }
+  }
+
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim()) {
+      alert("카테고리 이름을 입력해주세요.")
+      return
+    }
+
+    try {
+      const response = await fetch("/api/category-route", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          categoryName: newCategoryName.trim(),
+        }),
+      })
+
+      if (response.ok) {
+        alert("카테고리가 성공적으로 추가되었습니다.")
+        setNewCategoryName("")
+        setShowCategoryModal(false)
+      } else {
+        const errorData = await response.json()
+        alert(`카테고리 추가 실패: ${errorData.message || "알 수 없는 오류"}`)
+      }
+    } catch (error) {
+      console.error("카테고리 추가 오류:", error)
+      alert("카테고리 추가 중 오류가 발생했습니다.")
+    }
   }
 
   function processSvg(svgXml) {
@@ -243,7 +313,25 @@ export default function RoomManageEditPage() {
         </div>
       )}
       <div className={styles["room-content"]}>
-        <div className={styles["room-manage-map-wrap"]}>
+        <div className={styles["room-manage-map-wrap"]} style={{ position: "relative" }}>
+          {/* 툴바 */}
+          <div className={styles["edit-toolbar"]}>
+            <button
+              onClick={() => setShowNodeModal(true)}
+              className={`${styles["toolbar-btn"]} ${styles["node-btn"]}`}
+              title="노드 추가"
+            >
+              <div className={styles["toolbar-circle"]}></div>
+            </button>
+            <button
+              onClick={() => setShowCategoryModal(true)}
+              className={`${styles["toolbar-btn"]} ${styles["category-btn"]}`}
+              title="카테고리 추가"
+            >
+              <div className={styles["toolbar-circle"]}></div>
+            </button>
+          </div>
+          
           <div style={{ textAlign: "right", marginBottom: "8px" }}>
             <button
               onClick={() => router.back()}
@@ -319,6 +407,120 @@ export default function RoomManageEditPage() {
           </div>
         </div>
       </div>
+
+      {/* 노드 추가 모달 */}
+      {showNodeModal && (
+        <div className={styles["modal-overlay"]} onClick={() => setShowNodeModal(false)}>
+          <div className={styles["modal-content"]} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginBottom: "20px", color: "#2574f5" }}>노드 추가</h3>
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
+                노드 이름:
+              </label>
+              <input
+                type="text"
+                value={newNodeName}
+                onChange={(e) => setNewNodeName(e.target.value)}
+                placeholder="노드 이름을 입력하세요"
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  border: "1px solid #ddd",
+                  borderRadius: "6px",
+                  fontSize: "14px",
+                  outline: "none",
+                  boxSizing: "border-box"
+                }}
+                onKeyPress={(e) => e.key === "Enter" && handleAddNode()}
+              />
+            </div>
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setShowNodeModal(false)}
+                style={{
+                  padding: "8px 16px",
+                  border: "1px solid #ddd",
+                  borderRadius: "6px",
+                  backgroundColor: "#fff",
+                  cursor: "pointer"
+                }}
+              >
+                취소
+              </button>
+              <button
+                onClick={handleAddNode}
+                style={{
+                  padding: "8px 16px",
+                  border: "none",
+                  borderRadius: "6px",
+                  backgroundColor: "#2574f5",
+                  color: "#fff",
+                  cursor: "pointer"
+                }}
+              >
+                추가
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 카테고리 추가 모달 */}
+      {showCategoryModal && (
+        <div className={styles["modal-overlay"]} onClick={() => setShowCategoryModal(false)}>
+          <div className={styles["modal-content"]} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginBottom: "20px", color: "#2574f5" }}>카테고리 추가</h3>
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
+                카테고리 이름:
+              </label>
+              <input
+                type="text"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="카테고리 이름을 입력하세요"
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  border: "1px solid #ddd",
+                  borderRadius: "6px",
+                  fontSize: "14px",
+                  outline: "none",
+                  boxSizing: "border-box"
+                }}
+                onKeyPress={(e) => e.key === "Enter" && handleAddCategory()}
+              />
+            </div>
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setShowCategoryModal(false)}
+                style={{
+                  padding: "8px 16px",
+                  border: "1px solid #ddd",
+                  borderRadius: "6px",
+                  backgroundColor: "#fff",
+                  cursor: "pointer"
+                }}
+              >
+                취소
+              </button>
+              <button
+                onClick={handleAddCategory}
+                style={{
+                  padding: "8px 16px",
+                  border: "none",
+                  borderRadius: "6px",
+                  backgroundColor: "#2574f5",
+                  color: "#fff",
+                  cursor: "pointer"
+                }}
+              >
+                추가
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

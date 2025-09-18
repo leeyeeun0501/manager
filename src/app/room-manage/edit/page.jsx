@@ -227,14 +227,19 @@ export default function RoomManageEditPage() {
       <span className={styles["room-header"]}>도면 편집 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       {building && floor && (
-        <div style={{ 
-          textAlign: "center", 
-          marginBottom: "16px", 
-          fontSize: "16px", 
-          color: "#2574f5", 
-          fontWeight: "600" 
-        }}>
-          건물: {building} | 층: {floor}층
+        <div
+          style={{
+            width: "100%",
+            fontSize: 16,
+            color: "#2574f5",
+            fontWeight: 600,
+            marginBottom: 12,
+            textAlign: "center",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+          }}
+        >
+          건물명: {building} / 층수: {floor}
         </div>
       )}
       <div className={styles["room-content"]}>
@@ -291,28 +296,6 @@ export default function RoomManageEditPage() {
                     dangerouslySetInnerHTML={{ __html: svgRaw }}
                   />
 
-                  <svg
-                    style={{ position: "absolute", top: 0, left: 0, width: svgViewBox.width, height: svgViewBox.height, pointerEvents: "none", zIndex: 2 }}
-                  >
-                    {edges && edges.map((edge, idx) => {
-                      const fromInfo = parseNodeInfo(edge.from)
-                      const toInfo = parseNodeInfo(edge.to)
-                      if (
-                        fromInfo.building !== building ||
-                        fromInfo.floor !== floor ||
-                        toInfo.building !== building ||
-                        toInfo.floor !== floor
-                      ) {
-                        return null
-                      }
-                      const fromNode = svgNodes.find((node) => node.id === edge.from)
-                      const toNode = svgNodes.find((node) => node.id === edge.to)
-                      if (!fromNode || !toNode) return null
-                      return (
-                        <line key={idx} x1={fromNode.x} y1={fromNode.y} x2={toNode.x} y2={toNode.y} stroke="red" strokeWidth={2} opacity={0.85} />
-                      )
-                    })}
-                  </svg>
 
                   {svgNodes.map((node, index) => (
                     <div

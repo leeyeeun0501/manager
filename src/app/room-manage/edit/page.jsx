@@ -2,6 +2,7 @@
 "use client"
 import React, { useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import Menu from "../../components/menu"
 import styles from "../room-manage.module.css"
 
 export default function RoomManageEditPage() {
@@ -9,6 +10,7 @@ export default function RoomManageEditPage() {
   const searchParams = useSearchParams()
   const building = searchParams.get("building") || ""
   const floor = searchParams.get("floor") || ""
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const [svgRaw, setSvgRaw] = useState("")
   const [svgViewBox, setSvgViewBox] = useState({ x: 0, y: 0, width: 400, height: 400 })
@@ -17,7 +19,8 @@ export default function RoomManageEditPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const CANVAS_SIZE = 600
+  const CANVAS_WIDTH = 1000
+  const CANVAS_HEIGHT = 700
   const mapContainerRef = useRef(null)
 
   function parseNodeInfo(fullId) {
@@ -221,20 +224,41 @@ export default function RoomManageEditPage() {
 
   return (
     <div className={styles["room-root"]}>
-      <div className={styles["room-content"]}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <span className={styles["room-header"]}>{building && floor ? `${building} - ${floor}층 도면 편집` : "도면 편집"}</span>
-          <button
-            onClick={() => router.back()}
-            style={{ padding: "6px 14px", fontSize: 14, borderRadius: 8, border: "1px solid #ddd", background: "#fff", cursor: "pointer" }}
-          >
-            뒤로가기
-          </button>
+      <span className={styles["room-header"]}>도면 편집 페이지</span>
+      <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+      {building && floor && (
+        <div style={{ 
+          textAlign: "center", 
+          marginBottom: "16px", 
+          fontSize: "16px", 
+          color: "#2574f5", 
+          fontWeight: "600" 
+        }}>
+          건물: {building} | 층: {floor}층
         </div>
-
+      )}
+      <div className={styles["room-content"]}>
         <div className={styles["room-manage-map-wrap"]}>
+          <div style={{ textAlign: "right", marginBottom: "8px" }}>
+            <button
+              onClick={() => router.back()}
+              style={{
+                padding: "6px 14px",
+                fontSize: "14px",
+                fontWeight: "bold",
+                color: "#fff",
+                backgroundColor: "#2574f5",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                marginRight: "8px"
+              }}
+            >
+              뒤로가기
+            </button>
+          </div>
           <div
-            style={{ position: "relative", width: CANVAS_SIZE, height: CANVAS_SIZE, border: "1px solid #ddd", backgroundColor: "#f8f9fa", overflow: "hidden" }}
+            style={{ position: "relative", width: CANVAS_WIDTH, height: CANVAS_HEIGHT, border: "1px solid #ddd", backgroundColor: "#f8f9fa", overflow: "hidden" }}
           >
             {loading && (
               <div className={styles["room-manage-canvas-placeholder"]}>맵 로딩 중...</div>
@@ -247,9 +271,9 @@ export default function RoomManageEditPage() {
             )}
 
             {!loading && building && floor && svgRaw && (() => {
-              const scale = Math.min(CANVAS_SIZE / svgViewBox.width, CANVAS_SIZE / svgViewBox.height)
-              const offsetX = (CANVAS_SIZE - svgViewBox.width * scale) / 2
-              const offsetY = (CANVAS_SIZE - svgViewBox.height * scale) / 2
+              const scale = Math.min(CANVAS_WIDTH / svgViewBox.width, CANVAS_HEIGHT / svgViewBox.height)
+              const offsetX = (CANVAS_WIDTH - svgViewBox.width * scale) / 2
+              const offsetY = (CANVAS_HEIGHT - svgViewBox.height * scale) / 2
 
               return (
                 <div

@@ -449,7 +449,7 @@ export default function RoomManageEditPage() {
           <div className={styles["node-modal-content"]} onClick={(e) => e.stopPropagation()}>
             {/* 제목 */}
             <div className={styles["node-modal-title"]}>
-              <h3>노드/건물 추가</h3>
+              <h3>노드 추가</h3>
               <div className={styles["title-underline"]}></div>
             </div>
 

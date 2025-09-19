@@ -48,6 +48,16 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   // 지도 API 스크립트 준비 여부
   const [ready, setReady] = useState(false)
 
+  // 메뉴가 열릴 때 팝업들 닫기
+  useEffect(() => {
+    if (menuOpen) {
+      setAddPopup({ open: false, x: null, y: null })
+      setDeletePopup({ open: false, id: null, node_name: "", type: "", x: null, y: null })
+      setEdgeConnectMode({ active: false, fromNode: null })
+      setEdgeConnectHint(false)
+    }
+  }, [menuOpen])
+
   // 추가
   const [buildingImageIndex, setBuildingImageIndex] = useState(0)
   const [currentImageArr, setCurrentImageArr] = useState([])

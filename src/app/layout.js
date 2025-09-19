@@ -1,7 +1,6 @@
 // layout.js
 "use client"
 import { usePathname, useRouter } from "next/navigation"
-import Menu from "./components/menu"
 import ProfileButton from "./components/profilebutton"
 import NotificationButton from "./components/notificationbutton"
 import Script from "next/script"
@@ -64,19 +63,16 @@ export default function RootLayout({ children }) {
           strategy="beforeInteractive"
         />
         {!hideMenuAndProfile && (
-          <>
-            <div
-              style={{
-                position: "fixed",
-                top: 24,
-                right: 32,
-                zIndex: 2000,
-              }}
-            >
-              <ProfileButton />
-            </div>
-            <Menu />
-          </>
+          <div
+            style={{
+              position: "fixed",
+              top: 24,
+              right: 32,
+              zIndex: 2000,
+            }}
+          >
+            <ProfileButton />
+          </div>
         )}
         {!hideNotification && (
           <div

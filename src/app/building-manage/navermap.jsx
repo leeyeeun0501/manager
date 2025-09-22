@@ -45,6 +45,14 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   const [existingImageUrl, setExistingImageUrl] = useState("")
   const [currentBuilding, setCurrentBuilding] = useState(null)
 
+  // 이미지 확대 보기 모달
+  const [imageZoomModal, setImageZoomModal] = useState({
+    open: false,
+    imageUrl: "",
+    imageIndex: 0,
+    totalImages: 0
+  })
+
   // 지도 API 스크립트 준비 여부
   const [ready, setReady] = useState(false)
 
@@ -55,6 +63,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       setDeletePopup({ open: false, id: null, node_name: "", type: "", x: null, y: null })
       setEdgeConnectMode({ active: false, fromNode: null })
       setEdgeConnectHint(false)
+      setImageZoomModal({ open: false, imageUrl: "", imageIndex: 0, totalImages: 0 })
       // 임시 마커 제거
       if (tempMarkerRef.current) {
         tempMarkerRef.current.setMap(null)
@@ -375,25 +384,29 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     })
   }, [edgeConnectMode.active])
 
-  // ESC 키로 엣지 연결 모드 취소
+  // ESC 키로 엣지 연결 모드 취소 및 이미지 확대 모달 닫기
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && edgeConnectMode.active) {
-        setEdgeConnectMode({ active: false, fromNode: null })
-        setEdgeConnectHint(false)
-        // 임시 마커 제거
-        if (tempMarkerRef.current) {
-          tempMarkerRef.current.setMap(null)
-          tempMarkerRef.current = null
+      if (e.key === 'Escape') {
+        if (edgeConnectMode.active) {
+          setEdgeConnectMode({ active: false, fromNode: null })
+          setEdgeConnectHint(false)
+          // 임시 마커 제거
+          if (tempMarkerRef.current) {
+            tempMarkerRef.current.setMap(null)
+            tempMarkerRef.current = null
+          }
+        } else if (imageZoomModal.open) {
+          closeImageZoomModal()
         }
       }
     }
 
-    if (edgeConnectMode.active) {
+    if (edgeConnectMode.active || imageZoomModal.open) {
       document.addEventListener('keydown', handleKeyDown)
       return () => document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [edgeConnectMode.active])
+  }, [edgeConnectMode.active, imageZoomModal.open])
 
   useEffect(() => {
     if (!window.naver || !mapInstance.current) return
@@ -974,6 +987,43 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     return Array.from(new Set(connected))
   }
 
+  // 이미지 확대 모달 열기
+  function openImageZoomModal(imageUrl, imageIndex, totalImages) {
+    setImageZoomModal({
+      open: true,
+      imageUrl,
+      imageIndex,
+      totalImages
+    })
+  }
+
+  // 이미지 확대 모달 닫기
+  function closeImageZoomModal() {
+    setImageZoomModal({
+      open: false,
+      imageUrl: "",
+      imageIndex: 0,
+      totalImages: 0
+    })
+  }
+
+  // 이미지 확대 모달에서 이전/다음 이미지
+  function navigateImage(direction) {
+    const { imageIndex, totalImages } = imageZoomModal
+    let newIndex = imageIndex
+    
+    if (direction === 'prev') {
+      newIndex = imageIndex > 0 ? imageIndex - 1 : totalImages - 1
+    } else if (direction === 'next') {
+      newIndex = imageIndex < totalImages - 1 ? imageIndex + 1 : 0
+    }
+    
+    setImageZoomModal(prev => ({
+      ...prev,
+      imageIndex: newIndex
+    }))
+  }
+
   // 팝업 닫기 함수
   function closeAllPopups() {
     setAddPopup({ open: false, x: null, y: null })
@@ -987,6 +1037,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     })
     setEdgeConnectMode({ active: false, fromNode: null })
     setEdgeConnectHint(false)
+    setImageZoomModal({ open: false, imageUrl: "", imageIndex: 0, totalImages: 0 })
     // 임시 마커도 제거
     if (tempMarkerRef.current) {
       tempMarkerRef.current.setMap(null)
@@ -1683,6 +1734,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                               <div
                                 key={`existing-${imageUrl}-${idx}`}
                                 onClick={() => toggleImageSelection(imageUrl)}
+                                onDoubleClick={() => openImageZoomModal(imageUrl, idx, currentImageArr.length)}
                                 style={{
                                   position: "relative",
                                   aspectRatio: "1",
@@ -2008,6 +2060,157 @@ function NaverMap({ isLoggedIn, menuOpen }) {
           }}
         >
           연결할 두 번째 노드를 클릭하세요! (ESC로 취소)
+        </div>
+      )}
+
+      {/* 이미지 확대 모달 */}
+      {imageZoomModal.open && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(0, 0, 0, 0.9)",
+            zIndex: 4000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+          }}
+          onClick={closeImageZoomModal}
+        >
+          {/* 닫기 버튼 */}
+          <button
+            onClick={closeImageZoomModal}
+            style={{
+              position: "absolute",
+              top: 20,
+              right: 20,
+              background: "rgba(255, 255, 255, 0.2)",
+              border: "none",
+              borderRadius: "50%",
+              width: 40,
+              height: 40,
+              color: "white",
+              fontSize: 20,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 4001,
+            }}
+          >
+            ×
+          </button>
+
+          {/* 이전 버튼 */}
+          {imageZoomModal.totalImages > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                navigateImage('prev')
+              }}
+              style={{
+                position: "absolute",
+                left: 20,
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "rgba(255, 255, 255, 0.2)",
+                border: "none",
+                borderRadius: "50%",
+                width: 50,
+                height: 50,
+                color: "white",
+                fontSize: 24,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 4001,
+              }}
+            >
+              ‹
+            </button>
+          )}
+
+          {/* 다음 버튼 */}
+          {imageZoomModal.totalImages > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                navigateImage('next')
+              }}
+              style={{
+                position: "absolute",
+                right: 20,
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "rgba(255, 255, 255, 0.2)",
+                border: "none",
+                borderRadius: "50%",
+                width: 50,
+                height: 50,
+                color: "white",
+                fontSize: 24,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 4001,
+              }}
+            >
+              ›
+            </button>
+          )}
+
+          {/* 이미지 */}
+          <div
+            style={{
+              maxWidth: "90vw",
+              maxHeight: "80vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={currentImageArr[imageZoomModal.imageIndex]}
+              alt={`건물 사진 ${imageZoomModal.imageIndex + 1}`}
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100%",
+                objectFit: "contain",
+                borderRadius: 8,
+              }}
+              onError={(e) => {
+                e.target.src = "/fallback-image.jpg"
+              }}
+            />
+          </div>
+
+          {/* 이미지 인덱스 표시 */}
+          {imageZoomModal.totalImages > 1 && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: 20,
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "rgba(0, 0, 0, 0.7)",
+                color: "white",
+                padding: "8px 16px",
+                borderRadius: 20,
+                fontSize: 14,
+                zIndex: 4001,
+              }}
+            >
+              {imageZoomModal.imageIndex + 1} / {imageZoomModal.totalImages}
+            </div>
+          )}
+
         </div>
       )}
     </div>

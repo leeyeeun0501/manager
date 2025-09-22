@@ -491,6 +491,11 @@ function NaverMap({ isLoggedIn, menuOpen }) {
             x,
             y,
           })
+          // 임시 마커 제거
+          if (tempMarkerRef.current) {
+            tempMarkerRef.current.setMap(null)
+            tempMarkerRef.current = null
+          }
         }
       })
 
@@ -518,6 +523,11 @@ function NaverMap({ isLoggedIn, menuOpen }) {
             x,
             y,
           })
+          // 임시 마커 제거
+          if (tempMarkerRef.current) {
+            tempMarkerRef.current.setMap(null)
+            tempMarkerRef.current = null
+          }
         }
       })
 

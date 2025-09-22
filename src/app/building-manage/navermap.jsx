@@ -55,6 +55,11 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       setDeletePopup({ open: false, id: null, node_name: "", type: "", x: null, y: null })
       setEdgeConnectMode({ active: false, fromNode: null })
       setEdgeConnectHint(false)
+      // 임시 마커 제거
+      if (tempMarkerRef.current) {
+        tempMarkerRef.current.setMap(null)
+        tempMarkerRef.current = null
+      }
     }
   }, [menuOpen])
 
@@ -328,6 +333,68 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     }
   }, [isLoggedIn])
 
+  // 엣지 연결 모드 상태에 따른 지도 클릭 이벤트 제어
+  useEffect(() => {
+    if (!mapInstance.current) return
+
+    const map = mapInstance.current
+    
+    // 기존 클릭 이벤트 리스너 제거
+    naver.maps.Event.clearListeners(map, 'click')
+    
+    // 새로운 클릭 이벤트 리스너 추가
+    naver.maps.Event.addListener(map, "click", function (e) {
+      // 엣지 연결 모드일 때는 지도 클릭 이벤트 무시
+      if (edgeConnectMode.active) {
+        return
+      }
+      
+      setAddPopup({ open: true, x: e.coord.y, y: e.coord.x })
+      setDeletePopup({
+        open: false,
+        id: null,
+        node_name: "",
+        type: "",
+        x: null,
+        y: null,
+      })
+      setNodeName("")
+      setDesc("")
+      setNewBuildingImages([])
+
+      if (tempMarkerRef.current) {
+        tempMarkerRef.current.setMap(null)
+        tempMarkerRef.current = null
+      }
+      tempMarkerRef.current = new window.naver.maps.Marker({
+        position: new window.naver.maps.LatLng(e.coord.y, e.coord.x),
+        map,
+        zIndex: 9999,
+        clickable: false,
+      })
+    })
+  }, [edgeConnectMode.active])
+
+  // ESC 키로 엣지 연결 모드 취소
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && edgeConnectMode.active) {
+        setEdgeConnectMode({ active: false, fromNode: null })
+        setEdgeConnectHint(false)
+        // 임시 마커 제거
+        if (tempMarkerRef.current) {
+          tempMarkerRef.current.setMap(null)
+          tempMarkerRef.current = null
+        }
+      }
+    }
+
+    if (edgeConnectMode.active) {
+      document.addEventListener('keydown', handleKeyDown)
+      return () => document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [edgeConnectMode.active])
+
   useEffect(() => {
     if (!window.naver || !mapInstance.current) return
     if (!nodes || nodes.length === 0) return
@@ -409,6 +476,11 @@ function NaverMap({ isLoggedIn, menuOpen }) {
           })
           setEdgeConnectMode({ active: false, fromNode: null })
           setEdgeConnectHint(false)
+          // 임시 마커 제거
+          if (tempMarkerRef.current) {
+            tempMarkerRef.current.setMap(null)
+            tempMarkerRef.current = null
+          }
         } else {
           setAddPopup({ open: false, x: null, y: null })
           setDeletePopup({
@@ -431,6 +503,11 @@ function NaverMap({ isLoggedIn, menuOpen }) {
           })
           setEdgeConnectMode({ active: false, fromNode: null })
           setEdgeConnectHint(false)
+          // 임시 마커 제거
+          if (tempMarkerRef.current) {
+            tempMarkerRef.current.setMap(null)
+            tempMarkerRef.current = null
+          }
         } else {
           setAddPopup({ open: false, x: null, y: null })
           setDeletePopup({
@@ -864,6 +941,12 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       x: null,
       y: null,
     })
+    setAddPopup({ open: false, x: null, y: null })
+    // 임시 마커 제거
+    if (tempMarkerRef.current) {
+      tempMarkerRef.current.setMap(null)
+      tempMarkerRef.current = null
+    }
     setEdgeConnectHint(true)
   }
 
@@ -892,6 +975,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       x: null,
       y: null,
     })
+    setEdgeConnectMode({ active: false, fromNode: null })
+    setEdgeConnectHint(false)
     // 임시 마커도 제거
     if (tempMarkerRef.current) {
       tempMarkerRef.current.setMap(null)
@@ -1912,7 +1997,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
             boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
           }}
         >
-          연결할 두 번째 노드를 클릭하세요!
+          연결할 두 번째 노드를 클릭하세요! (ESC로 취소)
         </div>
       )}
     </div>

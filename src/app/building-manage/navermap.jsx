@@ -384,6 +384,19 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     })
   }, [edgeConnectMode.active])
 
+  // 엣지 연결 모드에 따른 마커 드래그 상태 업데이트
+  useEffect(() => {
+    if (!markersRef.current || markersRef.current.length === 0) return
+
+    markersRef.current.forEach((marker) => {
+      if (marker && typeof marker.setOptions === 'function') {
+        marker.setOptions({
+          draggable: !edgeConnectMode.active
+        })
+      }
+    })
+  }, [edgeConnectMode.active])
+
   // ESC 키로 엣지 연결 모드 취소 및 이미지 확대 모달 닫기
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -471,7 +484,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       const marker = new naver.maps.Marker({
         position: new naver.maps.LatLng(x, y),
         map,
-        draggable: false, // 드래그 비활성화로 클릭 이벤트 우선 처리
+        draggable: !edgeConnectMode.active, // 엣지 연결 모드일 때만 드래그 비활성화
         opacity: 0.3,
         title: node_name || id,
         zIndex: 100,

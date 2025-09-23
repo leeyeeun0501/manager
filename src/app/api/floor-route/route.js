@@ -28,7 +28,7 @@ export async function GET(request) {
     return NextResponse.json({ floors: result })
   }
 
-  // 건물명 조회  ??????
+  // 건물명으로 층 조회
   if (building) {
     const res = await fetch(
       `${API_BASE}/floor/${encodeURIComponent(building)}`,

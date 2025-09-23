@@ -25,7 +25,7 @@ export async function GET(request, { params }) {
   }
 }
 
-// 건물 사진 삭제 (DELETE)
+// 건물 사진 삭제 (DELETE) ?????
 export async function DELETE(request, { params }) {
   try {
     const { building } = await params

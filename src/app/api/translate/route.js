@@ -1,5 +1,4 @@
-// 문의 번역 기능 !!!!!
-// 번역 API 사용 후 모든 언어 번역
+// translate-route
 import { TranslationServiceClient } from "@google-cloud/translate"
 
 export async function POST(request) {

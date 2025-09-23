@@ -30,8 +30,7 @@ export async function GET() {
   }
 }
 
-// 경로 노드 정보 수정 (PUT)  !!!!!
-// 드래그 수정 해야 됨
+// 경로 노드 정보 수정 (PUT) !!!!!
 export async function PUT(request) {
   try {
     const { node_name, x, y } = await request.json()
@@ -74,7 +73,7 @@ export async function PUT(request) {
   }
 }
 
-// 건물/노드 추가 (POST)
+// 건물/노드 추가 (POST) ?????
 export async function POST(request) {
   try {
     const contentType = request.headers.get("content-type") || ""
@@ -176,7 +175,7 @@ export async function POST(request) {
   }
 }
 
-// 건물/노드 삭제 (DELETE)
+// 건물/노드 삭제 (DELETE) ?????
 export async function DELETE(request) {
   try {
     const { type, node_name } = await request.json()

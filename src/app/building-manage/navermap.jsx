@@ -384,18 +384,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     })
   }, [edgeConnectMode.active])
 
-  // 엣지 연결 모드에 따른 마커 드래그 상태 업데이트
-  useEffect(() => {
-    if (!markersRef.current || markersRef.current.length === 0) return
-
-    markersRef.current.forEach((marker) => {
-      if (marker && typeof marker.setOptions === 'function') {
-        marker.setOptions({
-          draggable: !edgeConnectMode.active
-        })
-      }
-    })
-  }, [edgeConnectMode.active])
+  // 드래그 앤 드롭 기능 비활성화로 인해 마커 드래그 상태 업데이트 로직 제거
 
   // ESC 키로 엣지 연결 모드 취소 및 이미지 확대 모달 닫기
   useEffect(() => {
@@ -484,7 +473,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       const marker = new naver.maps.Marker({
         position: new naver.maps.LatLng(x, y),
         map,
-        draggable: !edgeConnectMode.active, // 엣지 연결 모드일 때만 드래그 비활성화
+        draggable: false, // 드래그 앤 드롭 기능 비활성화
         opacity: 0.3,
         title: node_name || id,
         zIndex: 100,
@@ -557,28 +546,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         }
       })
 
-      naver.maps.Event.addListener(marker, "dragend", async function (e) {
-        const newLat = e.coord.y
-        const newLng = e.coord.x
-        circle.setCenter(new naver.maps.LatLng(newLat, newLng))
-        try {
-          await fetch("/api/tower-route", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              node_name: node_name || id,
-              x: newLat,
-              y: newLng,
-            }),
-          })
-          setNodes((prev) =>
-            prev.map((n) => (n.id === id ? { ...n, x: newLat, y: newLng } : n))
-          )
-          fetchEdges()
-        } catch (err) {
-          alert("서버에 좌표를 저장하는 데 실패했습니다.")
-        }
-      })
+      // 드래그 앤 드롭 기능 비활성화로 인해 dragend 이벤트 리스너 제거
     })
 
     // 마커/이벤트 등록이 끝난 뒤에 팝업 띄우기 (추가된 노드)

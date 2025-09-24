@@ -6,6 +6,7 @@ import styles from "./management.module.css"
 import NaverMapSimple from "./navermap"
 import LoadingOverlay from "../components/loadingoverlay"
 import "../globals.css"
+import { apiGet, parseJsonResponse } from "../utils/apiHelper"
 
 export default function ManagementPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -41,23 +42,51 @@ export default function ManagementPage() {
     const fetchData = async () => {
       try {
         const [buildingRes, roomRes, userRes] = await Promise.all([
-          fetch("/api/building-route?type=names"),
-          fetch("/api/room-route"),
-          fetch("/api/user-route"),
+          apiGet("/api/building-route?type=names"),
+          apiGet("/api/room-route"),
+          apiGet("/api/user-route"),
         ])
 
         const [buildingData, roomData, userData] = await Promise.all([
-          buildingRes.json(),
-          roomRes.json(),
-          userRes.json(),
+          parseJsonResponse(buildingRes),
+          parseJsonResponse(roomRes),
+          parseJsonResponse(userRes),
         ])
 
+        // data.data 구조 처리
+        let buildingNames = []
+        if (buildingData.names && Array.isArray(buildingData.names)) {
+          buildingNames = buildingData.names
+        } else if (buildingData.data?.names && Array.isArray(buildingData.data.names)) {
+          buildingNames = buildingData.data.names
+        } else if (buildingData.data?.data?.names && Array.isArray(buildingData.data.data.names)) {
+          buildingNames = buildingData.data.data.names
+        }
+        
+        let roomRooms = []
+        if (roomData.rooms && Array.isArray(roomData.rooms)) {
+          roomRooms = roomData.rooms
+        } else if (roomData.data?.rooms && Array.isArray(roomData.data.rooms)) {
+          roomRooms = roomData.data.rooms
+        } else if (roomData.data?.data?.rooms && Array.isArray(roomData.data.data.rooms)) {
+          roomRooms = roomData.data.data.rooms
+        }
+        
+        let userUsers = []
+        if (userData.users && userData.users.data && Array.isArray(userData.users.data)) {
+          userUsers = userData.users.data
+        } else if (userData.data?.data?.users && Array.isArray(userData.data.data.users)) {
+          userUsers = userData.data.data.users
+        } else if (userData.data?.users && Array.isArray(userData.data.users)) {
+          userUsers = userData.data.users
+        } else if (userData.users && Array.isArray(userData.users)) {
+          userUsers = userData.users
+        }
+
         setSummary({
-          building: Array.isArray(buildingData.names)
-            ? buildingData.names.length
-            : 0,
-          classroom: Array.isArray(roomData.rooms) ? roomData.rooms.length : 0,
-          user: Array.isArray(userData.users) ? userData.users.length : 0,
+          building: Array.isArray(buildingNames) ? buildingNames.length : 0,
+          classroom: Array.isArray(roomRooms) ? roomRooms.length : 0,
+          user: Array.isArray(userUsers) ? userUsers.length : 0,
         })
       } catch (error) {
         console.error("데이터 로딩 오류:", error)
@@ -72,11 +101,13 @@ export default function ManagementPage() {
   // 사용자 위치 정보(마커) 주기적 갱신
   useEffect(() => {
     const fetchMarkers = () => {
-      fetch("/api/login-route")
-        .then((res) => res.json())
+      apiGet("/api/login-route")
+        .then(parseJsonResponse)
         .then((data) => {
-          if (Array.isArray(data)) {
-            const markers = data
+          // data.data 구조로 변경
+          const userData = data.data || data
+          if (Array.isArray(userData)) {
+            const markers = userData
               .filter(
                 (u) =>
                   u.Last_Location &&
@@ -95,7 +126,8 @@ export default function ManagementPage() {
           }
         })
         .catch((error) => {
-          console.error("로그인 경로 데이터 조회 실패:", error)
+          // 에러가 발생해도 페이지는 유지하고 빈 배열로 설정
+          setUserMarkers([])
         })
     }
 
@@ -119,7 +151,6 @@ export default function ManagementPage() {
 
       try {
         const websocketUrl = "ws://16.176.179.75:3002/friend/ws"
-        console.log("웹소켓 자동 연결 시도:", websocketUrl)
 
         const newWs = new WebSocket(websocketUrl)
 
@@ -128,7 +159,6 @@ export default function ManagementPage() {
           setIsWebSocketConnected(true)
           setWs(newWs)
           // 항상 최신 userIdRef.current를 전송
-          console.log("ws register! userIdRef.current=", userIdRef.current)
           newWs.send(
             JSON.stringify({
               type: "register",
@@ -162,10 +192,8 @@ export default function ManagementPage() {
             const data = JSON.parse(event.data)
             switch (data.type) {
               case "registered":
-                console.log("웹소켓 등록 성공:", data.message)
                 break
               case "heartbeat_response":
-                console.log("하트비트 응답 수신")
                 break
               case "friend_logged_in":
                 alert(`친구 로그인 알림: ${data.message}`)

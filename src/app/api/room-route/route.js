@@ -1,13 +1,26 @@
 // room-route
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
+import { verifyToken } from "../../utils/authHelper"
 
 // 강의실 전체 데이터 조회 (GET)
-export async function GET() {
+export async function GET(request) {
+  // 토큰 검증
+  const token = verifyToken(request)
+  if (!token) {
+    return NextResponse.json(
+      { success: false, error: "인증이 필요합니다." },
+      { status: 401 }
+    )
+  }
+
   try {
     const res = await fetch(`${API_BASE}/room`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
     })
     if (!res.ok) {
       return NextResponse.json(
@@ -16,8 +29,10 @@ export async function GET() {
       )
     }
     const data = await res.json()
-    const rooms = Array.isArray(data)
-      ? data.map((room) => ({
+    // data.data 구조 처리
+    const roomData = data.data?.data?.rooms || data.data?.rooms || data.rooms || data
+    const rooms = Array.isArray(roomData)
+      ? roomData.map((room) => ({
           building: room.Building_Name,
           floor: room.Floor_Number,
           name: room.Room_Name,

@@ -289,10 +289,12 @@ export default function RoomManagePage() {
   // 건물 목록
   const fetchBuildings = async () => {
     try {
-      const res = await fetch("/api/building-route")
-      const data = await res.json()
+      const res = await apiGet("/api/building-route")
+      const data = await parseJsonResponse(res)
+      // data.data 구조로 변경
+      const responseData = data.data || data
       setBuildingOptions(
-        (data.all || [])
+        (responseData.all || [])
           .filter((b) => b && b.Building_Name)
           .map((b) => b.Building_Name)
       )
@@ -308,11 +310,13 @@ export default function RoomManagePage() {
       return
     }
     try {
-      const res = await fetch(
+      const res = await apiGet(
         `/api/floor-route?building=${encodeURIComponent(building)}&type=names`
       )
-      const data = await res.json()
-      setFloorOptions(Array.isArray(data.floors) ? data.floors : [])
+      const data = await parseJsonResponse(res)
+      // data.data 구조로 변경
+      const responseData = data.data || data
+      setFloorOptions(Array.isArray(responseData.floors) ? responseData.floors : [])
     } catch {
       setFloorOptions([])
     }
@@ -330,16 +334,18 @@ export default function RoomManagePage() {
         url += `/${encodeURIComponent(building)}`
       }
 
-      const res = await fetch(url)
-      const data = await res.json()
+      const res = await apiGet(url)
+      const data = await parseJsonResponse(res)
+      // data.data 구조로 변경
+      const responseData = data.data || data
 
       let roomList = []
-      if (Array.isArray(data)) {
-        roomList = data
-      } else if (Array.isArray(data.rooms)) {
-        roomList = data.rooms
+      if (Array.isArray(responseData)) {
+        roomList = responseData
+      } else if (Array.isArray(responseData.rooms)) {
+        roomList = responseData.rooms
       } else {
-        throw new Error(data.error || "강의실 정보를 불러올 수 없습니다.")
+        throw new Error(responseData.error || "강의실 정보를 불러올 수 없습니다.")
       }
 
       const mapped = roomList.map(normalizeRoom)

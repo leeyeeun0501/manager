@@ -25,13 +25,20 @@ export default function LoginPage() {
         body: JSON.stringify({ id, pw }),
       })
       const data = await res.json()
-      if (data.islogin) {
-        localStorage.setItem("userId", data.id)
-        localStorage.setItem("userName", data.name)
-        localStorage.setItem("islogin", data.islogin)
+      if (data.success && data.token) {
+        // 토큰과 사용자 정보를 localStorage에 저장
+        localStorage.setItem("token", data.token)
+        localStorage.setItem("userId", data.user.id)
+        localStorage.setItem("userName", data.user.name)
+        localStorage.setItem("islogin", "true")
+        
+        console.log("로그인 성공 - 저장된 토큰:", localStorage.getItem("token"))
+        console.log("저장된 사용자 ID:", localStorage.getItem("userId"))
+        
         router.push("/management")
       } else {
-        setError(data.error || "로그인 실패")
+        console.log("로그인 실패 - 응답:", data)
+        setError(data.message || "로그인 실패")
       }
     } catch (err) {
       setError("서버 오류")

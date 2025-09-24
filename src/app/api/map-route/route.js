@@ -1,8 +1,18 @@
 // map-route
 import { API_BASE } from "../apibase"
+import { verifyToken } from "../../utils/authHelper"
 
 // SVG 도면 파일 조회 - 건물, 층 선택 시 (GET)
 export async function GET(request) {
+  // 토큰 검증
+  const token = verifyToken(request)
+  if (!token) {
+    return new Response(JSON.stringify({ success: false, error: "인증이 필요합니다." }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    })
+  }
+
   const { searchParams } = new URL(request.url)
   const building = searchParams.get("building")
   const floor = searchParams.get("floor")

@@ -1,18 +1,34 @@
 // building-route
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
+import { verifyToken } from "../../utils/authHelper"
 
 // 건물 전체 데이터 조회/건물 이름만 조회 (GET)
 export async function GET(request) {
+  // 토큰 검증
+  const token = verifyToken(request)
+  if (!token) {
+    return NextResponse.json(
+      { success: false, error: "인증이 필요합니다." },
+      { status: 401 }
+    )
+  }
+
   const { searchParams } = new URL(request.url)
 
   // 건물 이름만 조회
   if (searchParams.get("type") === "names") {
     const res = await fetch(`${API_BASE}/building/names`, {
       method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
     })
     const data = await res.json()
-    return NextResponse.json({ names: data })
+    // data.data 구조 처리
+    const names = data.data?.data?.names || data.data?.names || data.names || data
+    return NextResponse.json({ names: names })
   }
 
   // 전체 데이터 조회

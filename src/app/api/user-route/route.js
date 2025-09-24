@@ -1,11 +1,27 @@
 // user-route
 import { NextResponse } from "next/server"
 import { AUTH_API_BASE } from "../apibase"
+import { verifyToken } from "../../utils/authHelper"
 
 // 전체 사용자 조회 (GET)
 export async function GET(request) {
+  // 토큰 검증
+  const token = verifyToken(request)
+  if (!token) {
+    return NextResponse.json(
+      { success: false, error: "인증이 필요합니다." },
+      { status: 401 }
+    )
+  }
+
   try {
-    const res = await fetch(`${AUTH_API_BASE}/user`, { method: "GET" })
+    const res = await fetch(`${AUTH_API_BASE}/user`, { 
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    })
     if (!res.ok) {
       return NextResponse.json(
         { success: false, error: "외부 서버 오류" },
@@ -13,7 +29,11 @@ export async function GET(request) {
       )
     }
     const data = await res.json()
-    return NextResponse.json({ users: data.users || data })
+    
+    // data.data 구조 처리
+    const users = data.data?.data?.users || data.data?.users || data.users || data
+    
+    return NextResponse.json({ users: users })
   } catch (err) {
     return NextResponse.json(
       { success: false, error: "서버 오류" },

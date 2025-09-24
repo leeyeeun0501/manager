@@ -7,6 +7,7 @@ import Image from "next/image"
 import { FaRegCommentDots } from "react-icons/fa"
 import "../globals.css"
 import styles from "./inquiry-manage.module.css"
+import { apiGet, parseJsonResponse } from "../utils/apiHelper"
 
 export default function InquiryPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -57,6 +58,7 @@ export default function InquiryPage() {
   }
 
   useEffect(() => {
+    console.log('🚀 inquiry 페이지 - useEffect 실행됨')
     fetchInquiries()
   }, [])
 
@@ -66,13 +68,44 @@ export default function InquiryPage() {
 
   // 문의 불러오기
   const fetchInquiries = async () => {
+    console.log('🚀 inquiry 페이지 - fetchInquiries 시작')
     setLoading(true)
     try {
-      const res = await fetch("/api/inquiry-route")
-      const data = await res.json()
+      const res = await apiGet("/api/inquiry-route")
+      const data = await parseJsonResponse(res)
+      
+      console.log('🔍 inquiry 페이지 - 받은 데이터:', data)
+      console.log('🔍 inquiry 페이지 - data.inquiries:', data.inquiries)
+      console.log('🔍 inquiry 페이지 - data.data:', data.data)
+      
+      // data.data 구조로 변경 - 이중 중첩 처리
       let list = []
-      if (Array.isArray(data)) list = data
-      else if (Array.isArray(data.inquiries)) list = data.inquiries
+      if (data.inquiries && Array.isArray(data.inquiries)) {
+        list = data.inquiries
+        console.log('✅ data.inquiries 사용, 길이:', list.length)
+      } else if (data.data?.data?.inquiries && Array.isArray(data.data.data.inquiries)) {
+        list = data.data.data.inquiries
+        console.log('✅ data.data.data.inquiries 사용, 길이:', list.length)
+      } else if (data.data?.inquiries && Array.isArray(data.data.inquiries)) {
+        list = data.data.inquiries
+        console.log('✅ data.data.inquiries 사용, 길이:', list.length)
+      } else if (data.data && Array.isArray(data.data)) {
+        list = data.data
+        console.log('✅ data.data 사용, 길이:', list.length)
+      } else if (Array.isArray(data)) {
+        list = data
+        console.log('✅ data 사용, 길이:', list.length)
+      } else {
+        console.log('❌ 데이터 구조를 찾을 수 없음')
+      }
+      
+      console.log('🔍 최종 list:', list)
+      if (list.length > 0) {
+        console.log('🔍 첫 번째 문의:', list[0])
+        console.log('🔍 첫 번째 문의의 Status:', list[0].Status)
+        console.log('🔍 첫 번째 문의의 모든 키:', Object.keys(list[0]))
+      }
+      
       const mappedList = list.map((item) => ({
         id: item.User_Id,
         inquiry_code: item.Inquiry_Code,
@@ -96,12 +129,19 @@ export default function InquiryPage() {
 
       // 문의 통계 계산
       const total = mappedList.length
+      console.log('📊 문의 통계 계산 - total:', total)
+      
       const pending = mappedList.filter(
-        (q) => q.status === "pending" || q.status === "대기 중" || !q.status
+        (q) => q.status === "답변 대기"
       ).length
+      console.log('📊 문의 통계 계산 - pending:', pending)
+      console.log('📊 문의 통계 계산 - pending 조건 확인:', mappedList.map(q => ({ status: q.status, isPending: q.status === "pending" || q.status === "대기 중" || !q.status })))
+      
       const answered = mappedList.filter(
         (q) => q.status === "answered" || q.status === "답변 완료"
       ).length
+      console.log('📊 문의 통계 계산 - answered:', answered)
+      
       const answerRate = total > 0 ? Math.round((answered / total) * 100) : 0
 
       const stats = {
@@ -110,6 +150,7 @@ export default function InquiryPage() {
         answered,
         answerRate,
       }
+      console.log('📊 최종 통계:', stats)
       setInquiryStats(stats)
 
       const categories = [
@@ -231,19 +272,12 @@ export default function InquiryPage() {
       answer: answerText.trim(),
     }
 
-    console.log("전송할 데이터:", requestData)
-    console.log("선택된 문의:", selectedInquiry)
 
     setSubmitting(true)
     try {
-      const res = await fetch("/api/inquiry-route", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestData),
-      })
-      const data = await res.json()
-      console.log("서버 응답:", data)
-      if (res.ok && data.success) {
+      const res = await apiPut("/api/inquiry-route", requestData)
+      const data = await parseJsonResponse(res)
+      if (data.success) {
         alert("답변이 성공적으로 등록되었습니다.")
         closeModal()
         fetchInquiries()

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { FaBell } from "react-icons/fa"
+import { apiGet, parseJsonResponse } from "../utils/apiHelper"
 
 export default function NotificationButton() {
   const [inquiryCount, setInquiryCount] = useState(0)
@@ -12,29 +13,28 @@ export default function NotificationButton() {
   useEffect(() => {
     const fetchInquiryCount = async () => {
       try {
-        const response = await fetch("/api/inquiry-route")
-        if (response.ok) {
-          const data = await response.json()
-          console.log("API 응답 데이터:", data)
-          console.log("문의 목록:", data.inquiries)
-
-          if (data.inquiries && data.inquiries.length > 0) {
-            console.log("첫 번째 문의 구조:", data.inquiries[0])
-            console.log(
-              "첫 번째 문의의 모든 키:",
-              Object.keys(data.inquiries[0])
-            )
-          }
-
-          const pendingInquiries =
-            data.inquiries?.filter((inquiry) => inquiry.Status === "pending") ||
-            []
-          console.log("Pending 문의:", pendingInquiries)
-          console.log("Pending 개수:", pendingInquiries.length)
-          setInquiryCount(pendingInquiries.length)
+        const data = await apiGet("/api/inquiry-route")
+        const responseData = await parseJsonResponse(data)
+        
+        // data.data 구조로 변경 - 이중 중첩 구조 처리
+        let inquiries = []
+        if (responseData.inquiries && Array.isArray(responseData.inquiries)) {
+          inquiries = responseData.inquiries
+        } else if (responseData.data?.data?.inquiries && Array.isArray(responseData.data.data.inquiries)) {
+          inquiries = responseData.data.data.inquiries
+        } else if (responseData.data?.inquiries && Array.isArray(responseData.data.inquiries)) {
+          inquiries = responseData.data.inquiries
+        } else if (responseData.data && Array.isArray(responseData.data)) {
+          inquiries = responseData.data
+        } else if (Array.isArray(responseData)) {
+          inquiries = responseData
         }
+
+        const pendingInquiries = inquiries.filter((inquiry) => inquiry.Status === "pending")
+        setInquiryCount(pendingInquiries.length)
       } catch (error) {
-        console.error("문의 수 조회 오류:", error)
+        // 에러가 발생해도 카운트는 0으로 설정
+        setInquiryCount(0)
       }
     }
 

@@ -1,9 +1,19 @@
 // floor-route
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
+import { verifyToken } from "../../utils/authHelper"
 
 // 층 전체 데이터/건물명 조회 (GET)
 export async function GET(request) {
+  // 토큰 검증
+  const token = verifyToken(request)
+  if (!token) {
+    return NextResponse.json(
+      { success: false, error: "인증이 필요합니다." },
+      { status: 401 }
+    )
+  }
+
   const { searchParams } = new URL(request.url)
   const building = searchParams.get("building")
 

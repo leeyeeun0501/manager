@@ -64,17 +64,19 @@ export default function MyPage() {
       }
       return
     }
-    fetch(`/api/mypage-route?id=${encodeURIComponent(id)}`)
-      .then((res) => res.json())
+    apiGet(`/api/mypage-route?id=${encodeURIComponent(id)}`)
+      .then(parseJsonResponse)
       .then((data) => {
         console.log("마이페이지 - API 응답:", data)
-        if (data.success && data.user) {
+        // data.data 구조로 변경
+        const responseData = data.data || data
+        if (responseData.success && responseData.user) {
           // 데이터가 배열인지 객체인지 확인
           let userData
-          if (Array.isArray(data.user)) {
-            userData = data.user[0]
+          if (Array.isArray(responseData.user)) {
+            userData = responseData.user[0]
           } else {
-            userData = data.user
+            userData = responseData.user
           }
 
           console.log("마이페이지 - 사용자 데이터:", userData)

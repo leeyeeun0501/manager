@@ -6,6 +6,7 @@ import Menu from "../components/menu"
 import { FaTrashAlt } from "react-icons/fa"
 import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./user-manage.module.css"
+import { apiGet, apiDelete, parseJsonResponse } from "../utils/apiHelper"
 
 export default function UserManagePage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -39,15 +40,24 @@ export default function UserManagePage() {
     setLoading(true)
     setError("")
     try {
-      const res = await fetch("/api/user-route")
-      const data = await res.json()
-      if (!res.ok)
-        throw new Error(data.error || "사용자 목록을 불러올 수 없습니다.")
-      const usersArr = Array.isArray(data.users)
-        ? data.users
-        : Array.isArray(data)
-        ? data
-        : []
+      const res = await apiGet("/api/user-route")
+      const data = await parseJsonResponse(res)
+      
+      // data.data 구조로 변경 - 더 정확한 처리
+      let usersArr = []
+      if (data.users && data.users.data && Array.isArray(data.users.data)) {
+        usersArr = data.users.data
+      } else if (data.data?.data?.users && Array.isArray(data.data.data.users)) {
+        usersArr = data.data.data.users
+      } else if (data.data?.users && Array.isArray(data.data.users)) {
+        usersArr = data.data.users
+      } else if (data.users && Array.isArray(data.users)) {
+        usersArr = data.users
+      } else if (Array.isArray(data.data)) {
+        usersArr = data.data
+      } else if (Array.isArray(data)) {
+        usersArr = data
+      }
       // 생성일 내림차순(최신이 위로)
       usersArr.sort((a, b) => {
         const dateA = new Date(a.CreatedAt || a.createdAt || a.datetime || 0)
@@ -101,13 +111,9 @@ export default function UserManagePage() {
   const handleDelete = async (id) => {
     if (!confirm("정말로 사용자를 삭제하시겠습니까?")) return
     try {
-      const res = await fetch("/api/user-route", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      })
-      const data = await res.json()
-      if (!res.ok || !data.success) throw new Error(data.error || "삭제 실패")
+      const res = await apiDelete("/api/user-route", { id })
+      const data = await parseJsonResponse(res)
+      if (!data.success) throw new Error(data.error || "삭제 실패")
       alert("사용자가 삭제되었습니다.")
       await fetchUsers(true)
     } catch (err) {

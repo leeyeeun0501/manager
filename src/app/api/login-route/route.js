@@ -2,6 +2,7 @@
 export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
 import { AUTH_API_BASE } from "../apibase"
+import { verifyToken } from "../../utils/authHelper"
 
 // 로그인 API 요청
 async function login(id, pw) {
@@ -28,13 +29,21 @@ export async function POST(request) {
       )
     }
 
-    const user = await login(id, pw)
+    const result = await login(id, pw)
+    
+    if (!result) {
+      return NextResponse.json(
+        { success: false, message: "로그인 실패" },
+        { status: 401 }
+      )
+    }
 
+    // 서버에서 받은 토큰과 사용자 정보를 그대로 전달
     return NextResponse.json({
-      id: user.id,
-      name: user.name,
-      pw: user.pw,
-      islogin: true,
+      success: true,
+      message: "로그인 성공",
+      token: result.token,
+      user: result.user
     })
   } catch (err) {
     return NextResponse.json(
@@ -45,9 +54,25 @@ export async function POST(request) {
 }
 
 // 사용자 위치 검색 (GET)
-export async function GET() {
+export async function GET(request) {
+  const token = verifyToken(request)
+  
+  if (!token) {
+    return NextResponse.json(
+      { success: false, error: "인증이 필요합니다." },
+      { status: 401 }
+    )
+  }
+
   try {
-    const res = await fetch(`${AUTH_API_BASE}/user/islogin`, { method: "GET" })
+    const res = await fetch(`${AUTH_API_BASE}/user/islogin`, { 
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    })
+    
     if (!res.ok) {
       return NextResponse.json(
         { success: false, error: "외부 서버 오류" },
@@ -55,7 +80,18 @@ export async function GET() {
       )
     }
     const data = await res.json()
-    const users = data.users || data
+    
+    // 데이터 구조 확인 및 배열 추출
+    let users = []
+    if (data.users && Array.isArray(data.users)) {
+      users = data.users
+    } else if (Array.isArray(data)) {
+      users = data
+    } else if (data.data && Array.isArray(data.data)) {
+      users = data.data
+    } else {
+      return NextResponse.json([])
+    }
 
     // Last_Location이 있는 사용자만 변환
     const result = users

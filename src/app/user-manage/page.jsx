@@ -12,6 +12,8 @@ export default function UserManagePage() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [search, setSearch] = useState("")
+  const [filteredUsers, setFilteredUsers] = useState([])
 
   // 페이징 관련
   const itemsPerPage = 20
@@ -23,11 +25,11 @@ export default function UserManagePage() {
     return 1
   })
 
-  // 현재 보여줄 페이지 범위의 user만 추출
-  const totalUsers = users.length
+  // 현재 보여줄 페이지 범위의 user만 추출 (검색된 결과 기준)
+  const totalUsers = filteredUsers.length
   const totalPages = Math.ceil(totalUsers / itemsPerPage)
 
-  const pagedUsers = users.slice(
+  const pagedUsers = filteredUsers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   )
@@ -72,6 +74,23 @@ export default function UserManagePage() {
   useEffect(() => {
     fetchUsers(true)
   }, [])
+
+  // 검색 필터링
+  useEffect(() => {
+    if (!search.trim()) {
+      setFilteredUsers(users)
+      setCurrentPage(1)
+      return
+    }
+    const keyword = search.toLowerCase()
+    const filtered = users.filter((user) =>
+      Object.values(user).some((val) =>
+        (val ?? "").toString().toLowerCase().includes(keyword)
+      )
+    )
+    setFilteredUsers(filtered)
+    setCurrentPage(1)
+  }, [search, users])
 
   // 페이징
   useEffect(() => {
@@ -126,6 +145,17 @@ export default function UserManagePage() {
           <div style={{ color: "red" }}>{error}</div>
         ) : (
           <>
+            {/* 검색 입력 */}
+            <div style={{ marginBottom: "20px", display: "flex", justifyContent: "flex-end" }}>
+              <input
+                type="text"
+                placeholder="검색"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className={styles["search-input"]}
+              />
+            </div>
+
             <table className={`${styles.userTable} ${styles.centerTable}`}>
               <thead>
                 <tr>

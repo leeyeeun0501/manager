@@ -136,3 +136,25 @@
   font-weight: 700;
   color: #2574f5;
 }
+
+.search-input {
+  height: 46px;
+  min-width: 150px;
+  font-size: 1.07rem;
+  border-radius: 10px;
+  border: 1.5px solid #b3d1fa;
+  padding: 0 16px;
+  background: white;
+  color: #333;
+  font-weight: 500;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-input:focus {
+  border-color: #2574f5;
+  outline: none;
+}

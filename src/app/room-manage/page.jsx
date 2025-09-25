@@ -717,18 +717,14 @@ export default function RoomManagePage() {
     setStairsLoading(true)
     setStairsError("")
 
-    fetch(
+    apiGet(
       `/api/stairs-route?building=${encodeURIComponent(
         stairsBuilding
       )}&floor=${encodeURIComponent(stairsFloor)}&id=${encodeURIComponent(
         stairsId
-      )}`,
-      {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      }
+      )}`
     )
-      .then((res) => res.json())
+      .then(async (res) => parseJsonResponse(res))
       .then((data) => {
         if (Array.isArray(data)) {
           setStairsList(data)

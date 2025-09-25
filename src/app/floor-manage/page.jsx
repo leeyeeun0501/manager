@@ -6,7 +6,7 @@ import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./floor-manage.module.css"
 import { FaTrashAlt, FaPaperclip } from "react-icons/fa"
-import { apiGet, parseJsonResponse } from "../utils/apiHelper"
+import { apiGet, apiPost, apiPut, apiDelete, parseJsonResponse } from "../utils/apiHelper"
 
 export default function BuildingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -127,8 +127,8 @@ export default function BuildingPage() {
       url += `?building=${encodeURIComponent(buildingName)}`
     }
     try {
-      const res = await fetch(url)
-      const data = await res.json()
+      const res = await apiGet(url)
+      const data = await parseJsonResponse(res)
       setFloors(data.floors || [])
     } catch (err) {
       setFloors([])
@@ -175,25 +175,33 @@ export default function BuildingPage() {
     formData.append("floor_number", addFloorNum)
     formData.append("file", addFloorFile)
     try {
-      const res = await fetch("/api/floor-route", {
-        method: "POST",
-        body: formData,
-      })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        setAddFloorError(data.error || "층 추가 실패")
-        return
-      }
-      alert("층 추가가 완료되었습니다!")
-      setShowAddFloor(false)
-      setAddFloorBuilding("")
-      setAddFloorNum("1")
-      setAddFloorFile(null)
-      if (addFloorFileRef.current) addFloorFileRef.current.value = ""
+      console.log("🏢 층 추가 시작:", { building: addFloorBuilding, floor: addFloorNum, file: addFloorFile?.name })
+      
+      const res = await apiPost("/api/floor-route", formData)
+      console.log("🏢 층 추가 응답 상태:", res.status)
+      console.log("🏢 층 추가 응답 헤더:", Object.fromEntries(res.headers.entries()))
+      
+      const data = await parseJsonResponse(res)
+      console.log("🏢 층 추가 응답 데이터:", data)
+      
+      if (data && !data.error) {
+        console.log("✅ 층 추가 성공")
+        alert("층 추가가 완료되었습니다!")
+        setShowAddFloor(false)
+        setAddFloorBuilding("")
+        setAddFloorNum("1")
+        setAddFloorFile(null)
+        if (addFloorFileRef.current) addFloorFileRef.current.value = ""
 
-      // '전체 건물' 또는 특정 건물 상태에 따라 갱신
-      await fetchFloors(selectedBuilding)
+        // '전체 건물' 또는 특정 건물 상태에 따라 갱신
+        await fetchFloors(selectedBuilding)
+      } else {
+        console.log("❌ 층 추가 실패:", data.error)
+        setAddFloorError(data.error || "층 추가 실패")
+      }
     } catch (err) {
+      console.error("❌ 층 추가 오류:", err)
+      console.error("❌ 오류 스택:", err.stack)
       setAddFloorError("층 추가 중 오류가 발생했습니다.")
     }
   }
@@ -208,14 +216,20 @@ export default function BuildingPage() {
       return
 
     try {
-      const res = await fetch(
+      console.log("🗑️ 층 삭제 시작:", { building: buildingName, floor: floorNum })
+      
+      const res = await apiDelete(
         `/api/floor-route?building=${encodeURIComponent(
           buildingName
-        )}&floor=${encodeURIComponent(floorNum)}`,
-        { method: "DELETE" }
+        )}&floor=${encodeURIComponent(floorNum)}`
       )
-      const text = await res.text()
-      if (res.status === 200) {
+      console.log("🗑️ 층 삭제 응답 상태:", res.status)
+      
+      const data = await parseJsonResponse(res)
+      console.log("🗑️ 층 삭제 응답 데이터:", data)
+      
+      if (data && data.success) {
+        console.log("✅ 층 삭제 성공")
         setFloors((prev) =>
           prev.filter(
             (f) =>
@@ -225,11 +239,13 @@ export default function BuildingPage() {
               )
           )
         )
-        alert(text)
+        alert("층 삭제가 완료되었습니다.")
       } else {
-        alert(text)
+        console.log("❌ 층 삭제 실패:", data.error)
+        alert(data.error || "층 삭제 실패")
       }
     } catch (err) {
+      console.error("❌ 층 삭제 오류:", err)
       alert("층 삭제 중 오류가 발생했습니다.")
     }
   }
@@ -894,24 +910,22 @@ export default function BuildingPage() {
                     formData.append("building_name", editMapBuilding)
                     formData.append("floor_number", editMapFloor)
 
-                    const res = await fetch(
+                    const res = await apiPut(
                       `/api/floor-route?building=${encodeURIComponent(
                         editMapBuilding
                       )}&floor=${encodeURIComponent(editMapFloor)}`,
-                      {
-                        method: "PUT",
-                        body: formData,
-                      }
+                      formData
                     )
-                    const data = await res.json()
-                    if (!res.ok) {
+                    const data = await parseJsonResponse(res)
+                    
+                    if (data && !data.error) {
+                      alert("도면이 성공적으로 수정되었습니다!")
+                      await fetchFloors(selectedBuilding)
+                    } else {
                       setEditMapError(data.error || "도면 수정 실패")
                       setEditMapLoading(false)
                       return
                     }
-                    alert("도면이 성공적으로 수정되었습니다!")
-
-                    await fetchFloors(selectedBuilding)
 
                     setMapModalOpen(false)
                   } catch (err) {
@@ -1035,25 +1049,23 @@ export default function BuildingPage() {
                     formData.append("file", addFile)
                     formData.append("building_name", fileAddModal.building)
                     formData.append("floor_number", fileAddModal.floor)
-                    const res = await fetch(
+                    const res = await apiPut(
                       `/api/floor-route?building=${encodeURIComponent(
                         fileAddModal.building
                       )}&floor=${encodeURIComponent(fileAddModal.floor)}`,
-                      {
-                        method: "PUT",
-                        body: formData,
-                      }
+                      formData
                     )
-                    const data = await res.json()
-                    if (!res.ok) {
+                    const data = await parseJsonResponse(res)
+                    
+                    if (data && !data.error) {
+                      alert("도면이 성공적으로 추가되었습니다!")
+                      setFileAddModal({ open: false, building: "", floor: "" })
+                      await fetchFloors(fileAddModal.building)
+                    } else {
                       setAddFileError(data.error || "도면 추가 실패")
                       setAddFileLoading(false)
                       return
                     }
-                    alert("도면이 성공적으로 추가되었습니다!")
-                    setFileAddModal({ open: false, building: "", floor: "" })
-
-                    await fetchFloors(fileAddModal.building)
                   } catch (err) {
                     setAddFileError("도면 추가 중 오류가 발생했습니다.")
                   }

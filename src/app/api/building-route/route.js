@@ -183,21 +183,10 @@ export async function PUT(request) {
 
 // 건물 이미지 삭제 (DELETE)
 export async function DELETE(request) {
-  console.log("🗑️ DELETE 메서드 시작")
-  
   try {
-    // 요청 헤더 확인
-    const authHeader = request.headers.get('authorization')
-    console.log("🔑 요청 Authorization 헤더:", authHeader)
-    console.log("🔑 요청 헤더 전체:", Object.fromEntries(request.headers.entries()))
-    
     // 토큰 검증
     const token = verifyToken(request)
-    console.log("🔑 토큰 검증 결과:", token ? "토큰 있음" : "토큰 없음")
-    console.log("🔑 토큰 값:", token)
-    
     if (!token) {
-      console.log("❌ 토큰이 없어서 401 반환")
       return NextResponse.json(
         { success: false, error: "인증이 필요합니다." },
         { status: 401 }
@@ -206,7 +195,6 @@ export async function DELETE(request) {
 
     const { searchParams } = new URL(request.url)
     const building = searchParams.get("building")
-    console.log("🏢 building 파라미터:", building)
 
     if (!building) {
       return NextResponse.json(
@@ -216,8 +204,6 @@ export async function DELETE(request) {
     }
 
     const requestBody = await request.json()
-    console.log("📦 요청 본문:", requestBody)
-    
     const { image_urls } = requestBody
 
     if (!image_urls || !Array.isArray(image_urls) || image_urls.length === 0) {
@@ -227,32 +213,21 @@ export async function DELETE(request) {
       )
     }
 
-    console.log("🗑️ 건물 이미지 삭제 요청:", { building, image_urls })
-
     // 외부 API로 이미지 삭제 요청
     const externalUrl = `${API_BASE}/building/${encodeURIComponent(building)}/image`
-    console.log("🌐 외부 API URL:", externalUrl)
-    console.log("🔑 외부 API로 전송할 토큰:", token)
-    console.log("🔑 외부 API Authorization 헤더:", `Bearer ${token}`)
     
     const externalHeaders = {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${token}`
     }
-    console.log("🔑 외부 API 요청 헤더:", externalHeaders)
     
     const res = await fetch(externalUrl, {
       method: "DELETE",
       headers: externalHeaders,
       body: JSON.stringify({ image_urls }),
     })
-
-    console.log("📡 외부 API 응답 상태:", res.status)
-    console.log("📡 외부 API 응답 헤더:", Object.fromEntries(res.headers.entries()))
     
     if (!res.ok) {
-      const errorText = await res.text()
-      console.log("📡 외부 API 오류 응답:", errorText)
       return NextResponse.json(
         { success: false, error: "외부 API에서 이미지 삭제 실패" },
         { status: res.status }
@@ -260,7 +235,6 @@ export async function DELETE(request) {
     }
 
     const responseText = await res.text()
-    console.log("📡 외부 API 응답:", responseText)
 
     let result
     try {
@@ -270,7 +244,6 @@ export async function DELETE(request) {
         result = { message: "이미지 삭제 완료" }
       }
     } catch (parseError) {
-      console.log("📡 응답 파싱 실패, 기본 메시지 사용:", parseError)
       result = { message: responseText || "이미지 삭제 완료" }
     }
 
@@ -280,8 +253,6 @@ export async function DELETE(request) {
       result: result
     })
   } catch (err) {
-    console.error("❌ 이미지 삭제 오류:", err)
-    console.error("❌ 오류 스택:", err.stack)
     return NextResponse.json(
       { success: false, error: `서버 오류: ${err.message}` },
       { status: 500 }

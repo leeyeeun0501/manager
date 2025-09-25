@@ -87,7 +87,6 @@ export async function DELETE(request) {
     const { from_node, to_node } = await request.json()
 
     if (!from_node || !to_node) {
-      console.log("DELETE body 파싱 실패. request body:", await request.text())
       return NextResponse.json(
         { success: false, error: "from_node, to_node는 필수입니다." },
         { status: 400 }

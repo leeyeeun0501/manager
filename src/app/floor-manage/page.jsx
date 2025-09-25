@@ -6,6 +6,7 @@ import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./floor-manage.module.css"
 import { FaTrashAlt, FaPaperclip } from "react-icons/fa"
+import { apiGet, parseJsonResponse } from "../utils/apiHelper"
 
 export default function BuildingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -139,9 +140,8 @@ export default function BuildingPage() {
   useEffect(() => {
     async function fetchBuildings() {
       try {
-        const res = await fetch("/api/building-route")
-        if (!res.ok) throw new Error("Failed to fetch buildings")
-        const data = await res.json()
+        const res = await apiGet("/api/building-route")
+        const data = await parseJsonResponse(res)
         const infos = (data.all || [])
           .filter((b) => b && b.Building_Name)
           .map((b) => ({

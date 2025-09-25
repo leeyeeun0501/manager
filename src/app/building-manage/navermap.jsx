@@ -98,14 +98,21 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
     if (!window.confirm("선택한 이미지를 삭제하시겠습니까?")) return
 
+    // 토큰 상태 확인
+    const token = localStorage.getItem('token')
+    console.log('🗑️ 이미지 삭제 - 토큰 상태:', token ? '토큰 있음' : '토큰 없음')
+    console.log('🗑️ 이미지 삭제 - localStorage:', Object.keys(localStorage))
+
     try {
       const requestBody = {
         image_urls: selectedImages,
       }
 
+      console.log('🗑️ 이미지 삭제 - 요청 데이터:', requestBody)
+
       // 선택된 이미지들을 배열로 한 번에 삭제
       const res = await apiDelete(
-        `/api/room-route/${encodeURIComponent(deletePopup.node_name)}`,
+        `/api/building-route?building=${encodeURIComponent(deletePopup.node_name)}`,
         requestBody
       )
 
@@ -622,7 +629,9 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     setBuildingDescLoading(true)
     try {
       const formData = new FormData()
-      formData.append("desc", buildingDesc)
+      
+      // 설명 필드는 항상 추가 (빈 문자열이어도)
+      formData.append("desc", buildingDesc || "")
 
       // 새로 추가된 이미지가 있는 경우에만 이미지 추가 (건물 추가와 동일한 방식)
       if (newBuildingImages.length > 0) {
@@ -631,9 +640,13 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         })
       }
 
+      console.log("📤 FormData 내용 확인:")
       for (let [key, value] of formData.entries()) {
         console.log(`${key}:`, typeof value === "object" ? value.name : value)
       }
+      console.log("📤 FormData 총 항목 수:", Array.from(formData.entries()).length)
+      console.log("📤 새로 추가된 이미지 수:", newBuildingImages.length)
+      console.log("📤 설명 내용:", buildingDesc)
 
       const res = await apiPut(
         `/api/building-route?building=${encodeURIComponent(
@@ -691,7 +704,12 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   // 이미지 파일 선택 핸들러
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files)
-    setNewBuildingImages((prev) => [...prev, ...files])
+    console.log("📷 새로 선택된 이미지들:", files.map(f => ({ name: f.name, size: f.size })))
+    setNewBuildingImages((prev) => {
+      const newImages = [...prev, ...files]
+      console.log("📷 전체 이미지 배열:", newImages.map(f => ({ name: f.name, size: f.size })))
+      return newImages
+    })
     e.target.value = ""
   }
 

@@ -7,6 +7,7 @@ import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./room-manage.module.css"
 import { MdEditSquare } from "react-icons/md"
+import { apiGet, apiPost, apiDelete, parseJsonResponse } from "../utils/apiHelper"
 
 export default function RoomManagePage() {
   const router = useRouter()
@@ -369,12 +370,12 @@ export default function RoomManagePage() {
       setRoomNodes({})
       setEdges([])
 
-      fetch(
+      apiGet(
         `/api/map-route?building=${encodeURIComponent(
           filterBuilding
         )}&floor=${encodeURIComponent(filterFloor)}`
       )
-        .then((res) => res.json())
+        .then(async (res) => parseJsonResponse(res))
         .then((data) => {
           const fileList = Array.isArray(data) ? data : [data]
           const svgUrl = fileList[0]?.File
@@ -430,17 +431,13 @@ export default function RoomManagePage() {
 
     setEdgeConnectLoading(true)
     try {
-      const res = await fetch("/api/map-route", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from_building: filterBuilding,
-          from_floor: filterFloor,
-          from_node: getNodeSuffix(edgeFromNode?.id),
-          to_building: filterBuilding,
-          to_floor: filterFloor,
-          to_node: getNodeSuffix(edgeToNode?.id),
-        }),
+      const res = await apiPost("/api/map-route", {
+        from_building: filterBuilding,
+        from_floor: filterFloor,
+        from_node: getNodeSuffix(edgeFromNode?.id),
+        to_building: filterBuilding,
+        to_floor: filterFloor,
+        to_node: getNodeSuffix(edgeToNode?.id),
       })
 
       const text = await res.text()
@@ -515,13 +512,8 @@ export default function RoomManagePage() {
 
       console.log("Request Body:", requestBody)
 
-      const res = await fetch("/api/map-route", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
-      })
-
-      const data = await res.json()
+      const res = await apiDelete("/api/map-route", requestBody)
+      const data = await parseJsonResponse(res)
       if (!res.ok) {
         showToast(data.error || "연결 해제 실패")
         return
@@ -620,12 +612,12 @@ export default function RoomManagePage() {
     if (filterBuilding && filterFloor) {
       setMapLoading(true)
 
-      fetch(
+      apiGet(
         `/api/map-route?building=${encodeURIComponent(
           filterBuilding
         )}&floor=${encodeURIComponent(filterFloor)}`
       )
-        .then((res) => res.json())
+        .then(async (res) => parseJsonResponse(res))
         .then((data) => {
           const fileList = Array.isArray(data) ? data : [data]
           const rawSvgUrl = fileList[0]?.File
@@ -810,24 +802,16 @@ export default function RoomManagePage() {
     }
 
     try {
-      const res = await fetch("/api/map-route", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from_building: fromNode.building,
-          from_floor: fromNode.floor,
-          from_node: getNodeSuffix(fromNode.id),
-          to_building: toBuilding,
-          to_floor: toFloor,
-          to_node: toNode,
-        }),
+      const res = await apiPost("/api/map-route", {
+        from_building: fromNode.building,
+        from_floor: fromNode.floor,
+        from_node: getNodeSuffix(fromNode.id),
+        to_building: toBuilding,
+        to_floor: toFloor,
+        to_node: toNode,
       })
 
-      const text = await res.text()
-      let data = {}
-      try {
-        data = JSON.parse(text)
-      } catch {}
+      const data = await parseJsonResponse(res)
 
       if (!res.ok) {
         showToast(data.error || "계단 연결 실패")

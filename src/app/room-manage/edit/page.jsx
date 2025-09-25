@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import styles from "../room-manage.module.css"
+import { apiGet, parseJsonResponse } from "../../utils/apiHelper"
 
 export default function RoomManageEditPage() {
   const router = useRouter()
@@ -411,8 +412,8 @@ export default function RoomManageEditPage() {
     setLoading(true)
     setError("")
 
-    fetch(`/api/map-route?building=${encodeURIComponent(building)}&floor=${encodeURIComponent(floor)}`)
-      .then((res) => res.json())
+    apiGet(`/api/map-route?building=${encodeURIComponent(building)}&floor=${encodeURIComponent(floor)}`)
+      .then(async (res) => parseJsonResponse(res))
       .then((data) => {
         const fileList = Array.isArray(data) ? data : [data]
         const rawSvgUrl = fileList[0]?.File

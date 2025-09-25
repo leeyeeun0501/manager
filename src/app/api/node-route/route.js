@@ -1,6 +1,7 @@
 // node-route
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
+import { verifyToken } from "../../utils/authHelper"
 
 // 외부 전체 노드 데이터 조회 (GET)
 export async function GET() {
@@ -26,6 +27,15 @@ export async function GET() {
 // 외부 엣지 연결 (POST)
 export async function POST(request) {
   try {
+    // 토큰 검증
+    const token = verifyToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: "인증이 필요합니다." },
+        { status: 401 }
+      )
+    }
+
     const { from_node, to_node } = await request.json()
 
     if (!from_node || !to_node) {
@@ -37,7 +47,10 @@ export async function POST(request) {
 
     const res = await fetch(`${API_BASE}/path/connect`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify({ from_node, to_node }),
     })
 
@@ -62,6 +75,15 @@ export async function POST(request) {
 // 외부 엣지 연결 해제 (DELETE)
 export async function DELETE(request) {
   try {
+    // 토큰 검증
+    const token = verifyToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: "인증이 필요합니다." },
+        { status: 401 }
+      )
+    }
+
     const { from_node, to_node } = await request.json()
 
     if (!from_node || !to_node) {
@@ -74,7 +96,10 @@ export async function DELETE(request) {
 
     const res = await fetch(`${API_BASE}/path/disconnect`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify({ from_node, to_node }),
     })
 

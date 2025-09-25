@@ -51,6 +51,15 @@ export async function GET(request) {
 // 내부 도면 노드 엣지 연결 (POST)
 export async function POST(request) {
   try {
+    // 토큰 검증
+    const token = verifyToken(request)
+    if (!token) {
+      return new Response(JSON.stringify({ success: false, error: "인증이 필요합니다." }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
+
     const body = await request.json()
     const {
       from_building,
@@ -77,7 +86,10 @@ export async function POST(request) {
 
     const connectRes = await fetch(`${API_BASE}/room/connect`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify({
         from_building,
         from_floor,
@@ -111,6 +123,15 @@ export async function POST(request) {
 // 내부 도면 노드 엣지 연결 해제 (DELETE)
 export async function DELETE(request) {
   try {
+    // 토큰 검증
+    const token = verifyToken(request)
+    if (!token) {
+      return new Response(JSON.stringify({ success: false, error: "인증이 필요합니다." }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
+
     const body = await request.json()
     const {
       from_building,
@@ -139,7 +160,10 @@ export async function DELETE(request) {
     // 실제 연결 처리 API 호출 (예시)
     const connectRes = await fetch(`${API_BASE}/room/disconnect`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify({
         from_building,
         from_floor,

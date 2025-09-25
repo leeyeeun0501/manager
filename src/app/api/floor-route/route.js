@@ -73,14 +73,10 @@ export async function GET(request) {
 
 // 층 추가 (POST)
 export async function POST(request) {
-  console.log("🏢 층 추가 API 시작")
-  
   // 토큰 검증
   const token = verifyToken(request)
-  console.log("🔑 토큰 검증 결과:", token ? "토큰 있음" : "토큰 없음")
   
   if (!token) {
-    console.log("❌ 토큰 없음으로 401 반환")
     return NextResponse.json(
       { success: false, error: "인증이 필요합니다." },
       { status: 401 }
@@ -88,13 +84,6 @@ export async function POST(request) {
   }
 
   const formData = await request.formData()
-  console.log("📦 FormData 내용:")
-  for (let [key, value] of formData.entries()) {
-    console.log(`  ${key}:`, typeof value === "object" ? value.name : value)
-  }
-  
-  console.log("🌐 외부 API 호출:", `${API_BASE}/floor`)
-  console.log("🔑 외부 API 토큰:", token)
   
   const res = await fetch(`${API_BASE}/floor`, {
     method: "POST",
@@ -104,32 +93,24 @@ export async function POST(request) {
     body: formData,
   })
 
-  console.log("📡 외부 API 응답 상태:", res.status)
-  console.log("📡 외부 API 응답 헤더:", Object.fromEntries(res.headers.entries()))
-
   const text = await res.text()
-  console.log("📡 외부 API 응답 텍스트:", text)
   
   let data = {}
   if (text) {
     try {
       data = JSON.parse(text)
-      console.log("📡 외부 API 응답 JSON:", data)
     } catch (parseError) {
-      console.log("❌ 외부 API 응답 JSON 파싱 실패:", parseError)
       data = { error: "외부 서버 응답이 올바른 JSON이 아닙니다." }
     }
   }
 
   if (!res.ok) {
-    console.log("❌ 외부 API 오류 응답:", data)
     return NextResponse.json(
       { success: false, error: data.error || "외부 서버 오류" },
       { status: res.status }
     )
   }
 
-  console.log("✅ 층 추가 성공:", data)
   return NextResponse.json({ success: true, ...data })
 }
 
@@ -228,7 +209,6 @@ export async function DELETE(request) {
       }
     )
     const text = await res.text()
-    console.log("📡 층 삭제 외부 API 응답:", { status: res.status, text })
     
     if (res.status === 200) {
       return NextResponse.json({ success: true, message: "층 삭제 성공" }, { status: 200 })

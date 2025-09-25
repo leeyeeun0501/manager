@@ -194,7 +194,10 @@ export default function MyPage() {
       const email = `${emailId.trim()}@${domain}`
       const res = await fetch("/api/mypage-route", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({
           id: user.id,
           pw: pw || undefined,
@@ -203,16 +206,17 @@ export default function MyPage() {
         }),
       })
       const data = await res.json().catch(() => ({}))
+      
       if (res.ok && data.success) {
         setShowPopup(true)
         setTimeout(() => setShowPopup(false), 2000)
         setPw("")
         setPwConfirm("")
       } else {
-        setEditMsg(data.error || "수정 실패")
+        setEditMsg(data.error || data.message || "수정 실패")
       }
-    } catch {
-      setEditMsg("회원정보 수정 중 오류")
+    } catch (error) {
+      setEditMsg(error.message || "회원정보 수정 중 오류")
     }
     setLoading(false)
   }

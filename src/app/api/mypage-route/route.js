@@ -98,18 +98,18 @@ export async function PUT(request) {
       )
     } else if (res.status === 400 || res.status === 404) {
       return NextResponse.json(
-        { success: false, error: text },
+        { success: false, error: text || "요청 데이터가 올바르지 않습니다." },
         { status: res.status }
       )
     } else {
       return NextResponse.json(
-        { success: false, error: "회원정보 수정 중 오류" },
+        { success: false, error: `외부 서버 오류 (${res.status}): ${text}` },
         { status: 500 }
       )
     }
   } catch (err) {
     return NextResponse.json(
-      { success: false, error: "회원정보 수정 중 오류" },
+      { success: false, error: "서버 오류" },
       { status: 500 }
     )
   }

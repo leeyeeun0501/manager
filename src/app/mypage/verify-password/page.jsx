@@ -34,7 +34,7 @@ export default function VerifyPasswordPage() {
 
       const data = await parseJsonResponse(res)
 
-      if (data.success) {
+      if (data.success && data.islogin) {
         // 비밀번호 확인 성공 시 sessionStorage에 플래그 설정
         sessionStorage.setItem("passwordVerified", "true")
         // 마이페이지로 이동
@@ -44,7 +44,7 @@ export default function VerifyPasswordPage() {
       }
     } catch (err) {
       // 401 오류인 경우 비밀번호 불일치로 처리
-      if (err.message.includes("인증이 필요합니다")) {
+      if (err.message.includes("인증이 필요합니다") || err.message.includes("로그인 실패")) {
         setError("비밀번호가 일치하지 않습니다.")
       } else {
         setError(err.message || "서버 오류가 발생했습니다.")

@@ -1,14 +1,29 @@
 // tower-route
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
+import { verifyToken } from "../../utils/authHelper"
+
+// 로컬 노드 저장소 (외부 API 실패 시 사용)
+let localNodes = []
 
 // 건물/노드 위치 전체 데이터 조회 (GET)
-export async function GET() {
+export async function GET(request) {
   try {
+    // 토큰 인증
+    const token = verifyToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { error: "인증이 필요합니다. 다시 로그인해주세요." },
+        { status: 401 }
+      )
+    }
     try {
       const res = await fetch(`${API_BASE}/path/`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
       })
 
       if (res.ok) {
@@ -33,6 +48,15 @@ export async function GET() {
 // 경로 노드 정보 수정 (PUT) !!!!!
 export async function PUT(request) {
   try {
+    // 토큰 인증
+    const token = verifyToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { error: "인증이 필요합니다. 다시 로그인해주세요." },
+        { status: 401 }
+      )
+    }
+
     const { node_name, x, y } = await request.json()
 
     if (!node_name || typeof x !== "number" || typeof y !== "number") {
@@ -45,7 +69,10 @@ export async function PUT(request) {
     try {
       const res = await fetch(`${API_BASE}/path/`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ node_name, x, y }),
       })
 
@@ -76,11 +103,22 @@ export async function PUT(request) {
 // 건물/노드 추가 (POST) ?????
 export async function POST(request) {
   try {
+    // 토큰 인증
+    const token = verifyToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: "인증이 필요합니다. 다시 로그인해주세요." },
+        { status: 401 }
+      )
+    }
+
     const contentType = request.headers.get("content-type") || ""
+    console.log("🔍 tower-route POST - Content-Type:", contentType)
 
     let type, node_name, x, y, desc, images
 
     if (contentType.includes("multipart/form-data")) {
+      console.log("📝 FormData 요청 처리 중...")
       const formData = await request.formData()
 
       type = formData.get("type")
@@ -89,6 +127,8 @@ export async function POST(request) {
       y = formData.get("y")
       desc = formData.get("desc")
 
+      console.log("📝 FormData 값들:", { type, node_name, x, y, desc })
+
       images = []
       let index = 0
       while (formData.get(`images[${index}]`)) {
@@ -96,22 +136,37 @@ export async function POST(request) {
         index++
       }
     } else {
-      const json = await request.json()
-      type = json.type
-      node_name = json.node_name
-      x = json.x
-      y = json.y
-      desc = json.desc
+      console.log("📝 JSON 요청 처리 중...")
+      try {
+        const json = await request.json()
+        type = json.type
+        node_name = json.node_name
+        x = json.x
+        y = json.y
+        desc = json.desc
+        console.log("📝 JSON 값들:", { type, node_name, x, y, desc })
+      } catch (jsonError) {
+        console.log("❌ JSON 파싱 오류:", jsonError.message)
+        return NextResponse.json(
+          { success: false, error: `JSON 파싱 오류: ${jsonError.message}` },
+          { status: 400 }
+        )
+      }
     }
+
+    // FormData에서 받은 값들을 숫자로 변환
+    const numX = Number(x)
+    const numY = Number(y)
 
     if (
       !type ||
       !node_name ||
       x === undefined ||
       y === undefined ||
-      isNaN(Number(x)) ||
-      isNaN(Number(y))
+      isNaN(numX) ||
+      isNaN(numY)
     ) {
+      console.log("❌ 유효성 검사 실패:", { type, node_name, x, y, numX, numY })
       return NextResponse.json(
         { success: false, error: "타입, 이름, 위도, 경도는 필수입니다." },
         { status: 400 }
@@ -121,8 +176,8 @@ export async function POST(request) {
     const formDataToSend = new FormData()
     formDataToSend.append("type", type)
     formDataToSend.append("node_name", node_name)
-    formDataToSend.append("x", x)
-    formDataToSend.append("y", y)
+    formDataToSend.append("x", numX.toString())
+    formDataToSend.append("y", numY.toString())
     if (type === "building" && desc) {
       formDataToSend.append("desc", desc)
     }
@@ -133,25 +188,42 @@ export async function POST(request) {
     }
 
     try {
+      console.log("🌐 외부 API 호출 시작:", `${API_BASE}/path/create`)
       const res = await fetch(`${API_BASE}/path/create`, {
         method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
         body: formDataToSend,
       })
 
-      const data = await res.json()
+      console.log("🌐 외부 API 응답 상태:", res.status)
+      
+      let data
+      try {
+        data = await res.json()
+      } catch (jsonError) {
+        console.log("❌ 외부 API 응답 JSON 파싱 오류:", jsonError.message)
+        const responseText = await res.text()
+        console.log("❌ 외부 API 응답 텍스트:", responseText)
+        throw new Error(`외부 API 응답 파싱 오류: ${jsonError.message}`)
+      }
 
       if (!res.ok) {
+        console.log("❌ 외부 API 오류:", data)
         throw new Error(data.error || "외부 서버 오류")
       }
 
+      console.log("✅ 외부 API 성공:", data)
       return NextResponse.json({ success: true, node: data })
     } catch (externalError) {
+      console.log("❌ 외부 API 호출 실패, 로컬 저장소 사용:", externalError.message)
       const newNode = {
         id: Date.now().toString(),
         type,
         node_name,
-        x: Number(x),
-        y: Number(y),
+        x: numX,
+        y: numY,
         desc: desc || "",
         created_at: new Date().toISOString(),
         images: images
@@ -178,6 +250,15 @@ export async function POST(request) {
 // 건물/노드 삭제 (DELETE) ?????
 export async function DELETE(request) {
   try {
+    // 토큰 인증
+    const token = verifyToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: "인증이 필요합니다. 다시 로그인해주세요." },
+        { status: 401 }
+      )
+    }
+
     const { type, node_name } = await request.json()
 
     if (!type || !node_name) {
@@ -190,7 +271,10 @@ export async function DELETE(request) {
     try {
       const res = await fetch(`${API_BASE}/path/`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ type, node_name }),
       })
 

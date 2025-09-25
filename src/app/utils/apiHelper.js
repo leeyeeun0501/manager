@@ -10,16 +10,29 @@ const getToken = () => {
 // 기본 fetch 함수에 토큰을 포함한 헤더 추가
 const fetchWithAuth = async (url, options = {}) => {
   const token = getToken()
+  console.log('🔑 apiHelper - 요청 URL:', url)
+  console.log('🔑 apiHelper - 토큰 확인:', token ? '토큰 있음' : '토큰 없음')
+  console.log('🔑 apiHelper - 토큰 길이:', token ? token.length : 0)
+  
+  // FormData인지 확인
+  const isFormData = options.body instanceof FormData
+  console.log('🔑 apiHelper - FormData 여부:', isFormData)
   
   const headers = {
-    'Content-Type': 'application/json',
+    // FormData가 아닐 때만 Content-Type을 application/json으로 설정
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...options.headers,
   }
   
   // 토큰이 있으면 Authorization 헤더에 추가
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
+    console.log('🔑 apiHelper - Authorization 헤더 추가됨')
+  } else {
+    console.log('❌ apiHelper - 토큰이 없어서 Authorization 헤더 추가 안됨')
   }
+  
+  console.log('🔑 apiHelper - 최종 헤더:', headers)
   
   const response = await fetch(url, {
     ...options,
@@ -42,10 +55,12 @@ export const apiGet = async (url) => {
 // POST 요청
 export const apiPost = async (url, data) => {
   const isFormData = data instanceof FormData
+  console.log('🔑 apiPost - FormData 여부:', isFormData)
+  
   return fetchWithAuth(url, {
     method: 'POST',
     body: isFormData ? data : JSON.stringify(data),
-    headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+    // headers는 fetchWithAuth에서 처리하므로 여기서는 설정하지 않음
   })
 }
 

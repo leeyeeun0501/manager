@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react"
 import NaverMap from "./navermap"
 import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay"
+import { apiGet, parseJsonResponse } from "../utils/apiHelper"
 import "./building-manage.css"
 
 export default function TowerPage() {
@@ -15,17 +16,20 @@ export default function TowerPage() {
 
   // 건물 노드
   useEffect(() => {
-    fetch("/api/tower-route")
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchNodes = async () => {
+      try {
+        const res = await apiGet("/api/tower-route")
+        const data = await parseJsonResponse(res)
         if (data && data.nodes) {
           setNodes(data.nodes)
         }
-      })
-      .catch(console.error)
-      .finally(() => {
+      } catch (err) {
+        console.error("노드 데이터 로드 실패:", err)
+      } finally {
         setLoading(false)
-      })
+      }
+    }
+    fetchNodes()
   }, [])
 
   return (

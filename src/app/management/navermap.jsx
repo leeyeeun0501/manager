@@ -1,6 +1,7 @@
 // navermap
 "use client"
 import { useEffect, useRef, useState } from "react"
+import { apiGet, parseJsonResponse } from "../utils/apiHelper"
 
 // 마커 팝업 컨텐츠 생성
 function createSpeechBubbleMarkerContent(userId) {
@@ -100,8 +101,8 @@ export default function NaverMapSimple({ markers = [] }) {
   useEffect(() => {
     const fetchPathData = async () => {
       try {
-        const response = await fetch("/api/tower-route")
-        const data = await response.json()
+        const response = await apiGet("/api/tower-route")
+        const data = await parseJsonResponse(response)
         if (data.nodes && Array.isArray(data.nodes)) {
           const filteredNodes = data.nodes.filter(
             (node) => node.id && !node.id.toString().includes("O")
@@ -121,8 +122,8 @@ export default function NaverMapSimple({ markers = [] }) {
       try {
         setBuildingData([])
 
-        const response = await fetch("/api/tower-route")
-        const data = await response.json()
+        const response = await apiGet("/api/tower-route")
+        const data = await parseJsonResponse(response)
 
         if (data.nodes && Array.isArray(data.nodes)) {
           const buildings = data.nodes.filter(
@@ -153,8 +154,8 @@ export default function NaverMapSimple({ markers = [] }) {
 
         const buildingName = selectedBuilding.node_name || selectedBuilding.id
 
-        const res = await fetch("/api/building-route")
-        const json = await res.json()
+        const res = await apiGet("/api/building-route")
+        const json = await parseJsonResponse(res)
 
         if (json.all && Array.isArray(json.all)) {
           const found = json.all.find((b) => {

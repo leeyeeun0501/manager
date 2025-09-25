@@ -38,6 +38,10 @@ export async function GET(request) {
   if (!building && !floor) {
     const res = await fetch(`${API_BASE}/building`, {
       method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
     })
     const data = await res.json()
     const mapped = (Array.isArray(data) ? data : []).map((b) => ({
@@ -52,6 +56,15 @@ export async function GET(request) {
 
 // 건물 설명/맵 파일 수정 (PUT)
 export async function PUT(request) {
+  // 토큰 검증
+  const token = verifyToken(request)
+  if (!token) {
+    return NextResponse.json(
+      { success: false, error: "인증이 필요합니다." },
+      { status: 401 }
+    )
+  }
+
   const { searchParams } = new URL(request.url)
   const building = searchParams.get("building")
 
@@ -104,7 +117,13 @@ export async function PUT(request) {
 
   const res = await fetch(
     `${API_BASE}/building/${encodeURIComponent(building)}`,
-    { method: "PUT", body: externalForm }
+    { 
+      method: "PUT", 
+      headers: {
+        "Authorization": `Bearer ${token}`
+      },
+      body: externalForm 
+    }
   )
 
   const text = await res.text()

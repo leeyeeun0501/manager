@@ -1,6 +1,7 @@
 // navermap
 "use client"
 import React, { useEffect, useRef, useState } from "react"
+import { apiGet, apiDelete, apiPut, apiPost, parseJsonResponse } from "../utils/apiHelper"
 
 function NaverMap({ isLoggedIn, menuOpen }) {
   const mapRef = useRef(null)
@@ -103,15 +104,9 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       }
 
       // 선택된 이미지들을 배열로 한 번에 삭제
-      const res = await fetch(
+      const res = await apiDelete(
         `/api/room-route/${encodeURIComponent(deletePopup.node_name)}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        }
+        requestBody
       )
 
       const data = await res.json()
@@ -144,8 +139,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
     const fetchBuildingData = async () => {
       try {
-        const res = await fetch("/api/building-route")
-        const json = await res.json()
+        const res = await apiGet("/api/building-route")
+        const json = await parseJsonResponse(res)
 
         if (json.all && Array.isArray(json.all)) {
           const found = json.all.find(
@@ -259,8 +254,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         deletePopup.node_name
       ) {
         try {
-          const res = await fetch("/api/building-route")
-          const json = await res.json()
+          const res = await apiGet("/api/building-route")
+          const json = await parseJsonResponse(res)
           let found = null
           if (json.all && Array.isArray(json.all)) {
             found = json.all.find(
@@ -640,14 +635,11 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         console.log(`${key}:`, typeof value === "object" ? value.name : value)
       }
 
-      const res = await fetch(
+      const res = await apiPut(
         `/api/building-route?building=${encodeURIComponent(
           deletePopup.node_name
         )}`,
-        {
-          method: "PUT",
-          body: formData,
-        }
+        formData
       )
 
       const data = await res.json()
@@ -655,8 +647,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       if (data && !data.error) {
         alert("정보 수정 완료!")
         // 최신 정보 다시 불러오기
-        const res2 = await fetch("/api/building-route")
-        const json2 = await res2.json()
+        const res2 = await apiGet("/api/building-route")
+        const json2 = await parseJsonResponse(res2)
         if (json2.all && Array.isArray(json2.all)) {
           const found = json2.all.find(
             (b) =>
@@ -706,8 +698,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   // nodes 데이터
   async function fetchNodes() {
     try {
-      const res = await fetch("/api/tower-route")
-      const json = await res.json()
+      const res = await apiGet("/api/tower-route")
+      const json = await parseJsonResponse(res)
       setNodes(json.nodes || [])
     } catch (e) {
       setNodes([])
@@ -717,8 +709,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   // edges 데이터
   async function fetchEdges() {
     try {
-      const res = await fetch("/api/node-route")
-      const json = await res.json()
+      const res = await apiGet("/api/node-route")
+      const json = await parseJsonResponse(res)
       setEdges(json.edges || [])
     } catch (e) {
       setEdges([])
@@ -754,8 +746,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       const formData = new FormData()
       formData.append("type", type)
       formData.append("node_name", finalNodeName)
-      formData.append("x", addPopup.x)
-      formData.append("y", addPopup.y)
+      formData.append("x", addPopup.x.toString())
+      formData.append("y", addPopup.y.toString())
       formData.append("desc", desc)
       if (newBuildingImages.length > 0) {
         newBuildingImages.forEach((image, index) => {
@@ -763,10 +755,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         })
       }
 
-      res = await fetch("/api/tower-route", {
-        method: "POST",
-        body: formData,
-      })
+      res = await apiPost("/api/tower-route", formData)
     } else {
       const body = {
         type,
@@ -775,14 +764,24 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         y: addPopup.y,
       }
 
-      res = await fetch("/api/tower-route", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
+      res = await apiPost("/api/tower-route", body)
     }
 
-    const data = await res.json()
+    console.log("📤 건물 추가 응답 상태:", res.status)
+    console.log("📤 건물 추가 응답 헤더:", Object.fromEntries(res.headers.entries()))
+    
+    let data
+    try {
+      data = await res.json()
+      console.log("📤 건물 추가 응답 데이터:", data)
+    } catch (jsonError) {
+      console.log("❌ 건물 추가 응답 JSON 파싱 오류:", jsonError.message)
+      const responseText = await res.text()
+      console.log("❌ 건물 추가 응답 텍스트:", responseText)
+      alert(`서버 응답 오류: ${jsonError.message}`)
+      return
+    }
+    
     if (data.success && !data.error) {
       setAddPopup({ open: false, x: null, y: null })
       await fetchNodes()
@@ -810,13 +809,9 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       localStorage.setItem("naverMapZoom", zoom)
     }
 
-    const res = await fetch("/api/tower-route", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: deletePopup.type,
-        node_name: deletePopup.node_name,
-      }),
+    const res = await apiDelete("/api/tower-route", {
+      type: deletePopup.type,
+      node_name: deletePopup.node_name,
     })
     const data = await res.json()
     if (data.success) {
@@ -856,13 +851,9 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       alert("이미 연결된 노드입니다.")
       return
     }
-    const res = await fetch("/api/node-route", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from_node: from.node_name,
-        to_node: to.node_name,
-      }),
+    const res = await apiPost("/api/node-route", {
+      from_node: from.node_name,
+      to_node: to.node_name,
     })
     const data = await res.json()
     if (data.success) {
@@ -881,13 +872,9 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     }
     if (!window.confirm("정말 연결을 해제하시겠습니까?")) return
 
-    const res = await fetch("/api/node-route", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from_node,
-        to_node,
-      }),
+    const res = await apiDelete("/api/node-route", {
+      from_node,
+      to_node,
     })
     const data = await res.json()
     if (data.success) {

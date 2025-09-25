@@ -53,32 +53,32 @@ export default function ManagementPage() {
           parseJsonResponse(userRes),
         ])
 
-        // data.data 구조 처리
+        // data.data 구조 처리 - 우선순위: data.data > data > 직접 접근
         let buildingNames = []
-        if (buildingData.names && Array.isArray(buildingData.names)) {
-          buildingNames = buildingData.names
+        if (buildingData.data?.data?.names && Array.isArray(buildingData.data.data.names)) {
+          buildingNames = buildingData.data.data.names
         } else if (buildingData.data?.names && Array.isArray(buildingData.data.names)) {
           buildingNames = buildingData.data.names
-        } else if (buildingData.data?.data?.names && Array.isArray(buildingData.data.data.names)) {
-          buildingNames = buildingData.data.data.names
+        } else if (buildingData.names && Array.isArray(buildingData.names)) {
+          buildingNames = buildingData.names
         }
         
         let roomRooms = []
-        if (roomData.rooms && Array.isArray(roomData.rooms)) {
-          roomRooms = roomData.rooms
+        if (roomData.data?.data?.rooms && Array.isArray(roomData.data.data.rooms)) {
+          roomRooms = roomData.data.data.rooms
         } else if (roomData.data?.rooms && Array.isArray(roomData.data.rooms)) {
           roomRooms = roomData.data.rooms
-        } else if (roomData.data?.data?.rooms && Array.isArray(roomData.data.data.rooms)) {
-          roomRooms = roomData.data.data.rooms
+        } else if (roomData.rooms && Array.isArray(roomData.rooms)) {
+          roomRooms = roomData.rooms
         }
         
         let userUsers = []
-        if (userData.users && userData.users.data && Array.isArray(userData.users.data)) {
-          userUsers = userData.users.data
-        } else if (userData.data?.data?.users && Array.isArray(userData.data.data.users)) {
+        if (userData.data?.data?.users && Array.isArray(userData.data.data.users)) {
           userUsers = userData.data.data.users
         } else if (userData.data?.users && Array.isArray(userData.data.users)) {
           userUsers = userData.data.users
+        } else if (userData.users && userData.users.data && Array.isArray(userData.users.data)) {
+          userUsers = userData.users.data
         } else if (userData.users && Array.isArray(userData.users)) {
           userUsers = userData.users
         }
@@ -104,8 +104,16 @@ export default function ManagementPage() {
       apiGet("/api/login-route")
         .then(parseJsonResponse)
         .then((data) => {
-          // data.data 구조로 변경
-          const userData = data.data || data
+          // data.data 구조로 변경 - 우선순위: data.data > data > 직접 접근
+          let userData = []
+          if (data.data?.data && Array.isArray(data.data.data)) {
+            userData = data.data.data
+          } else if (data.data && Array.isArray(data.data)) {
+            userData = data.data
+          } else if (Array.isArray(data)) {
+            userData = data
+          }
+          
           if (Array.isArray(userData)) {
             const markers = userData
               .filter(

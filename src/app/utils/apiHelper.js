@@ -14,13 +14,9 @@ const getToken = () => {
 // 기본 fetch 함수에 토큰을 포함한 헤더 추가
 const fetchWithAuth = async (url, options = {}) => {
   const token = getToken()
-  console.log('🔑 apiHelper - 요청 URL:', url)
-  console.log('🔑 apiHelper - 토큰 확인:', token ? '토큰 있음' : '토큰 없음')
-  console.log('🔑 apiHelper - 토큰 값:', token)
   
   // FormData인지 확인
   const isFormData = options.body instanceof FormData
-  console.log('🔑 apiHelper - FormData 여부:', isFormData)
   
   const headers = {
     // FormData가 아닐 때만 Content-Type을 application/json으로 설정
@@ -31,24 +27,15 @@ const fetchWithAuth = async (url, options = {}) => {
   // 토큰이 있으면 Authorization 헤더에 추가
   if (token && token.trim() !== '') {
     headers['Authorization'] = `Bearer ${token}`
-    console.log('🔑 apiHelper - Authorization 헤더 추가됨:', `Bearer ${token}`)
-  } else {
-    console.log('❌ apiHelper - 토큰이 없어서 Authorization 헤더 추가 안됨')
   }
-  
-  console.log('🔑 apiHelper - 최종 헤더:', headers)
   
   const response = await fetch(url, {
     ...options,
     headers,
   })
   
-  console.log('📡 apiHelper - 응답 상태:', response.status)
-  console.log('📡 apiHelper - 응답 헤더:', Object.fromEntries(response.headers.entries()))
-  
   // 토큰이 만료되었거나 인증에 실패한 경우
   if (response.status === 401) {
-    console.log('❌ apiHelper - 401 인증 오류 발생')
     throw new Error('인증이 필요합니다. 다시 로그인해주세요.')
   }
   

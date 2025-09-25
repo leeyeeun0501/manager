@@ -7,7 +7,7 @@ import Image from "next/image"
 import { FaRegCommentDots } from "react-icons/fa"
 import "../globals.css"
 import styles from "./inquiry-manage.module.css"
-import { apiGet, parseJsonResponse } from "../utils/apiHelper"
+import { apiGet, apiPut, parseJsonResponse } from "../utils/apiHelper"
 
 export default function InquiryPage() {
   const [menuOpen, setMenuOpen] = useState(false)

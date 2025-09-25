@@ -3,6 +3,7 @@
 import "../mypage.module.css"
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
+import { apiPost, parseJsonResponse } from "../../utils/apiHelper"
 import styles from "../mypage.module.css"
 
 export default function VerifyPasswordPage() {
@@ -26,18 +27,14 @@ export default function VerifyPasswordPage() {
       }
 
       // login-route를 호출해서 비밀번호 확인
-      const res = await fetch("/api/login-route", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: userId,
-          pw: currentPassword,
-        }),
+      const res = await apiPost("/api/login-route", {
+        id: userId,
+        pw: currentPassword,
       })
 
-      const data = await res.json()
+      const data = await parseJsonResponse(res)
 
-      if (res.ok && data.islogin) {
+      if (data.success) {
         // 비밀번호 확인 성공 시 sessionStorage에 플래그 설정
         sessionStorage.setItem("passwordVerified", "true")
         // 마이페이지로 이동
@@ -46,7 +43,12 @@ export default function VerifyPasswordPage() {
         setError("비밀번호가 일치하지 않습니다.")
       }
     } catch (err) {
-      setError("서버 오류가 발생했습니다.")
+      // 401 오류인 경우 비밀번호 불일치로 처리
+      if (err.message.includes("인증이 필요합니다")) {
+        setError("비밀번호가 일치하지 않습니다.")
+      } else {
+        setError(err.message || "서버 오류가 발생했습니다.")
+      }
     } finally {
       setLoading(false)
     }

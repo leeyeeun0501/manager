@@ -44,6 +44,15 @@ export async function GET(request) {
 
 // 사용자 삭제 (DELETE)
 export async function DELETE(request) {
+  // 토큰 검증
+  const token = verifyToken(request)
+  if (!token) {
+    return NextResponse.json(
+      { success: false, error: "인증이 필요합니다." },
+      { status: 401 }
+    )
+  }
+
   try {
     const { id } = await request.json()
     if (!id) {
@@ -55,7 +64,10 @@ export async function DELETE(request) {
 
     const res = await fetch(`${AUTH_API_BASE}/user/delete`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify({ id }),
     })
 

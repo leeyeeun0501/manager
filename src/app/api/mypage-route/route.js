@@ -1,9 +1,19 @@
 // mypage-route
 import { NextResponse } from "next/server"
 import { AUTH_API_BASE } from "../apibase"
+import { verifyToken } from "../../utils/authHelper"
 
 // 로그인 시 해당 아이디 회원정보 검색 (GET)
 export async function GET(request) {
+  // 토큰 검증
+  const token = verifyToken(request)
+  if (!token) {
+    return NextResponse.json(
+      { success: false, error: "인증이 필요합니다." },
+      { status: 401 }
+    )
+  }
+
   const { searchParams } = new URL(request.url)
   const id = searchParams.get("id")
 
@@ -16,7 +26,13 @@ export async function GET(request) {
 
   try {
     const apiUrl = `${AUTH_API_BASE}/user/${encodeURIComponent(id)}`
-    const res = await fetch(apiUrl, { method: "GET" })
+    const res = await fetch(apiUrl, { 
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    })
 
     if (!res.ok) {
       return NextResponse.json(
@@ -38,6 +54,15 @@ export async function GET(request) {
 
 // 회원정보 수정 - 비밀번호, 전화번호, 이메일 (PUT)
 export async function PUT(request) {
+  // 토큰 검증
+  const token = verifyToken(request)
+  if (!token) {
+    return NextResponse.json(
+      { success: false, error: "인증이 필요합니다." },
+      { status: 401 }
+    )
+  }
+
   try {
     const { id, pw, phone, email } = await request.json()
 
@@ -57,7 +82,10 @@ export async function PUT(request) {
     const apiUrl = `${AUTH_API_BASE}/user/update`
     const res = await fetch(apiUrl, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify({ id, pw, phone, email }),
     })
 

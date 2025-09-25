@@ -15,7 +15,7 @@ export async function GET(request) {
   }
 
   try {
-    const res = await fetch(`${AUTH_API_BASE}/inquiry`, {
+    const res = await fetch(`${AUTH_API_BASE}/inquiry/admin`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

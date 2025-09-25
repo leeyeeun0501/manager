@@ -42,6 +42,7 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       message: "로그인 성공",
+      islogin: true,
       token: result.token,
       user: result.user
     })

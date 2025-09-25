@@ -1,9 +1,19 @@
 // logout-route
 import { NextResponse } from "next/server"
 import { AUTH_API_BASE } from "../apibase"
+import { verifyToken } from "../../utils/authHelper"
 
 // 로그아웃 (POST)
 export async function POST(req) {
+  // 토큰 검증
+  const token = verifyToken(req)
+  if (!token) {
+    return NextResponse.json(
+      { success: false, error: "인증이 필요합니다." },
+      { status: 401 }
+    )
+  }
+
   try {
     const { id } = await req.json()
 
@@ -16,7 +26,10 @@ export async function POST(req) {
 
     const res = await fetch(`${AUTH_API_BASE}/user/logout`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify({ id }),
     })
 

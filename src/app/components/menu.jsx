@@ -15,6 +15,7 @@ import {
 import Link from "next/link"
 import React, { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
+import { apiPost, parseJsonResponse } from "../utils/apiHelper"
 import styles from "./menu.module.css"
 
 export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
@@ -33,23 +34,21 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
   const handleLogout = async () => {
     const id = localStorage.getItem("userId")
     try {
-      const res = await fetch("/api/logout-route", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      })
-      if (res.ok) {
+      const res = await apiPost("/api/logout-route", { id })
+      const data = await parseJsonResponse(res)
+      if (data.success) {
         localStorage.removeItem("userId")
         localStorage.removeItem("userName")
         localStorage.removeItem("islogin")
+        localStorage.removeItem("token")
         sessionStorage.removeItem("passwordVerified")
         setMenuOpen(false)
         router.push("/login")
       } else {
         alert("로그아웃 실패")
       }
-    } catch {
-      alert("서버 오류로 로그아웃에 실패했습니다.")
+    } catch (error) {
+      alert(error.message || "서버 오류로 로그아웃에 실패했습니다.")
     }
   }
 

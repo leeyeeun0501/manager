@@ -1,6 +1,7 @@
 // room-route/[floor]
 import { NextResponse } from "next/server"
 import { API_BASE } from "../../../apibase"
+import { verifyToken } from "../../../../utils/authHelper"
 
 // 강의실 조회(건물 + 층) (GET)
 export async function GET(request, { params }) {
@@ -28,6 +29,15 @@ export async function GET(request, { params }) {
 
 // 수정 (PUT)
 export async function PUT(req, context) {
+  // 토큰 검증
+  const token = verifyToken(req)
+  if (!token) {
+    return NextResponse.json(
+      { success: false, error: "인증이 필요합니다." },
+      { status: 401 }
+    )
+  }
+
   const params = (await context.params) ?? {}
   const { building, floor } = params
 
@@ -51,7 +61,10 @@ export async function PUT(req, context) {
       )}`,
       {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify(updateBody),
       }
     )

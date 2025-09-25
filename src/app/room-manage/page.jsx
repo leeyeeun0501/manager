@@ -7,7 +7,7 @@ import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./room-manage.module.css"
 import { MdEditSquare } from "react-icons/md"
-import { apiGet, apiPost, apiDelete, parseJsonResponse } from "../utils/apiHelper"
+import { apiGet, apiPost, apiPut, apiDelete, parseJsonResponse } from "../utils/apiHelper"
 
 export default function RoomManagePage() {
   const router = useRouter()
@@ -2015,20 +2015,16 @@ export default function RoomManagePage() {
                     const users = editRoomUsers.map((u) => u.user)
                     const phones = editRoomUsers.map((u) => u.phone)
                     const emails = editRoomUsers.map((u) => u.email)
-                    const res = await fetch(
+                    const res = await apiPut(
                       `/api/room-route/${encodeURIComponent(
                         editRoom.building
                       )}/${encodeURIComponent(editRoom.floor)}`,
                       {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          room_name: editRoomName,
-                          room_desc: editRoomDesc,
-                          room_user: users,
-                          user_phone: phones,
-                          user_email: emails,
-                        }),
+                        room_name: editRoomName,
+                        room_desc: editRoomDesc,
+                        room_user: users,
+                        user_phone: phones,
+                        user_email: emails,
                       }
                     )
                     if (!res.ok) throw new Error()

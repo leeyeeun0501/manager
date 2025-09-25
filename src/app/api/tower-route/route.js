@@ -3,8 +3,6 @@ import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 import { verifyToken } from "../../utils/authHelper"
 
-// 로컬 노드 저장소 (외부 API 실패 시 사용)
-let localNodes = []
 
 // 건물/노드 위치 전체 데이터 조회 (GET)
 export async function GET(request) {

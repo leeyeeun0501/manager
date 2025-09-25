@@ -17,6 +17,17 @@ export async function GET(request) {
       )
     }
 
+    // 요청 헤더에서 토큰 추출
+    const authHeader = request.headers.get("authorization")
+    const token = authHeader?.replace("Bearer ", "")
+
+    if (!token) {
+      return NextResponse.json(
+        { error: "인증 토큰이 필요합니다." },
+        { status: 401 }
+      )
+    }
+
     const res = await fetch(
       `${API_BASE}/room/stairs/${encodeURIComponent(
         building
@@ -25,6 +36,7 @@ export async function GET(request) {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
       }
     )

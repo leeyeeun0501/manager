@@ -105,7 +105,20 @@ export default function NaverMapSimple({ markers = [] }) {
         const data = await parseJsonResponse(response)
         if (data.nodes && Array.isArray(data.nodes)) {
           const filteredNodes = data.nodes.filter(
-            (node) => node.id && !node.id.toString().includes("O")
+            (node) => {
+              // 기본 필터: id가 있고 "O"가 포함되지 않은 것
+              if (!node.id || node.id.toString().includes("O")) {
+                return false
+              }
+              
+              // ~문으로 끝나는 경로점 제외
+              const nodeName = node.node_name || node.name || node.id || ""
+              if (nodeName.toString().endsWith("문")) {
+                return false
+              }
+              
+              return true
+            }
           )
           setPathData(filteredNodes)
         }
@@ -127,7 +140,20 @@ export default function NaverMapSimple({ markers = [] }) {
 
         if (data.nodes && Array.isArray(data.nodes)) {
           const buildings = data.nodes.filter(
-            (node) => node.id && !node.id.toString().includes("O")
+            (node) => {
+              // 기본 필터: id가 있고 "O"가 포함되지 않은 것
+              if (!node.id || node.id.toString().includes("O")) {
+                return false
+              }
+              
+              // ~문으로 끝나는 건물 제외
+              const nodeName = node.node_name || node.name || node.id || ""
+              if (nodeName.toString().endsWith("문")) {
+                return false
+              }
+              
+              return true
+            }
           )
           setBuildingData(buildings)
         } else {
@@ -254,6 +280,12 @@ export default function NaverMapSimple({ markers = [] }) {
     if (!buildingData || buildingData.length === 0) return
 
     buildingData.forEach((building) => {
+      // ~문으로 끝나는 건물은 마커 표시하지 않음
+      const buildingName = building.node_name || building.name || building.id || ""
+      if (buildingName.toString().endsWith("문")) {
+        return // 마커 생성하지 않고 건너뛰기
+      }
+
       // building-manage와 동일한 원형 마커
       const circle = new window.naver.maps.Circle({
         map: mapInstanceRef.current,
@@ -307,68 +339,74 @@ export default function NaverMapSimple({ markers = [] }) {
       pathRef.current.forEach((marker) => marker.setMap(null))
     }
 
-    const pathMarkers = pathData.map((node) => {
-      return new window.naver.maps.Marker({
-        position: new window.naver.maps.LatLng(node.x, node.y),
-        map: mapInstanceRef.current,
-        title: `경로점 ${node.id}`,
-        icon: {
-          content: `
-            <div style="
-              position: relative;
-              width: 24px;
-              height: 32px;
-            ">
+    const pathMarkers = pathData
+      .filter((node) => {
+        // ~문으로 끝나는 경로점은 마커 표시하지 않음
+        const nodeName = node.node_name || node.name || node.id || ""
+        return !nodeName.toString().endsWith("문")
+      })
+      .map((node) => {
+        return new window.naver.maps.Marker({
+          position: new window.naver.maps.LatLng(node.x, node.y),
+          map: mapInstanceRef.current,
+          title: `경로점 ${node.id}`,
+          icon: {
+            content: `
               <div style="
-                position: absolute;
-                bottom: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 0;
-                height: 0;
-                border-left: 8px solid transparent;
-                border-right: 8px solid transparent;
-                border-top: 16px solid #0066FF;
-              "></div>
-              <div style="
-                position: absolute;
-                bottom: 2px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 0;
-                height: 0;
-                border-left: 6px solid transparent;
-                border-right: 6px solid transparent;
-                border-top: 12px solid #0066FF;
-              "></div>
-              <div style="
-                position: absolute;
-                top: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 12px;
-                height: 12px;
-                background: white;
-                border: 2px solid #0066FF;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                position: relative;
+                width: 24px;
+                height: 32px;
               ">
                 <div style="
-                  width: 4px;
-                  height: 4px;
-                  background: #0066FF;
-                  border-radius: 50%;
+                  position: absolute;
+                  bottom: 0;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  width: 0;
+                  height: 0;
+                  border-left: 8px solid transparent;
+                  border-right: 8px solid transparent;
+                  border-top: 16px solid #0066FF;
                 "></div>
+                <div style="
+                  position: absolute;
+                  bottom: 2px;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  width: 0;
+                  height: 0;
+                  border-left: 6px solid transparent;
+                  border-right: 6px solid transparent;
+                  border-top: 12px solid #0066FF;
+                "></div>
+                <div style="
+                  position: absolute;
+                  top: 0;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  width: 12px;
+                  height: 12px;
+                  background: white;
+                  border: 2px solid #0066FF;
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                ">
+                  <div style="
+                    width: 4px;
+                    height: 4px;
+                    background: #0066FF;
+                    border-radius: 50%;
+                  "></div>
+                </div>
               </div>
-            </div>
-          `,
-          size: new window.naver.maps.Size(24, 32),
-          anchor: new window.naver.maps.Point(12, 32),
-        },
+            `,
+            size: new window.naver.maps.Size(24, 32),
+            anchor: new window.naver.maps.Point(12, 32),
+          },
+        })
       })
-    })
 
     pathRef.current = pathMarkers
   }, [pathData, ready])

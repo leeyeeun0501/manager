@@ -12,9 +12,17 @@ async function login(id, pw) {
     body: JSON.stringify({ id, pw }),
   })
 
-  if (!res.ok) return null
+  if (!res.ok) {
+    // 401 Unauthorized인 경우 인증 실패로 처리
+    if (res.status === 401) {
+      return { success: false, message: "아이디 또는 비밀번호가 일치하지 않습니다." }
+    }
+    // 기타 오류는 서버 오류로 처리
+    return { success: false, message: "서버 오류가 발생했습니다." }
+  }
+  
   const user = await res.json()
-  return user
+  return { success: true, data: user }
 }
 
 // 로그인 (POST)
@@ -31,10 +39,10 @@ export async function POST(request) {
 
     const result = await login(id, pw)
     
-    if (!result) {
+    if (!result.success) {
       return NextResponse.json(
-        { success: false, message: "로그인 실패" },
-        { status: 401 }
+        { success: false, message: result.message },
+        { status: result.message.includes("일치하지 않습니다") ? 401 : 500 }
       )
     }
 
@@ -43,8 +51,8 @@ export async function POST(request) {
       success: true,
       message: "로그인 성공",
       islogin: true,
-      token: result.token,
-      user: result.user
+      token: result.data.token,
+      user: result.data.user
     })
   } catch (err) {
     return NextResponse.json(

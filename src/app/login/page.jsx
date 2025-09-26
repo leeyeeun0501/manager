@@ -41,7 +41,8 @@ export default function LoginPage() {
         setError(data.message || "로그인 실패")
       }
     } catch (err) {
-      setError("서버 오류")
+      console.error("로그인 오류:", err)
+      setError("네트워크 오류가 발생했습니다. 다시 시도해주세요.")
     } finally {
       setLoading(false)
     }

@@ -151,7 +151,8 @@
 
 .search-input {
   height: 46px;
-  min-width: 150px;
+  min-width: 250px;
+  width: 300px;
   font-size: 1.07rem;
   border-radius: 10px;
   border: 1.5px solid #b3d1fa;
@@ -200,6 +201,11 @@
   .userTable th:nth-child(5), .userTable td:nth-child(5) { width: 32%; } /* 이메일 */
   .userTable th:nth-child(6), .userTable td:nth-child(6) { width: 20%; } /* 생성일 */
   .userTable th:nth-child(7), .userTable td:nth-child(7) { width: 6%; }  /* 삭제 */
+  
+  .search-input {
+    width: 250px;
+    min-width: 200px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -220,4 +226,9 @@
   .userTable th:nth-child(5), .userTable td:nth-child(5) { width: 32%; } /* 이메일 */
   .userTable th:nth-child(6), .userTable td:nth-child(6) { width: 20%; } /* 생성일 */
   .userTable th:nth-child(7), .userTable td:nth-child(7) { width: 6%; }  /* 삭제 */
+  
+  .search-input {
+    width: 200px;
+    min-width: 150px;
+  }
 }

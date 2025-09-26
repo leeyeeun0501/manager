@@ -11,6 +11,22 @@ const getToken = () => {
   return token
 }
 
+// 토큰 만료 처리 함수
+export const handleTokenExpired = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('token')
+    localStorage.removeItem('userId')
+    localStorage.removeItem('userName')
+    localStorage.removeItem('islogin')
+    
+    // 토큰 만료 알림 표시
+    alert('세션이 만료되었습니다. 다시 로그인해주세요.')
+    
+    // 로그인 페이지로 리다이렉트
+    window.location.href = '/login'
+  }
+}
+
 // 기본 fetch 함수에 토큰을 포함한 헤더 추가
 const fetchWithAuth = async (url, options = {}) => {
   const token = getToken()
@@ -35,8 +51,9 @@ const fetchWithAuth = async (url, options = {}) => {
   })
   
   // 토큰이 만료되었거나 인증에 실패한 경우
-  if (response.status === 401) {
-    throw new Error('인증이 필요합니다. 다시 로그인해주세요.')
+  if (response.status === 401 || response.status === 419) {
+    handleTokenExpired()
+    throw new Error('세션이 만료되었습니다. 다시 로그인해주세요.')
   }
   
   return response

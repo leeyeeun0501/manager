@@ -55,7 +55,8 @@ export default function VerifyPasswordPage() {
   }
 
   const handleCancel = () => {
-    router.push("/management")
+    // 이전 페이지로 돌아가기
+    router.back()
   }
 
   return (

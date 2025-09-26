@@ -162,7 +162,8 @@ export default function UserManagePage() {
               />
             </div>
 
-            <table className={`${styles.userTable} ${styles.centerTable}`}>
+            <div style={{ width: "100%", overflow: "hidden", maxWidth: "100%" }}>
+              <table className={`${styles.userTable} ${styles.centerTable}`}>
               <thead>
                 <tr>
                   <th>아이디</th>
@@ -219,6 +220,7 @@ export default function UserManagePage() {
                 )}
               </tbody>
             </table>
+            </div>
 
             {/* 페이징 */}
             <div className={styles.userPaginationRow}>

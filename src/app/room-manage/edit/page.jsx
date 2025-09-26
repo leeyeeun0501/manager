@@ -4,12 +4,14 @@ import React, { useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import styles from "../room-manage.module.css"
 import { apiGet, parseJsonResponse } from "../../utils/apiHelper"
+import Menu from "../../components/menu"
 
 export default function RoomManageEditPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const building = searchParams.get("building") || ""
   const floor = searchParams.get("floor") || ""
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const [svgRaw, setSvgRaw] = useState("")
   const [svgViewBox, setSvgViewBox] = useState({ x: 0, y: 0, width: 400, height: 400 })
@@ -482,6 +484,7 @@ export default function RoomManageEditPage() {
         left: 0
       }}
     >
+      <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <span className={styles["room-header"]}>도면 편집 페이지</span>
       {building && floor && (
         <div

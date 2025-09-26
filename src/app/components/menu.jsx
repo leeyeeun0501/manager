@@ -101,8 +101,11 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
 
         {menuItems.map((item) => {
           // 마이페이지의 경우 /mypage로 시작하는 모든 경로에서 활성화
+          // Room 관리의 경우 /room-manage로 시작하는 모든 경로에서 활성화
           const isActive = item.label === "마이페이지" 
             ? pathname.startsWith("/mypage")
+            : item.label === "Room 관리"
+            ? pathname.startsWith("/room-manage")
             : pathname === item.path;
           
           return (

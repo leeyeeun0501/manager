@@ -5,6 +5,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import styles from "./login.module.css"
 import LoadingOverlay from "../components/loadingoverlay"
+import { resetSessionExpired } from "../utils/apiHelper"
 
 export default function LoginPage() {
   const [id, setId] = useState("")
@@ -26,6 +27,9 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (data.success && data.token) {
+        // 세션 만료 상태 리셋
+        resetSessionExpired()
+        
         // 토큰과 사용자 정보를 localStorage에 저장
         localStorage.setItem("token", data.token)
         localStorage.setItem("userId", data.user.id)

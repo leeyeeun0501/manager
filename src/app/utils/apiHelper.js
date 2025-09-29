@@ -11,20 +11,30 @@ const getToken = () => {
   return token
 }
 
+// 세션 만료 상태 관리
+let isSessionExpired = false
+
 // 토큰 만료 처리 함수
 export const handleTokenExpired = () => {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && !isSessionExpired) {
+    isSessionExpired = true
+    
     localStorage.removeItem('token')
     localStorage.removeItem('userId')
     localStorage.removeItem('userName')
     localStorage.removeItem('islogin')
     
-    // 토큰 만료 알림 표시
+    // 토큰 만료 알림 표시 (한 번만)
     alert('세션이 만료되었습니다. 다시 로그인해주세요.')
     
     // 로그인 페이지로 리다이렉트
     window.location.href = '/login'
   }
+}
+
+// 세션 만료 상태 리셋 함수 (로그인 시 호출)
+export const resetSessionExpired = () => {
+  isSessionExpired = false
 }
 
 // 기본 fetch 함수에 토큰을 포함한 헤더 추가

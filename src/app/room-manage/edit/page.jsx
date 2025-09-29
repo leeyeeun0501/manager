@@ -172,7 +172,7 @@ export default function RoomManageEditPage() {
         y: clickY,
         width: 8,
         height: 8,
-        element: "circle",
+        element: "rect",
         layer: "Categories",
         categoryType: englishCategoryName,
         isPending: true
@@ -263,14 +263,15 @@ export default function RoomManageEditPage() {
     categories.forEach((category) => {
       const categoryId = category.id.split("@")[2] // building@floor@categoryId에서 categoryId만 추출
       
-      const circle = doc.createElementNS("http://www.w3.org/2000/svg", "circle")
-      circle.setAttribute("id", categoryId)
-      circle.setAttribute("cx", category.x)
-      circle.setAttribute("cy", category.y)
-      circle.setAttribute("r", "2.1957438") // 기존 노드와 동일한 반지름
-      circle.setAttribute("style", "fill:#ff6b6b;fill-opacity:0;stroke:#ff6b6b;stroke-opacity:0;stroke-width:0") // 카테고리는 완전 투명하게 설정
+      const rect = doc.createElementNS("http://www.w3.org/2000/svg", "rect")
+      rect.setAttribute("id", categoryId)
+      rect.setAttribute("x", category.x - 4.3914876) // rect의 중심이 되도록 x 좌표 조정
+      rect.setAttribute("y", category.y - 4.3914876) // rect의 중심이 되도록 y 좌표 조정
+      rect.setAttribute("width", "8.7829752") // 기존 노드와 동일한 크기 (반지름 * 2)
+      rect.setAttribute("height", "8.7829752") // 기존 노드와 동일한 크기 (반지름 * 2)
+      rect.setAttribute("style", "fill:#ff6b6b;fill-opacity:0;stroke:#ff6b6b;stroke-opacity:0;stroke-width:0") // 카테고리는 완전 투명하게 설정
       
-      categoriesLayer.appendChild(circle)
+      categoriesLayer.appendChild(rect)
     })
 
     return doc.documentElement.outerHTML
@@ -897,7 +898,7 @@ export default function RoomManageEditPage() {
                         height: `${category.height}px`,
                         border: "2px solid #ff6b6b",
                         backgroundColor: "rgba(255, 107, 107, 0.2)",
-                        borderRadius: "50%",
+                        borderRadius: category.element === "rect" ? "4px" : "50%",
                         cursor: "pointer",
                       }}
                       title={`카테고리: ${category.categoryType}`}
@@ -916,7 +917,7 @@ export default function RoomManageEditPage() {
                         height: `${category.height}px`,
                         border: "2px solid #6c757d",
                         backgroundColor: "rgba(108, 117, 125, 0.1)",
-                        borderRadius: "50%",
+                        borderRadius: category.element === "rect" ? "4px" : "50%",
                         opacity: 0.5,
                       }}
                       title={`삭제된 카테고리: ${category.categoryType}`}
@@ -935,7 +936,7 @@ export default function RoomManageEditPage() {
                         height: `${category.height}px`,
                         border: "1px solid #4ecdc4",
                         backgroundColor: "rgba(78, 205, 196, 0.1)",
-                        borderRadius: "50%",
+                        borderRadius: category.element === "rect" ? "4px" : "50%",
                         animation: "pulse 1.5s infinite",
                       }}
                       title={`새 카테고리: ${category.id}`}

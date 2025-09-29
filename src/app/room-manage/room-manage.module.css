@@ -349,11 +349,11 @@
   width: 100%;
 }
 
-/* 편집 페이지 툴바 스타일 */
+/* 편집 페이지 툴바 스타일 - 반응형 */
 .edit-toolbar {
   position: absolute;
-  top: 35px;
-  left: 370px;
+  top: 4.5%;
+  left: 19%;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -364,6 +364,32 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(37, 116, 245, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* 화면 크기별 툴바 위치 조정 */
+@media (max-width: 1200px) {
+  .edit-toolbar {
+    left: 15%;
+  }
+}
+
+@media (max-width: 768px) {
+  .edit-toolbar {
+    top: 1.5%;
+    left: 20%;
+    padding: 12px 8px;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-toolbar {
+    top: 1%;
+    left: 5%;
+    padding: 8px 6px;
+    gap: 4px;
+  }
 }
 
 /* 노드 추가 모달 스타일 */
@@ -567,6 +593,23 @@
   position: relative;
 }
 
+/* 반응형 툴바 버튼 크기 조정 */
+@media (max-width: 768px) {
+  .toolbar-btn {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar-btn {
+    width: 36px;
+    height: 36px;
+    padding: 6px;
+  }
+}
+
 .toolbar-btn:hover {
   background: #f5faff;
   border-color: #2574f5;
@@ -592,6 +635,23 @@
   pointer-events: none;
 }
 
+/* 반응형 툴팁 크기 조정 */
+@media (max-width: 768px) {
+  .toolbar-btn:hover::after {
+    font-size: 11px;
+    padding: 4px 8px;
+    margin-left: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar-btn:hover::after {
+    font-size: 10px;
+    padding: 3px 6px;
+    margin-left: 6px;
+  }
+}
+
 .toolbar-btn:hover::before {
   content: '';
   position: absolute;
@@ -605,6 +665,23 @@
   pointer-events: none;
 }
 
+/* 반응형 툴팁 화살표 크기 조정 */
+@media (max-width: 768px) {
+  .toolbar-btn:hover::before {
+    margin-left: 4px;
+    border: 5px solid transparent;
+    border-right-color: rgba(0, 0, 0, 0.8);
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar-btn:hover::before {
+    margin-left: 3px;
+    border: 4px solid transparent;
+    border-right-color: rgba(0, 0, 0, 0.8);
+  }
+}
+
 .toolbar-btn:active {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -615,6 +692,21 @@
   height: 16px;
   border-radius: 50%;
   transition: all 0.2s ease;
+}
+
+/* 반응형 툴바 원형 아이콘 크기 조정 */
+@media (max-width: 768px) {
+  .toolbar-circle {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar-circle {
+    width: 12px;
+    height: 12px;
+  }
 }
 
 .node-btn .toolbar-circle {

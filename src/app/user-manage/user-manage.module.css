@@ -36,12 +36,14 @@
 
 .userTable {
   width: 100%;
+  max-width: 1500px;
   table-layout: fixed;
   border-collapse: collapse;
   background: #fff;
   border-radius: 14px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   overflow: hidden;
+  margin: 0 auto;
 }
 
 .userTable th,
@@ -99,7 +101,8 @@
 
 .centerTable {
   width: 100%;
-  margin: 0;
+  max-width: 1500px;
+  margin: 0 auto;
 }
 
 .deleteCell {
@@ -181,11 +184,20 @@
   .userTable th:nth-child(5), .userTable td:nth-child(5) { width: 30%; } /* 이메일 */
   .userTable th:nth-child(6), .userTable td:nth-child(6) { width: 18%; } /* 생성일 */
   .userTable th:nth-child(7), .userTable td:nth-child(7) { width: 6%; }  /* 삭제 */
+  
 }
 
 @media (max-width: 1200px) {
   .userContent {
     padding: 0 15px;
+  }
+  
+  .userTable {
+    max-width: 1500px;
+  }
+  
+  .centerTable {
+    max-width: 1500px;
   }
   
   .userTable th,
@@ -211,6 +223,14 @@
 @media (max-width: 768px) {
   .userContent {
     padding: 0 10px;
+  }
+  
+  .userTable {
+    max-width: 2000px;
+  }
+  
+  .centerTable {
+    max-width: 2000px;
   }
   
   .userTable th,

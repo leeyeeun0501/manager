@@ -205,7 +205,7 @@ export default function RoomManageEditPage() {
   }
 
 
-  // SVG에 노드 추가하는 함수
+  // SVG에 노드 추가하는 함수 (기존 노드/카테고리 제거 후 새로 추가)
   const addNodesToSvg = (svgXml, nodes, categories = []) => {
     const parser = new DOMParser()
     const doc = parser.parseFromString(svgXml, "image/svg+xml")
@@ -220,6 +220,11 @@ export default function RoomManageEditPage() {
       navigationLayer = doc.createElementNS("http://www.w3.org/2000/svg", "g")
       navigationLayer.setAttribute("id", "Navigation_Nodes")
       doc.querySelector("svg").appendChild(navigationLayer)
+    } else {
+      // 기존 노드들 모두 제거
+      while (navigationLayer.firstChild) {
+        navigationLayer.removeChild(navigationLayer.firstChild)
+      }
     }
 
     // Categories 레이어 찾기
@@ -233,6 +238,11 @@ export default function RoomManageEditPage() {
       categoriesLayer = doc.createElementNS("http://www.w3.org/2000/svg", "g")
       categoriesLayer.setAttribute("id", "Categories")
       doc.querySelector("svg").appendChild(categoriesLayer)
+    } else {
+      // 기존 카테고리들 모두 제거
+      while (categoriesLayer.firstChild) {
+        categoriesLayer.removeChild(categoriesLayer.firstChild)
+      }
     }
 
     // 각 노드를 SVG 요소로 추가 (기존 노드와 동일한 스타일)
@@ -759,7 +769,7 @@ export default function RoomManageEditPage() {
                   marginRight: "8px"
                 }}
               >
-                수정 완료 ({pendingNodes.length}개 노드, {pendingCategories.length}개 카테고리)
+                수정 완료 (추가: {pendingNodes.length}개 노드, {pendingCategories.length}개 카테고리 / 삭제: {deletedNodes.length}개 노드, {deletedCategories.length}개 카테고리)
               </button>
             )}
             <button

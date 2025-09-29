@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import styles from "../room-manage.module.css"
-import { apiGet, parseJsonResponse } from "../../utils/apiHelper"
+import { apiGet, parseJsonResponse, handleTokenExpired } from "../../utils/apiHelper"
 import Menu from "../../components/menu"
 import { useSessionCheck } from "../../utils/useSessionCheck"
 
@@ -32,6 +32,38 @@ export default function RoomManageEditPage() {
   const [isAddingMode, setIsAddingMode] = useState(false) // 노드 추가 모드
   const [pendingCategories, setPendingCategories] = useState([]) // 임시로 추가된 카테고리들
   const [isAddingCategoryMode, setIsAddingCategoryMode] = useState(false) // 카테고리 추가 모드
+  const [svgCategories, setSvgCategories] = useState([]) // SVG에서 파싱된 카테고리들
+  const [selectedInfo, setSelectedInfo] = useState(null) // 선택된 노드/카테고리 정보
+  const [showInfoModal, setShowInfoModal] = useState(false) // 정보 모달 표시
+  const [deletedNodes, setDeletedNodes] = useState([]) // 삭제된 노드들
+  const [deletedCategories, setDeletedCategories] = useState([]) // 삭제된 카테고리들
+
+  // 세션 체크 (30초마다)
+  useSessionCheck(30000)
+
+  // 세션 만료 시 라우터로 리다이렉트
+  useEffect(() => {
+    const originalHandleTokenExpired = window.handleTokenExpired
+    window.handleTokenExpired = () => {
+      if (typeof window !== 'undefined' && !window.isSessionExpired) {
+        window.isSessionExpired = true
+        
+        localStorage.removeItem('token')
+        localStorage.removeItem('userId')
+        localStorage.removeItem('userName')
+        localStorage.removeItem('islogin')
+        
+        alert('세션이 만료되었습니다. 다시 로그인해주세요.')
+        
+        // Next.js 라우터 사용
+        router.push('/login')
+      }
+    }
+
+    return () => {
+      window.handleTokenExpired = originalHandleTokenExpired
+    }
+  }, [router])
 
   const CANVAS_WIDTH = 1000
   const CANVAS_HEIGHT = 700
@@ -246,6 +278,51 @@ export default function RoomManageEditPage() {
     alert("도면에서 카테고리를 추가할 위치를 클릭해주세요.")
   }
 
+  // 노드/카테고리 클릭 핸들러
+  const handleNodeClick = (node) => {
+    setSelectedInfo({
+      type: 'node',
+      id: node.id,
+      name: node.id.split('@')[2], // 노드명 추출
+      x: node.x,
+      y: node.y,
+      element: node.element
+    })
+    setShowInfoModal(true)
+  }
+
+  const handleCategoryClick = (category) => {
+    // 카테고리명을 한국어로 변환
+    const koreanName = categoryNameMap[category.categoryType] || category.categoryType
+    
+    setSelectedInfo({
+      type: 'category',
+      id: category.id,
+      name: koreanName,
+      x: category.x,
+      y: category.y,
+      element: category.element
+    })
+    setShowInfoModal(true)
+  }
+
+  // 노드 삭제 핸들러
+  const handleDeleteNode = (node) => {
+    if (window.confirm(`노드 "${node.id.split('@')[2]}"를 삭제하시겠습니까?`)) {
+      setDeletedNodes(prev => [...prev, node])
+      setSvgNodes(prev => prev.filter(n => n.id !== node.id))
+    }
+  }
+
+  // 카테고리 삭제 핸들러
+  const handleDeleteCategory = (category) => {
+    const koreanName = categoryNameMap[category.categoryType] || category.categoryType
+    if (window.confirm(`카테고리 "${koreanName}"를 삭제하시겠습니까?`)) {
+      setDeletedCategories(prev => [...prev, category])
+      setSvgCategories(prev => prev.filter(c => c.id !== category.id))
+    }
+  }
+
   // SVG 저장 함수
   const handleSaveSvg = async () => {
     if (!building || !floor) {
@@ -256,8 +333,15 @@ export default function RoomManageEditPage() {
     try {
       setLoading(true)
       
-      // 현재 SVG에 노드와 카테고리 추가
-      const updatedSvg = addNodesToSvg(svgRaw, pendingNodes, pendingCategories)
+      // 삭제된 요소들을 제외한 노드와 카테고리만 유지
+      const remainingNodes = svgNodes.filter(node => !deletedNodes.some(deleted => deleted.id === node.id))
+      const remainingCategories = svgCategories.filter(category => !deletedCategories.some(deleted => deleted.id === category.id))
+      
+      // 현재 SVG에 남은 노드/카테고리와 새로 추가된 것들을 합쳐서 업데이트
+      const allNodes = [...remainingNodes, ...pendingNodes]
+      const allCategories = [...remainingCategories, ...pendingCategories]
+      
+      const updatedSvg = addNodesToSvg(svgRaw, allNodes, allCategories)
       
       // SVG를 Blob으로 변환
       const svgBlob = new Blob([updatedSvg], { type: 'image/svg+xml' })
@@ -283,6 +367,8 @@ export default function RoomManageEditPage() {
         // 저장 성공 후 임시 데이터 초기화
         setPendingNodes([])
         setPendingCategories([])
+        setDeletedNodes([])
+        setDeletedCategories([])
       } else {
         alert("SVG 저장에 실패했습니다: " + (data.error || "알 수 없는 오류"))
       }
@@ -426,6 +512,121 @@ export default function RoomManageEditPage() {
     return nodes
   }
 
+  // SVG에서 카테고리 파싱하는 함수
+  function parseSvgCategories(svgXml, buildingName, floorName) {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(svgXml, "image/svg+xml")
+    const categories = []
+
+    const categoriesLayer =
+      doc.querySelector('g[id="Categories"]') ||
+      doc.querySelector('g[id="categories"]') ||
+      doc.querySelector('g[id="Category"]') ||
+      doc.querySelector('g[id="category"]')
+
+    if (!categoriesLayer) {
+      return []
+    }
+
+    const allElements = categoriesLayer.querySelectorAll("*[id]")
+    allElements.forEach((element) => {
+      const categorySuffix = element.getAttribute("id")
+      if (!categorySuffix) return
+      const fullCategoryId = `${buildingName}@${floorName}@${categorySuffix}`
+
+      let x = 0, y = 0, width = 0, height = 0
+      switch (element.tagName.toLowerCase()) {
+        case "rect":
+          x = parseFloat(element.getAttribute("x") || 0)
+          y = parseFloat(element.getAttribute("y") || 0)
+          width = parseFloat(element.getAttribute("width") || 0)
+          height = parseFloat(element.getAttribute("height") || 0)
+          break
+        case "circle":
+          x = parseFloat(element.getAttribute("cx") || 0)
+          y = parseFloat(element.getAttribute("cy") || 0)
+          width = height = parseFloat(element.getAttribute("r") || 0) * 2
+          break
+        case "ellipse":
+          x = parseFloat(element.getAttribute("cx") || 0)
+          y = parseFloat(element.getAttribute("cy") || 0)
+          width = parseFloat(element.getAttribute("rx") || 0) * 2
+          height = parseFloat(element.getAttribute("ry") || 0) * 2
+          break
+        case "line":
+          x = parseFloat(element.getAttribute("x1") || 0)
+          y = parseFloat(element.getAttribute("y1") || 0)
+          const x2 = parseFloat(element.getAttribute("x2") || 0)
+          const y2 = parseFloat(element.getAttribute("y2") || 0)
+          width = Math.abs(x2 - x)
+          height = Math.abs(y2 - y)
+          break
+        case "polygon":
+          const points = element.getAttribute("points") || ""
+          const coords = points.split(/[\s,]+/).map(Number)
+          const xCoords = coords.filter((_, i) => i % 2 === 0)
+          const yCoords = coords.filter((_, i) => i % 2 === 1)
+          if (xCoords.length > 0 && yCoords.length > 0) {
+            x = Math.min(...xCoords)
+            y = Math.min(...yCoords)
+            width = Math.max(...xCoords) - x
+            height = Math.max(...yCoords) - y
+          }
+          break
+        case "path":
+          const d = element.getAttribute("d") || ""
+          const matches = d.match(/[ML]\s*([0-9.-]+)\s*,?\s*([0-9.-]+)/g)
+          if (matches && matches.length > 0) {
+            const coords = matches.map((m) => {
+              const nums = m.replace(/[ML]\s*/, "").split(/[\s,]+/).map(Number)
+              return { x: nums[0] || 0, y: nums[1] || 0 }
+            })
+            const xCoords = coords.map((c) => c.x)
+            const yCoords = coords.map((c) => c.y)
+            x = Math.min(...xCoords)
+            y = Math.min(...yCoords)
+            width = Math.max(...xCoords) - x
+            height = Math.max(...yCoords) - y
+          }
+          break
+        case "text":
+          x = parseFloat(element.getAttribute("x") || 0)
+          y = parseFloat(element.getAttribute("y") || 0)
+          width = element.textContent ? element.textContent.length * 8 : 50
+          height = 20
+          break
+        case "g":
+          const transform = element.getAttribute("transform") || ""
+          const translateMatch = transform.match(/translate\(([^)]+)\)/)
+          if (translateMatch) {
+            const translateValues = translateMatch[1].split(/[\s,]+/).map(Number)
+            x = translateValues[0] || 0
+            y = translateValues[1] || 0
+          }
+          width = height = 20
+          break
+        default:
+          x = parseFloat(element.getAttribute("x") || 0)
+          y = parseFloat(element.getAttribute("y") || 0)
+          width = parseFloat(element.getAttribute("width") || 20)
+          height = parseFloat(element.getAttribute("height") || 20)
+      }
+
+      categories.push({
+        id: fullCategoryId,
+        x: x + width / 2,
+        y: y + height / 2,
+        width: width,
+        height: height,
+        element: element.tagName.toLowerCase(),
+        layer: "Categories",
+        categoryType: categorySuffix, // 카테고리 타입 저장
+      })
+    })
+
+    return categories
+  }
+
   useEffect(() => {
     if (!building || !floor) return
 
@@ -464,6 +665,8 @@ export default function RoomManageEditPage() {
               setEdges(edgesInfo)
               const parsedNodes = parseSvgNodes(svgXml, building, floor)
               setSvgNodes(parsedNodes)
+              const parsedCategories = parseSvgCategories(svgXml, building, floor)
+              setSvgCategories(parsedCategories)
             })
             .catch(() => {
               setSvgRaw("")
@@ -541,7 +744,7 @@ export default function RoomManageEditPage() {
           </div>
           
           <div style={{ textAlign: "right", marginBottom: "8px" }}>
-            {(pendingNodes.length > 0 || pendingCategories.length > 0) && (
+            {(pendingNodes.length > 0 || pendingCategories.length > 0 || deletedNodes.length > 0 || deletedCategories.length > 0) && (
               <button
                 onClick={handleSaveSvg}
                 style={{
@@ -617,6 +820,7 @@ export default function RoomManageEditPage() {
                   {svgNodes.map((node, index) => (
                     <div
                       key={`node-overlay-${node.id}-${index}`}
+                      onClick={() => handleNodeClick(node)}
                       style={{
                         position: "absolute",
                         left: `${node.x - node.width / 2}px`,
@@ -626,8 +830,28 @@ export default function RoomManageEditPage() {
                         border: "1px solid #007bff",
                         backgroundColor: "rgba(0, 123, 255, 0.08)",
                         borderRadius: 4,
+                        cursor: "pointer",
                       }}
-                      title={`ID: ${node.id}`}
+                      title={`노드: ${node.id.split('@')[2]}`}
+                    />
+                  ))}
+
+                  {/* 삭제된 노드들 (회색으로 표시) */}
+                  {deletedNodes.map((node, index) => (
+                    <div
+                      key={`deleted-node-${node.id}-${index}`}
+                      style={{
+                        position: "absolute",
+                        left: `${node.x - node.width / 2}px`,
+                        top: `${node.y - node.height / 2}px`,
+                        width: `${node.width}px`,
+                        height: `${node.height}px`,
+                        border: "1px solid #6c757d",
+                        backgroundColor: "rgba(108, 117, 125, 0.1)",
+                        borderRadius: 4,
+                        opacity: 0.5,
+                      }}
+                      title={`삭제된 노드: ${node.id.split('@')[2]}`}
                     />
                   ))}
                   
@@ -647,6 +871,45 @@ export default function RoomManageEditPage() {
                         animation: "pulse 1.5s infinite",
                       }}
                       title={`새 노드: ${node.id}`}
+                    />
+                  ))}
+
+                  {/* SVG에서 파싱된 카테고리들 */}
+                  {svgCategories.map((category, index) => (
+                    <div
+                      key={`svg-category-${category.id}-${index}`}
+                      onClick={() => handleCategoryClick(category)}
+                      style={{
+                        position: "absolute",
+                        left: `${category.x - category.width / 2}px`,
+                        top: `${category.y - category.height / 2}px`,
+                        width: `${category.width}px`,
+                        height: `${category.height}px`,
+                        border: "2px solid #ff6b6b",
+                        backgroundColor: "rgba(255, 107, 107, 0.2)",
+                        borderRadius: "50%",
+                        cursor: "pointer",
+                      }}
+                      title={`카테고리: ${category.categoryType}`}
+                    />
+                  ))}
+
+                  {/* 삭제된 카테고리들 (회색으로 표시) */}
+                  {deletedCategories.map((category, index) => (
+                    <div
+                      key={`deleted-category-${category.id}-${index}`}
+                      style={{
+                        position: "absolute",
+                        left: `${category.x - category.width / 2}px`,
+                        top: `${category.y - category.height / 2}px`,
+                        width: `${category.width}px`,
+                        height: `${category.height}px`,
+                        border: "2px solid #6c757d",
+                        backgroundColor: "rgba(108, 117, 125, 0.1)",
+                        borderRadius: "50%",
+                        opacity: 0.5,
+                      }}
+                      title={`삭제된 카테고리: ${category.categoryType}`}
                     />
                   ))}
 
@@ -789,6 +1052,71 @@ export default function RoomManageEditPage() {
                 className={styles["save-btn"]}
               >
                 저장
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 정보 모달 */}
+      {showInfoModal && selectedInfo && (
+        <div className={styles["modal-overlay"]} onClick={() => setShowInfoModal(false)}>
+          <div className={styles["node-modal-content"]} onClick={(e) => e.stopPropagation()}>
+            {/* 제목 */}
+            <div className={styles["node-modal-title"]}>
+              <h3>{selectedInfo.type === 'node' ? '노드 정보' : '카테고리 정보'}</h3>
+              <div className={styles["title-underline"]}></div>
+            </div>
+
+            {/* 정보 표시 */}
+            <div className={styles["input-fields"]}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#333' }}>
+                  {selectedInfo.type === 'node' ? '노드명' : '카테고리명'}
+                </label>
+                <div style={{ 
+                  padding: '12px 16px', 
+                  backgroundColor: '#f8f9fa', 
+                  border: '1px solid #ddd', 
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  color: '#333'
+                }}>
+                  {selectedInfo.name}
+                </div>
+              </div>
+            </div>
+
+            {/* 액션 버튼들 */}
+            <div className={styles["modal-actions"]}>
+              <button
+                onClick={() => {
+                  if (selectedInfo.type === 'node') {
+                    handleDeleteNode(selectedInfo)
+                  } else {
+                    handleDeleteCategory(selectedInfo)
+                  }
+                  setShowInfoModal(false)
+                }}
+                style={{
+                  padding: "10px 20px",
+                  borderRadius: "6px",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  border: "none",
+                  backgroundColor: "#dc3545",
+                  color: "white",
+                  marginRight: "8px"
+                }}
+              >
+                삭제
+              </button>
+              <button
+                onClick={() => setShowInfoModal(false)}
+                className={styles["cancel-btn"]}
+              >
+                닫기
               </button>
             </div>
           </div>

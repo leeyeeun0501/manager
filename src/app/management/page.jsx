@@ -7,8 +7,12 @@ import NaverMapSimple from "./navermap"
 import LoadingOverlay from "../components/loadingoverlay"
 import "../globals.css"
 import { apiGet, parseJsonResponse } from "../utils/apiHelper"
+import { useSessionCheck } from "../utils/useSessionCheck"
 
 export default function ManagementPage() {
+  // 세션 체크 활성화
+  useSessionCheck()
+  
   const [menuOpen, setMenuOpen] = useState(false)
   const [summary, setSummary] = useState({
     building: 0,

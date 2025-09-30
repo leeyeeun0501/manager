@@ -26,8 +26,8 @@ export default function RootLayout({ children }) {
     // 전역 세션 체크 초기화 (모든 페이지에서 작동)
     initGlobalSessionCheck()
     
-    // 정기적인 세션 체크 시작 (10초마다 - 더 자주 체크)
-    const sessionCheckInterval = startSessionCheck(10000)
+    // 정기적인 세션 체크 시작 (5초마다 - 더 자주 체크)
+    const sessionCheckInterval = startSessionCheck(5000)
 
     const id = localStorage.getItem("id")
     if (!id) return

@@ -34,7 +34,7 @@ const interceptFetch = () => {
           // 세션 만료 처리 후 상태 리셋 (다음 요청을 위해)
           setTimeout(() => {
             isHandlingExpired = false
-          }, 1000)
+          }, 2000)
         }
       }
       
@@ -68,7 +68,7 @@ const interceptXHR = () => {
           // 세션 만료 처리 후 상태 리셋 (다음 요청을 위해)
           setTimeout(() => {
             isHandlingExpired = false
-          }, 1000)
+          }, 2000)
         }
       }
     })
@@ -93,7 +93,7 @@ export const initGlobalSessionCheck = () => {
 }
 
 // 정기적인 세션 체크 (선택사항)
-export const startSessionCheck = (intervalMs = 10000) => {
+export const startSessionCheck = (intervalMs = 5000) => {
   if (typeof window === 'undefined') return
 
   const checkSession = async () => {
@@ -116,7 +116,7 @@ export const startSessionCheck = (intervalMs = 10000) => {
           // 세션 만료 처리 후 상태 리셋 (다음 요청을 위해)
           setTimeout(() => {
             isHandlingExpired = false
-          }, 1000)
+          }, 2000)
         }
       }
     } catch (error) {

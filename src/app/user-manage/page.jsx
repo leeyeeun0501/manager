@@ -7,8 +7,12 @@ import { FaTrashAlt } from "react-icons/fa"
 import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./user-manage.module.css"
 import { apiGet, apiDelete, parseJsonResponse } from "../utils/apiHelper"
+import { useSessionCheck } from "../utils/useSessionCheck"
 
 export default function UserManagePage() {
+  // 세션 체크 활성화
+  useSessionCheck()
+  
   const [menuOpen, setMenuOpen] = useState(false)
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)

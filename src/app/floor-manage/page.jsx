@@ -7,8 +7,12 @@ import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./floor-manage.module.css"
 import { FaTrashAlt, FaPaperclip } from "react-icons/fa"
 import { apiGet, apiPost, apiPut, apiDelete, parseJsonResponse } from "../utils/apiHelper"
+import { useSessionCheck } from "../utils/useSessionCheck"
 
 export default function BuildingPage() {
+  // 세션 체크 활성화
+  useSessionCheck()
+  
   const [menuOpen, setMenuOpen] = useState(false)
   const [buildingInfos, setBuildingInfos] = useState([])
   const [selectedBuilding, setSelectedBuilding] = useState("")

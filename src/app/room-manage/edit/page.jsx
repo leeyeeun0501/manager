@@ -4,9 +4,13 @@ import React, { useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import styles from "../room-manage.module.css"
 import { apiGet, parseJsonResponse } from "../../utils/apiHelper"
+import { useSessionCheck } from "../../utils/useSessionCheck"
 import Menu from "../../components/menu"
 
 export default function RoomManageEditPage() {
+  // 세션 체크 활성화
+  useSessionCheck()
+  
   const router = useRouter()
   const searchParams = useSearchParams()
   const building = searchParams.get("building") || ""

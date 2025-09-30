@@ -14,6 +14,11 @@ const getToken = () => {
 // 세션 만료 상태 관리
 let isSessionExpired = false
 
+// 세션 만료 상태 리셋 함수
+export const resetSessionExpiredState = () => {
+  isSessionExpired = false
+}
+
 // 토큰 만료 처리 함수
 export const handleTokenExpired = () => {
   if (typeof window !== 'undefined' && !isSessionExpired) {

@@ -3,9 +3,8 @@
 import React, { useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import styles from "../room-manage.module.css"
-import { apiGet, parseJsonResponse, handleTokenExpired } from "../../utils/apiHelper"
+import { apiGet, parseJsonResponse } from "../../utils/apiHelper"
 import Menu from "../../components/menu"
-import { useSessionCheck } from "../../utils/useSessionCheck"
 
 export default function RoomManageEditPage() {
   const router = useRouter()
@@ -38,32 +37,7 @@ export default function RoomManageEditPage() {
   const [deletedNodes, setDeletedNodes] = useState([]) // 삭제된 노드들
   const [deletedCategories, setDeletedCategories] = useState([]) // 삭제된 카테고리들
 
-  // 세션 체크 (30초마다)
-  useSessionCheck(30000)
-
-  // 세션 만료 시 라우터로 리다이렉트
-  useEffect(() => {
-    const originalHandleTokenExpired = window.handleTokenExpired
-    window.handleTokenExpired = () => {
-      if (typeof window !== 'undefined' && !window.isSessionExpired) {
-        window.isSessionExpired = true
-        
-        localStorage.removeItem('token')
-        localStorage.removeItem('userId')
-        localStorage.removeItem('userName')
-        localStorage.removeItem('islogin')
-        
-        alert('세션이 만료되었습니다. 다시 로그인해주세요.')
-        
-        // Next.js 라우터 사용
-        router.push('/login')
-      }
-    }
-
-    return () => {
-      window.handleTokenExpired = originalHandleTokenExpired
-    }
-  }, [router])
+  // 전역 세션 체크가 layout.js에서 처리되므로 개별 세션 체크는 불필요
 
   const CANVAS_WIDTH = 1000
   const CANVAS_HEIGHT = 700

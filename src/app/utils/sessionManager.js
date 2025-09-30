@@ -8,6 +8,11 @@ let originalFetch = null
 let isIntercepting = false
 let isHandlingExpired = false
 
+// 세션 만료 처리 상태 리셋 함수
+export const resetSessionHandling = () => {
+  isHandlingExpired = false
+}
+
 // fetch를 가로채서 401 응답을 처리하는 함수
 const interceptFetch = () => {
   if (typeof window === 'undefined' || originalFetch || isIntercepting) return
@@ -26,6 +31,10 @@ const interceptFetch = () => {
           response._handled = true
           isHandlingExpired = true
           handleTokenExpired()
+          // 세션 만료 처리 후 상태 리셋 (다음 요청을 위해)
+          setTimeout(() => {
+            isHandlingExpired = false
+          }, 1000)
         }
       }
       
@@ -56,6 +65,10 @@ const interceptXHR = () => {
           this._handled = true
           isHandlingExpired = true
           handleTokenExpired()
+          // 세션 만료 처리 후 상태 리셋 (다음 요청을 위해)
+          setTimeout(() => {
+            isHandlingExpired = false
+          }, 1000)
         }
       }
     })
@@ -67,15 +80,20 @@ const interceptXHR = () => {
 export const initGlobalSessionCheck = () => {
   if (typeof window === 'undefined') return
 
+  // 이미 초기화되었으면 중복 초기화 방지
+  if (isIntercepting) return
+
   // fetch 인터셉터 설정
   interceptFetch()
   
   // XMLHttpRequest 인터셉터 설정
   interceptXHR()
+  
+  console.log('전역 세션 체크가 초기화되었습니다.')
 }
 
 // 정기적인 세션 체크 (선택사항)
-export const startSessionCheck = (intervalMs = 30000) => {
+export const startSessionCheck = (intervalMs = 10000) => {
   if (typeof window === 'undefined') return
 
   const checkSession = async () => {
@@ -92,7 +110,14 @@ export const startSessionCheck = (intervalMs = 30000) => {
       })
 
       if (response.status === 401 || response.status === 419) {
-        handleTokenExpired()
+        if (!isHandlingExpired) {
+          isHandlingExpired = true
+          handleTokenExpired()
+          // 세션 만료 처리 후 상태 리셋 (다음 요청을 위해)
+          setTimeout(() => {
+            isHandlingExpired = false
+          }, 1000)
+        }
       }
     } catch (error) {
       // 네트워크 오류는 무시

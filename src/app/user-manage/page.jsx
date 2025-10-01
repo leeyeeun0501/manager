@@ -156,7 +156,7 @@ export default function UserManagePage() {
         ) : (
           <>
             {/* 검색 입력 */}
-            <div style={{ marginBottom: "20px", display: "flex", justifyContent: "flex-end" }}>
+            <div style={{ marginBottom: "20px", display: "flex", justifyContent: "flex-end", paddingRight: "200px" }}>
               <input
                 type="text"
                 placeholder="검색"

@@ -13,6 +13,42 @@ export default function BuildingPage() {
   // 세션 체크 활성화
   useSessionCheck()
   
+  // 스크롤바 제거 (즉시 실행)
+  useEffect(() => {
+    // 즉시 스크롤바 제거
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflowX = 'hidden'
+    document.body.style.overflowX = 'hidden'
+    document.documentElement.style.overflowY = 'hidden'
+    document.body.style.overflowY = 'hidden'
+    
+    // 추가적인 스크롤바 제거를 위한 스타일 적용
+    const style = document.createElement('style')
+    style.textContent = `
+      html, body {
+        overflow: hidden !important;
+        overflow-x: hidden !important;
+        overflow-y: hidden !important;
+        width: 100vw !important;
+        height: 100vh !important;
+      }
+    `
+    document.head.appendChild(style)
+    
+    return () => {
+      document.documentElement.style.overflow = ''
+      document.body.style.overflow = ''
+      document.documentElement.style.overflowX = ''
+      document.body.style.overflowX = ''
+      document.documentElement.style.overflowY = ''
+      document.body.style.overflowY = ''
+      if (style.parentNode) {
+        style.parentNode.removeChild(style)
+      }
+    }
+  }, [])
+  
   const [menuOpen, setMenuOpen] = useState(false)
   const [buildingInfos, setBuildingInfos] = useState([])
   const [selectedBuilding, setSelectedBuilding] = useState("")

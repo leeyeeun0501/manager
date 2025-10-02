@@ -1,8 +1,17 @@
 /* floor-manage.css */
 
+/* 스크롤바 완전 제거 */
+
 .building-root {
   min-height: 100vh;
   background: #f4f7fc;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 .building-header {
@@ -97,7 +106,8 @@
   margin-bottom: 24px;
   margin-top: 10px;
   width: 100%;
-  overflow-x: auto;
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 
 .custom-table {

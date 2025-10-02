@@ -27,7 +27,14 @@ export async function GET(request) {
   const res = await fetch(
     `${API_BASE}/floor/${encodeURIComponent(floor)}/${encodeURIComponent(
       building
-    )}`
+    )}`,
+    {
+      method: "GET",
+      headers: { 
+        "Content-Type": "application/json", 
+        "Authorization": `Bearer ${token}` 
+      },
+    }
   )
 
   if (!res.ok) {

@@ -1,14 +1,30 @@
 // room-route/[building]
 import { NextResponse } from "next/server"
 import { API_BASE } from "../../apibase"
+import { verifyToken } from "../../../utils/authHelper"
 
 // 강의실 조회(건물) (GET)
 export async function GET(request, { params }) {
   const { building } = await params
 
   try {
+    // 토큰 검증
+    const token = verifyToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: "인증이 필요합니다." },
+        { status: 401 }
+      )
+    }
+
     const url = `${API_BASE}/room/${encodeURIComponent(building)}`
-    const res = await fetch(url)
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { 
+        "Content-Type": "application/json", 
+        "Authorization": `Bearer ${token}` 
+      },
+    })
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}))
       return NextResponse.json(

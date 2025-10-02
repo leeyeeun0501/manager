@@ -13,16 +13,19 @@ const getToken = () => {
 
 // 세션 만료 상태 관리
 let isSessionExpired = false
+let isShowingAlert = false
 
 // 세션 만료 상태 리셋 함수
 export const resetSessionExpiredState = () => {
   isSessionExpired = false
+  isShowingAlert = false
 }
 
 // 토큰 만료 처리 함수
 export const handleTokenExpired = () => {
-  if (typeof window !== 'undefined' && !isSessionExpired) {
+  if (typeof window !== 'undefined' && !isSessionExpired && !isShowingAlert) {
     isSessionExpired = true
+    isShowingAlert = true
     
     localStorage.removeItem('token')
     localStorage.removeItem('userId')
@@ -67,8 +70,9 @@ const fetchWithAuth = async (url, options = {}) => {
   
   // 토큰이 만료되었거나 인증에 실패한 경우
   if (response.status === 401 || response.status === 419) {
-    handleTokenExpired()
-    throw new Error('세션이 만료되었습니다. 다시 로그인해주세요.')
+    // 전역 인터셉터가 이미 handleTokenExpired()를 호출했으므로
+    // 여기서는 에러를 던지지 않고 응답만 반환
+    return response
   }
   
   return response

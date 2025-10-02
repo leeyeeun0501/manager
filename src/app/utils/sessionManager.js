@@ -7,6 +7,7 @@ import { handleTokenExpired } from './apiHelper'
 let originalFetch = null
 let isIntercepting = false
 let isHandlingExpired = false
+let sessionCheckInterval = null
 
 // 세션 만료 처리 상태 리셋 함수
 export const resetSessionHandling = () => {
@@ -31,10 +32,10 @@ const interceptFetch = () => {
           response._handled = true
           isHandlingExpired = true
           handleTokenExpired()
-          // 세션 만료 처리 후 상태 리셋 (다음 요청을 위해)
+          // 세션 만료 처리 후 상태 리셋 (더 빠르게)
           setTimeout(() => {
             isHandlingExpired = false
-          }, 2000)
+          }, 1000)
         }
       }
       
@@ -65,10 +66,10 @@ const interceptXHR = () => {
           this._handled = true
           isHandlingExpired = true
           handleTokenExpired()
-          // 세션 만료 처리 후 상태 리셋 (다음 요청을 위해)
+          // 세션 만료 처리 후 상태 리셋 (더 빠르게)
           setTimeout(() => {
             isHandlingExpired = false
-          }, 2000)
+          }, 1000)
         }
       }
     })
@@ -96,6 +97,11 @@ export const initGlobalSessionCheck = () => {
 export const startSessionCheck = (intervalMs = 5000) => {
   if (typeof window === 'undefined') return
 
+  // 이미 실행 중이면 중복 실행 방지
+  if (sessionCheckInterval) {
+    return sessionCheckInterval
+  }
+
   const checkSession = async () => {
     const token = localStorage.getItem('token')
     if (!token) return
@@ -113,10 +119,15 @@ export const startSessionCheck = (intervalMs = 5000) => {
         if (!isHandlingExpired) {
           isHandlingExpired = true
           handleTokenExpired()
-          // 세션 만료 처리 후 상태 리셋 (다음 요청을 위해)
+          // 세션 체크 중지
+          if (sessionCheckInterval) {
+            clearInterval(sessionCheckInterval)
+            sessionCheckInterval = null
+          }
+          // 상태 리셋 (더 빠르게)
           setTimeout(() => {
             isHandlingExpired = false
-          }, 2000)
+          }, 1000)
         }
       }
     } catch (error) {
@@ -129,7 +140,8 @@ export const startSessionCheck = (intervalMs = 5000) => {
   checkSession()
   
   // 정기적으로 체크
-  return setInterval(checkSession, intervalMs)
+  sessionCheckInterval = setInterval(checkSession, intervalMs)
+  return sessionCheckInterval
 }
 
 // 세션 체크 중지

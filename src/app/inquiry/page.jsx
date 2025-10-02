@@ -8,8 +8,12 @@ import { FaRegCommentDots } from "react-icons/fa"
 import "../globals.css"
 import styles from "./inquiry-manage.module.css"
 import { apiGet, apiPut, parseJsonResponse } from "../utils/apiHelper"
+import { useSessionCheck } from "../utils/useSessionCheck"
 
 export default function InquiryPage() {
+  // 세션 체크 활성화
+  useSessionCheck()
+  
   const [menuOpen, setMenuOpen] = useState(false)
   const [inquiries, setInquiries] = useState([])
   const [category, setCategory] = useState("all")

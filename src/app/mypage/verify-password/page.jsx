@@ -3,7 +3,6 @@
 import "../mypage.module.css"
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
-import { apiPost, parseJsonResponse } from "../../utils/apiHelper"
 import styles from "../mypage.module.css"
 
 export default function VerifyPasswordPage() {
@@ -12,13 +11,14 @@ export default function VerifyPasswordPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  const handleVerifyPassword = async (e) => {
+  const handleVerifyPassword = (e) => {
     e.preventDefault()
     setError("")
     setLoading(true)
 
     try {
       const userId = localStorage.getItem("userId")
+      const storedPasswordHash = localStorage.getItem("userPasswordHash")
 
       if (!userId) {
         setError("로그인이 필요합니다.")
@@ -26,15 +26,16 @@ export default function VerifyPasswordPage() {
         return
       }
 
-      // login-route를 호출해서 비밀번호 확인
-      const res = await apiPost("/api/login-route", {
-        id: userId,
-        pw: currentPassword,
-      })
+      if (!storedPasswordHash) {
+        setError("비밀번호 정보를 찾을 수 없습니다. 다시 로그인해주세요.")
+        setLoading(false)
+        return
+      }
 
-      const data = await parseJsonResponse(res)
-
-      if (data.success && data.islogin) {
+      // 입력된 비밀번호를 해시화하여 저장된 해시와 비교
+      const inputPasswordHash = btoa(currentPassword)
+      
+      if (inputPasswordHash === storedPasswordHash) {
         // 비밀번호 확인 성공 시 sessionStorage에 플래그 설정
         sessionStorage.setItem("passwordVerified", "true")
         // 마이페이지로 이동
@@ -43,12 +44,7 @@ export default function VerifyPasswordPage() {
         setError("비밀번호가 일치하지 않습니다.")
       }
     } catch (err) {
-      // 401 오류인 경우 비밀번호 불일치로 처리
-      if (err.message.includes("인증이 필요합니다") || err.message.includes("로그인 실패")) {
-        setError("비밀번호가 일치하지 않습니다.")
-      } else {
-        setError(err.message || "서버 오류가 발생했습니다.")
-      }
+      setError("비밀번호 확인 중 오류가 발생했습니다.")
     } finally {
       setLoading(false)
     }

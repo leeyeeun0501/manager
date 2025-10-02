@@ -8,8 +8,12 @@ import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./room-manage.module.css"
 import { MdEditSquare } from "react-icons/md"
 import { apiGet, apiPost, apiPut, apiDelete, parseJsonResponse } from "../utils/apiHelper"
+import { useSessionCheck } from "../utils/useSessionCheck"
 
 export default function RoomManagePage() {
+  // 세션 체크 활성화
+  useSessionCheck()
+  
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [rooms, setRooms] = useState([])

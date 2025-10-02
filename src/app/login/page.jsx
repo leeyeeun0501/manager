@@ -36,6 +36,10 @@ export default function LoginPage() {
         localStorage.setItem("userName", data.user.name)
         localStorage.setItem("islogin", "true")
         
+        // 비밀번호를 해시화하여 저장 (비밀번호 확인용)
+        const hashedPassword = btoa(pw) // 간단한 base64 인코딩 (실제로는 더 안전한 해싱 사용 권장)
+        localStorage.setItem("userPasswordHash", hashedPassword)
+        
         console.log("로그인 성공 - 저장된 토큰:", localStorage.getItem("token"))
         console.log("저장된 사용자 ID:", localStorage.getItem("userId"))
         

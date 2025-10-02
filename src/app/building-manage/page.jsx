@@ -6,9 +6,13 @@ import NaverMap from "./navermap"
 import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay"
 import { apiGet, parseJsonResponse } from "../utils/apiHelper"
+import { useSessionCheck } from "../utils/useSessionCheck"
 import "./building-manage.css"
 
 export default function TowerPage() {
+  // 세션 체크 활성화
+  useSessionCheck()
+  
   const [latLng, setLatLng] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [nodes, setNodes] = useState({})

@@ -25,8 +25,14 @@ const interceptFetch = () => {
     try {
       const response = await originalFetch(...args)
       
-      // 401 또는 419 응답 처리
+      // 401 또는 419 응답 처리 (로그인 API는 제외)
       if (response.status === 401 || response.status === 419) {
+        // 로그인 API는 세션 만료 처리에서 제외
+        const url = args[0]
+        if (typeof url === 'string' && url.includes('/api/login-route')) {
+          return response
+        }
+        
         // 중복 처리 방지
         if (!response._handled && !isHandlingExpired) {
           response._handled = true
@@ -63,6 +69,11 @@ const interceptXHR = () => {
     this.addEventListener('readystatechange', function() {
       if (this.readyState === 4) {
         if ((this.status === 401 || this.status === 419) && !this._handled && !isHandlingExpired) {
+          // 로그인 API는 세션 만료 처리에서 제외
+          if (this._url && this._url.includes('/api/login-route')) {
+            return
+          }
+          
           this._handled = true
           isHandlingExpired = true
           handleTokenExpired()

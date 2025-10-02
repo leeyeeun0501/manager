@@ -4,11 +4,23 @@ import { API_BASE } from "../apibase"
 import { verifyToken } from "../../utils/authHelper"
 
 // 외부 전체 노드 데이터 조회 (GET)
-export async function GET() {
+export async function GET(request) {
   try {
+    // 토큰 검증
+    const token = verifyToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: "인증이 필요합니다." },
+        { status: 401 }
+      )
+    }
+
     const edgesRes = await fetch(`${API_BASE}/path/edges`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json", 
+        "Authorization": `Bearer ${token}` 
+      },
     })
     if (!edgesRes.ok) {
       return NextResponse.json(

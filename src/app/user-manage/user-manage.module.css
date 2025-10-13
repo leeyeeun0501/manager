@@ -59,13 +59,13 @@
   box-sizing: border-box;
 }
 
-.userTable th:nth-child(1), .userTable td:nth-child(1) { width: 12%; } /* 아이디 */
-.userTable th:nth-child(2), .userTable td:nth-child(2) { width: 10%; } /* 이름 */
-.userTable th:nth-child(3), .userTable td:nth-child(3) { width: 12%; } /* 학번 */
-.userTable th:nth-child(4), .userTable td:nth-child(4) { width: 16%; } /* 전화번호 */
-.userTable th:nth-child(5), .userTable td:nth-child(5) { width: 28%; } /* 이메일 */
-.userTable th:nth-child(6), .userTable td:nth-child(6) { width: 16%; } /* 생성일 */
-.userTable th:nth-child(7), .userTable td:nth-child(7) { width: 6%; }  /* 삭제 */
+.userTable th:nth-child(1), .userTable td:nth-child(1) { width: 12%; }
+.userTable th:nth-child(2), .userTable td:nth-child(2) { width: 10%; }
+.userTable th:nth-child(3), .userTable td:nth-child(3) { width: 12%; }
+.userTable th:nth-child(4), .userTable td:nth-child(4) { width: 16%; }
+.userTable th:nth-child(5), .userTable td:nth-child(5) { width: 28%; }
+.userTable th:nth-child(6), .userTable td:nth-child(6) { width: 16%; }
+.userTable th:nth-child(7), .userTable td:nth-child(7) { width: 6%; }
 
 .userTable th {
   background: #eaf2fd;
@@ -175,15 +175,14 @@
   outline: none;
 }
 
-/* 반응형 미디어 쿼리 */
 @media (max-width: 1400px) {
-  .userTable th:nth-child(1), .userTable td:nth-child(1) { width: 11%; } /* 아이디 */
-  .userTable th:nth-child(2), .userTable td:nth-child(2) { width: 9%; } /* 이름 */
-  .userTable th:nth-child(3), .userTable td:nth-child(3) { width: 11%; } /* 학번 */
-  .userTable th:nth-child(4), .userTable td:nth-child(4) { width: 15%; } /* 전화번호 */
-  .userTable th:nth-child(5), .userTable td:nth-child(5) { width: 30%; } /* 이메일 */
-  .userTable th:nth-child(6), .userTable td:nth-child(6) { width: 18%; } /* 생성일 */
-  .userTable th:nth-child(7), .userTable td:nth-child(7) { width: 6%; }  /* 삭제 */
+  .userTable th:nth-child(1), .userTable td:nth-child(1) { width: 11%; }
+  .userTable th:nth-child(2), .userTable td:nth-child(2) { width: 9%; }
+  .userTable th:nth-child(3), .userTable td:nth-child(3) { width: 11%; }
+  .userTable th:nth-child(4), .userTable td:nth-child(4) { width: 15%; }
+  .userTable th:nth-child(5), .userTable td:nth-child(5) { width: 30%; }
+  .userTable th:nth-child(6), .userTable td:nth-child(6) { width: 18%; }
+  .userTable th:nth-child(7), .userTable td:nth-child(7) { width: 6%; }
   
 }
 
@@ -206,13 +205,13 @@
     font-size: 0.85rem;
   }
   
-  .userTable th:nth-child(1), .userTable td:nth-child(1) { width: 10%; } /* 아이디 */
-  .userTable th:nth-child(2), .userTable td:nth-child(2) { width: 8%; } /* 이름 */
-  .userTable th:nth-child(3), .userTable td:nth-child(3) { width: 10%; } /* 학번 */
-  .userTable th:nth-child(4), .userTable td:nth-child(4) { width: 14%; } /* 전화번호 */
-  .userTable th:nth-child(5), .userTable td:nth-child(5) { width: 32%; } /* 이메일 */
-  .userTable th:nth-child(6), .userTable td:nth-child(6) { width: 20%; } /* 생성일 */
-  .userTable th:nth-child(7), .userTable td:nth-child(7) { width: 6%; }  /* 삭제 */
+  .userTable th:nth-child(1), .userTable td:nth-child(1) { width: 10%; }
+  .userTable th:nth-child(2), .userTable td:nth-child(2) { width: 8%; }
+  .userTable th:nth-child(3), .userTable td:nth-child(3) { width: 10%; }
+  .userTable th:nth-child(4), .userTable td:nth-child(4) { width: 14%; }
+  .userTable th:nth-child(5), .userTable td:nth-child(5) { width: 32%; }
+  .userTable th:nth-child(6), .userTable td:nth-child(6) { width: 20%; }
+  .userTable th:nth-child(7), .userTable td:nth-child(7) { width: 6%; }
   
   .search-input {
     width: 250px;
@@ -239,13 +238,13 @@
     font-size: 0.8rem;
   }
   
-  .userTable th:nth-child(1), .userTable td:nth-child(1) { width: 10%; } /* 아이디 */
-  .userTable th:nth-child(2), .userTable td:nth-child(2) { width: 8%; } /* 이름 */
-  .userTable th:nth-child(3), .userTable td:nth-child(3) { width: 10%; } /* 학번 */
-  .userTable th:nth-child(4), .userTable td:nth-child(4) { width: 14%; } /* 전화번호 */
-  .userTable th:nth-child(5), .userTable td:nth-child(5) { width: 32%; } /* 이메일 */
-  .userTable th:nth-child(6), .userTable td:nth-child(6) { width: 20%; } /* 생성일 */
-  .userTable th:nth-child(7), .userTable td:nth-child(7) { width: 6%; }  /* 삭제 */
+  .userTable th:nth-child(1), .userTable td:nth-child(1) { width: 10%; }
+  .userTable th:nth-child(2), .userTable td:nth-child(2) { width: 8%; }
+  .userTable th:nth-child(3), .userTable td:nth-child(3) { width: 10%; }
+  .userTable th:nth-child(4), .userTable td:nth-child(4) { width: 14%; }
+  .userTable th:nth-child(5), .userTable td:nth-child(5) { width: 32%; }
+  .userTable th:nth-child(6), .userTable td:nth-child(6) { width: 20%; }
+  .userTable th:nth-child(7), .userTable td:nth-child(7) { width: 6%; }
   
   .search-input {
     width: 200px;

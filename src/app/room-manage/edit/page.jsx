@@ -536,9 +536,11 @@ export default function RoomManageEditPage() {
           height = parseFloat(element.getAttribute("height") || 0)
           break
         case "circle":
-          x = parseFloat(element.getAttribute("cx") || 0)
-          y = parseFloat(element.getAttribute("cy") || 0)
+          const cx = parseFloat(element.getAttribute("cx") || 0)
+          const cy = parseFloat(element.getAttribute("cy") || 0)
           width = height = parseFloat(element.getAttribute("r") || 0) * 2
+          x = cx - width / 2
+          y = cy - height / 2
           break
         case "ellipse":
           x = parseFloat(element.getAttribute("cx") || 0)

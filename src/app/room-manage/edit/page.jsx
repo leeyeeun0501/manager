@@ -308,8 +308,8 @@ export default function RoomManageEditPage() {
   const handleDeleteCategory = (category) => {
     const koreanName = categoryNameMap[category.categoryType] || category.categoryType
     if (window.confirm(`카테고리 "${koreanName}"를 삭제하시겠습니까?`)) {
-      setDeletedCategories(prev => [...prev, category])
-      setSvgCategories(prev => prev.filter(c => c.categoryType !== category.categoryType))
+      setDeletedCategories(prev => [...prev, { ...category, isDeleted: true }])
+      setSvgCategories(prev => prev.filter(c => c.id !== category.id))
     }
   }
 
@@ -523,9 +523,9 @@ export default function RoomManageEditPage() {
       const categorySuffix = element.getAttribute("id")
       if (!categorySuffix) return
       
-      // 숫자 접미사 제거 (예: fire_extinguisher-2 -> fire_extinguisher)
+      // 숫자 접미사를 포함한 전체 ID를 사용
       const baseCategoryName = categorySuffix.replace(/-\d+$/, '')
-      const fullCategoryId = `${buildingName}@${floorName}@${baseCategoryName}`
+      const fullCategoryId = `${buildingName}@${floorName}@${categorySuffix}`
 
       let x = 0, y = 0, width = 0, height = 0
       switch (element.tagName.toLowerCase()) {

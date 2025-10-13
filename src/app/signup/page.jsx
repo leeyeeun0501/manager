@@ -235,7 +235,6 @@ export default function SignupPage() {
             href="/login"
             onClick={goToLogin}
             className={styles["signup-link"]}
-            style={{ cursor: "pointer" }}
           >
             로그인
           </a>

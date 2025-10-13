@@ -3,7 +3,6 @@ import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 import { verifyToken } from "../../utils/authHelper"
 
-
 // 건물/노드 위치 전체 데이터 조회 (GET)
 export async function GET(request) {
   try {

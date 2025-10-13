@@ -239,7 +239,7 @@ export default function RoomManageEditPage() {
 
     // 각 카테고리를 SVG 요소로 추가 (카테고리는 투명하게 설정)
     categories.forEach((category) => {
-      const categoryId = category.id.split("@")[2] // building@floor@categoryId에서 categoryId만 추출
+      const categoryId = category.categoryType // 영어 카테고리명 사용
       
       const rect = doc.createElementNS("http://www.w3.org/2000/svg", "rect")
       rect.setAttribute("id", categoryId)
@@ -290,7 +290,8 @@ export default function RoomManageEditPage() {
       name: koreanName,
       x: category.x,
       y: category.y,
-      element: category.element
+      element: category.element,
+      categoryType: category.categoryType // 영어명도 저장
     })
     setShowInfoModal(true)
   }
@@ -308,7 +309,7 @@ export default function RoomManageEditPage() {
     const koreanName = categoryNameMap[category.categoryType] || category.categoryType
     if (window.confirm(`카테고리 "${koreanName}"를 삭제하시겠습니까?`)) {
       setDeletedCategories(prev => [...prev, category])
-      setSvgCategories(prev => prev.filter(c => c.id !== category.id))
+      setSvgCategories(prev => prev.filter(c => c.categoryType !== category.categoryType))
     }
   }
 
@@ -324,7 +325,7 @@ export default function RoomManageEditPage() {
       
       // 삭제된 요소들을 제외한 노드와 카테고리만 유지
       const remainingNodes = svgNodes.filter(node => !deletedNodes.some(deleted => deleted.id === node.id))
-      const remainingCategories = svgCategories.filter(category => !deletedCategories.some(deleted => deleted.id === category.id))
+      const remainingCategories = svgCategories.filter(category => !deletedCategories.some(deleted => deleted.categoryType === category.categoryType))
       
       // 현재 SVG에 남은 노드/카테고리와 새로 추가된 것들을 합쳐서 업데이트
       const allNodes = [...remainingNodes, ...pendingNodes]
@@ -521,7 +522,10 @@ export default function RoomManageEditPage() {
     allElements.forEach((element) => {
       const categorySuffix = element.getAttribute("id")
       if (!categorySuffix) return
-      const fullCategoryId = `${buildingName}@${floorName}@${categorySuffix}`
+      
+      // 숫자 접미사 제거 (예: fire_extinguisher-2 -> fire_extinguisher)
+      const baseCategoryName = categorySuffix.replace(/-\d+$/, '')
+      const fullCategoryId = `${buildingName}@${floorName}@${baseCategoryName}`
 
       let x = 0, y = 0, width = 0, height = 0
       switch (element.tagName.toLowerCase()) {
@@ -609,7 +613,7 @@ export default function RoomManageEditPage() {
         height: height,
         element: element.tagName.toLowerCase(),
         layer: "Categories",
-        categoryType: categorySuffix, // 카테고리 타입 저장
+        categoryType: baseCategoryName, // 기본 카테고리명 저장 (영어)
       })
     })
 
@@ -879,7 +883,7 @@ export default function RoomManageEditPage() {
                         borderRadius: category.element === "rect" ? "4px" : "50%",
                         cursor: "pointer",
                       }}
-                      title={`카테고리: ${category.categoryType}`}
+                       title={`카테고리: ${categoryNameMap[category.categoryType] || category.categoryType}`}
                     />
                   ))}
 
@@ -898,7 +902,7 @@ export default function RoomManageEditPage() {
                         borderRadius: category.element === "rect" ? "4px" : "50%",
                         opacity: 0.5,
                       }}
-                      title={`삭제된 카테고리: ${category.categoryType}`}
+                       title={`삭제된 카테고리: ${categoryNameMap[category.categoryType] || category.categoryType}`}
                     />
                   ))}
 
@@ -917,7 +921,7 @@ export default function RoomManageEditPage() {
                         borderRadius: category.element === "rect" ? "4px" : "50%",
                         animation: "pulse 1.5s infinite",
                       }}
-                      title={`새 카테고리: ${category.id}`}
+                       title={`새 카테고리: ${categoryNameMap[category.categoryType] || category.categoryType}`}
                     />
                   ))}
                 </div>

@@ -68,13 +68,6 @@ const fetchWithAuth = async (url, options = {}) => {
     headers,
   })
   
-  // 토큰이 만료되었거나 인증에 실패한 경우
-  if (response.status === 401 || response.status === 419) {
-    // 전역 인터셉터가 이미 handleTokenExpired()를 호출했으므로
-    // 여기서는 에러를 던지지 않고 응답만 반환
-    return response
-  }
-  
   return response
 }
 

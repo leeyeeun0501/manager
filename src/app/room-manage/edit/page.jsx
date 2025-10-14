@@ -370,6 +370,48 @@ export default function RoomManageEditPage() {
     }
   }
 
+  // 도면 데이터 로딩 함수
+  const fetchMapData = () => {
+    if (!building || !floor) return
+
+    setLoading(true)
+    setError("")
+
+    apiGet(`/api/map-route?building=${encodeURIComponent(building)}&floor=${encodeURIComponent(floor)}`)
+      .then(async (res) => parseJsonResponse(res))
+      .then((data) => {
+        const fileList = Array.isArray(data) ? data : [data]
+        const rawSvgUrl = fileList[0]?.File
+        const nodesInfo = fileList[0]?.nodes || {}
+        let edgesInfo = fileList[0]?.edges
+
+        if (!edgesInfo) {
+          edgesInfo = []
+          Object.entries(nodesInfo).forEach(([from, arr]) => {
+            arr.forEach((edgeObj) => {
+              const to = typeof edgeObj === "string" ? edgeObj : (edgeObj.node || edgeObj.to)
+              if (to) edgesInfo.push({ from, to })
+            })
+          })
+        }
+
+        if (rawSvgUrl) {
+          const svgUrl = rawSvgUrl + (rawSvgUrl.includes("?") ? "&" : "?") + "ts=" + Date.now()
+          fetch(svgUrl)
+            .then((res) => res.text())
+            .then((svgXml) => {
+              const processedSvg = processSvg(svgXml)
+              setSvgRaw(processedSvg)
+              setEdges(edgesInfo)
+              setSvgNodes(parseSvgNodes(svgXml, building, floor))
+              setSvgCategories(parseSvgCategories(svgXml, building, floor))
+            })
+        }
+      })
+      .catch(() => setError("맵 데이터를 불러오지 못했습니다."))
+      .finally(() => setLoading(false))
+  }
+
   function processSvg(svgXml) {
     const parser = new DOMParser()
     const doc = parser.parseFromString(svgXml, "image/svg+xml")
@@ -623,66 +665,7 @@ export default function RoomManageEditPage() {
   }
 
   useEffect(() => {
-    if (!building || !floor) return
-
-    setLoading(true)
-    setError("")
-
-    apiGet(`/api/map-route?building=${encodeURIComponent(building)}&floor=${encodeURIComponent(floor)}`)
-      .then(async (res) => parseJsonResponse(res))
-      .then((data) => {
-        const fileList = Array.isArray(data) ? data : [data]
-        const rawSvgUrl = fileList[0]?.File
-        const nodesInfo = fileList[0]?.nodes || {}
-        let edgesInfo = fileList[0]?.edges
-
-        if (!edgesInfo) {
-          edgesInfo = []
-          Object.entries(nodesInfo).forEach(([from, arr]) => {
-            arr.forEach((edgeObj) => {
-              const to = typeof edgeObj === "string" ? edgeObj : (edgeObj.node || edgeObj.to)
-              if (to) edgesInfo.push({ from, to })
-            })
-          })
-        }
-
-        if (rawSvgUrl) {
-          const svgUrl = rawSvgUrl + (rawSvgUrl.includes("?") ? "&" : "?") + "ts=" + Date.now()
-          setSvgRaw("")
-          setSvgNodes([])
-          setEdges([])
-
-          fetch(svgUrl)
-            .then((res) => res.text())
-            .then((svgXml) => {
-              const processedSvg = processSvg(svgXml)
-              setSvgRaw(processedSvg)
-              setEdges(edgesInfo)
-              const parsedNodes = parseSvgNodes(svgXml, building, floor)
-              setSvgNodes(parsedNodes)
-              const parsedCategories = parseSvgCategories(svgXml, building, floor)
-              setSvgCategories(parsedCategories)
-            })
-            .catch(() => {
-              setSvgRaw("")
-              setSvgNodes([])
-              setEdges([])
-              setError("도면을 불러오지 못했습니다.")
-            })
-        } else {
-          setSvgRaw("")
-          setSvgNodes([])
-          setEdges([])
-          setError("해당 건물/층의 맵 파일을 찾을 수 없습니다.")
-        }
-      })
-      .catch(() => {
-        setSvgRaw("")
-        setSvgNodes([])
-        setEdges([])
-        setError("맵 데이터를 불러오지 못했습니다.")
-      })
-      .finally(() => setLoading(false))
+    fetchMapData()
   }, [building, floor])
 
   return (

@@ -40,6 +40,9 @@ export default function RoomManageEditPage() {
   const [showInfoModal, setShowInfoModal] = useState(false) // 정보 모달 표시
   const [deletedNodes, setDeletedNodes] = useState([]) // 삭제된 노드들
   const [deletedCategories, setDeletedCategories] = useState([]) // 삭제된 카테고리들
+  // 팝업 메시지 상태
+  const [toastMessage, setToastMessage] = useState("")
+  const [toastVisible, setToastVisible] = useState(false)
 
   // 전역 세션 체크가 layout.js에서 처리되므로 개별 세션 체크는 불필요
 
@@ -65,6 +68,13 @@ export default function RoomManageEditPage() {
 
   // 미리 정의된 카테고리 목록 (한글 표시용)
   const categoryOptions = Object.values(categoryNameMap)
+
+  // 토스트 메시지 함수
+  const showToast = (msg, duration = 3000) => {
+    setToastMessage(msg)
+    setToastVisible(true)
+    setTimeout(() => setToastVisible(false), duration)
+  }
 
   // 기존 노드명과 중복되지 않는 다음 번호 찾기
   const findNextAvailableNodeNumber = () => {
@@ -178,8 +188,8 @@ export default function RoomManageEditPage() {
     
     // 노드 추가 모드로 전환
     setIsAddingMode(true)
-    setShowNodeModal(false)
-    alert("도면에서 노드를 추가할 위치를 클릭해주세요.")
+    setShowNodeModal(false)    
+    showToast("도면에서 노드를 추가할 위치를 클릭해주세요.")
   }
 
 
@@ -264,7 +274,7 @@ export default function RoomManageEditPage() {
     // 카테고리 추가 모드로 전환
     setIsAddingCategoryMode(true)
     setShowCategoryModal(false)
-    alert("도면에서 카테고리를 추가할 위치를 클릭해주세요.")
+    showToast("도면에서 카테고리를 추가할 위치를 클릭해주세요.")
   }
 
   // 노드/카테고리 클릭 핸들러
@@ -683,6 +693,26 @@ export default function RoomManageEditPage() {
         left: 0
       }}
     >
+      {/* 토스트 메시지 UI */}
+      {toastVisible && (
+        <div
+          style={{
+            position: "fixed",
+            top: 30,
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#333",
+            color: "#fff",
+            padding: "12px 24px",
+            borderRadius: 8,
+            zIndex: 3000,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            fontWeight: "bold",
+          }}
+        >
+          {toastMessage}
+        </div>
+      )}
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <span className={styles["room-header"]}>도면 편집 페이지</span>
       {building && floor && (

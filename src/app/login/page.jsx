@@ -4,7 +4,7 @@ import "../globals.css"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import styles from "./login.module.css"
-import LoadingOverlay from "../components/loadingoverlay"
+import LoadingOverlay from "../components/loadingoverlay" // 이 컴포넌트가 존재하지 않으면 제거해주세요.
 import { resetSessionExpired } from "../utils/apiHelper"
 
 export default function LoginPage() {

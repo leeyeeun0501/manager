@@ -12,37 +12,29 @@ const getToken = () => {
 }
 
 // 세션 만료 상태 관리
-let isSessionExpired = false
-let isShowingAlert = false
-
-// 세션 만료 상태 리셋 함수
-export const resetSessionExpiredState = () => {
-  isSessionExpired = false
-  isShowingAlert = false
-}
+let isHandlingTokenExpired = false
 
 // 토큰 만료 처리 함수
 export const handleTokenExpired = () => {
-  if (typeof window !== 'undefined' && !isSessionExpired && !isShowingAlert) {
-    isSessionExpired = true
-    isShowingAlert = true
+  // 중복 실행 방지
+  if (typeof window === 'undefined' || isHandlingTokenExpired) {
+    return
+  }
+  isHandlingTokenExpired = true
     
-    localStorage.removeItem('token')
-    localStorage.removeItem('userId')
-    localStorage.removeItem('userName')
-    localStorage.removeItem('islogin')
-    
+  // 로그아웃 함수 재사용
+  logout(false) // 페이지 이동은 여기서 직접 처리하므로 false 전달
+
     // 토큰 만료 알림 표시 (한 번만)
     alert('세션이 만료되었습니다. 다시 로그인해주세요.')
     
     // 로그인 페이지로 리다이렉트 (강제 새로고침)
     window.location.replace('/login')
   }
-}
 
 // 세션 만료 상태 리셋 함수 (로그인 시 호출)
 export const resetSessionExpired = () => {
-  isSessionExpired = false
+  isHandlingTokenExpired = false
 }
 
 // 기본 fetch 함수에 토큰을 포함한 헤더 추가
@@ -67,6 +59,12 @@ const fetchWithAuth = async (url, options = {}) => {
     ...options,
     headers,
   })
+
+  // 401 Unauthorized 에러를 여기서 공통으로 처리
+  if (response.status === 401) {
+    handleTokenExpired()
+    return Promise.reject(new Error("세션 만료")) // 이후 .then() 체인 실행 중단
+  }
   
   return response
 }
@@ -124,12 +122,14 @@ export const isAuthenticated = () => {
 }
 
 // 로그아웃 함수
-export const logout = () => {
+export const logout = (redirect = true) => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('token')
     localStorage.removeItem('userId')
     localStorage.removeItem('userName')
     localStorage.removeItem('islogin')
-    window.location.href = '/login'
+    if (redirect) {
+      window.location.href = '/login'
+    }
   }
 }

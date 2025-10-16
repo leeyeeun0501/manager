@@ -46,6 +46,9 @@ export async function POST(request) {
       )
     }
 
+    console.log("✅ 로그인 성공! 외부 인증 서버로부터 받은 데이터:", result.data);
+    console.log("🔑 수신된 토큰:", result.data.token);
+
     // 서버에서 받은 토큰과 사용자 정보를 그대로 전달
     return NextResponse.json({
       success: true,

@@ -103,7 +103,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   // 선택된 이미지 삭제 함수
   const handleDeleteSelectedImages = async () => {
     if (selectedImages.length === 0) {
-      alert("삭제할 이미지를 선택해주세요.")
+      showToast("삭제할 이미지를 선택해주세요.")
       return
     }
 
@@ -130,7 +130,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       const data = await res.json()
 
       if (!data.success) {
-        alert(data.error || "이미지 삭제 실패")
+        showToast(data.error || "이미지 삭제 실패")
         return
       }
 
@@ -140,10 +140,10 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       )
       setSelectedImages([])
       setBuildingImageIndex(0)
-      alert("선택한 이미지가 삭제되었습니다.")
+      showToast("선택한 이미지가 삭제되었습니다.")
     } catch (error) {
       console.error("이미지 삭제 오류:", error)
-      alert("서버 오류")
+      showToast("서버 오류")
     }
   }
 
@@ -633,8 +633,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   // 건물 설명 수정
   async function handleUpdateBuildingDesc(e) {
     e.preventDefault()
-    if (!deletePopup.node_name) {      
-      alert("건물 이름이 없습니다.")
+    if (!deletePopup.node_name) {
+      showToast("건물 이름이 없습니다.")
       return
     }
     setBuildingDescLoading(true)
@@ -669,7 +669,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       const data = await res.json()
 
       if (data && !data.error) {
-        alert("정보 수정 완료!")
+        showToast("정보 수정 완료!")
         // 최신 정보 다시 불러오기
         const res2 = await apiGet("/api/building-route")
         const json2 = await parseJsonResponse(res2)
@@ -703,11 +703,11 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         setNewBuildingImages([])
         setBuildingImageIndex(0)
       } else {
-        alert(data.error || "정보 수정 실패")
+        showToast(data.error || "정보 수정 실패")
       }
     } catch (error) {
       console.error("설명 수정 오류:", error)
-      alert("서버 오류")
+      showToast("서버 오류")
     }
     setBuildingDescLoading(false)
   }
@@ -749,8 +749,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   // 건물/노드 추가 저장
   async function handleAddNode(e) {
     e.preventDefault()
-    if (addPopup.x == null || addPopup.y == null) {      
-      alert("위치를 선택하세요.")
+    if (addPopup.x == null || addPopup.y == null) {
+      showToast("위치를 선택하세요.")
       return
     }
 
@@ -807,7 +807,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       console.log("❌ 건물 추가 응답 JSON 파싱 오류:", jsonError.message)
       const responseText = await res.text()
       console.log("❌ 건물 추가 응답 텍스트:", responseText)
-      alert(`서버 응답 오류: ${jsonError.message}`)
+      showToast(`서버 응답 오류: ${jsonError.message}`)
       return
     }
     
@@ -816,9 +816,9 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       await fetchNodes()
       await fetchEdges()
       setRecentlyAddedNode(finalNodeName)
-      alert("추가 성공!")
+      showToast("추가 성공!")
     } else {
-      alert(data.error || "추가 실패")
+      showToast(data.error || "추가 실패")
     }
   }
 
@@ -853,20 +853,20 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       })
       fetchNodes()
       fetchEdges()
-      alert("삭제 성공!")
+      showToast("삭제 성공!")
     } else {
-      alert(data.error || "삭제 실패")
+      showToast(data.error || "삭제 실패")
     }
   }
 
   // 외부 노드 엣지 연결 함수
   async function handleEdgeConnect(from, to) {
     if (!from?.node_name || !to?.node_name) {
-      alert("노드 정보가 올바르지 않습니다.")
+      showToast("노드 정보가 올바르지 않습니다.")
       return
     }
     if (from.node_name === to.node_name) {
-      alert("같은 노드는 연결할 수 없습니다.")
+      showToast("같은 노드는 연결할 수 없습니다.")
       return
     }
     const alreadyConnected = edges.some(
@@ -877,7 +877,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
           edge.nodes.some((n) => n.node === from.node_name))
     )
     if (alreadyConnected) {
-      alert("이미 연결된 노드입니다.")
+      showToast("이미 연결된 노드입니다.")
       return
     }
     const res = await apiPost("/api/node-route", {
@@ -886,17 +886,17 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     })
     const data = await res.json()
     if (data.success) {
-      alert("엣지 연결 성공!")
+      showToast("엣지 연결 성공!")
       fetchEdges()
     } else {
-      alert(data.error || "엣지 연결 실패")
+      showToast(data.error || "엣지 연결 실패")
     }
   }
 
   // 외부 노드 엣지 연결 해제 함수
   async function handleEdgeDisconnect(from_node, to_node) {
     if (!from_node || !to_node) {
-      alert("노드 정보가 올바르지 않습니다.")
+      showToast("노드 정보가 올바르지 않습니다.")
       return
     }
     if (!window.confirm("정말 연결을 해제하시겠습니까?")) return
@@ -907,10 +907,10 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     })
     const data = await res.json()
     if (data.success) {
-      alert("엣지 연결 해제 성공!")
+      showToast("엣지 연결 해제 성공!")
       fetchEdges()
     } else {
-      alert(data.error || "엣지 연결 해제 실패")
+      showToast(data.error || "엣지 연결 해제 실패")
     }
   }
 
@@ -1051,6 +1051,26 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         overflow: "hidden",
       }}
     >
+      {/* 토스트 메시지 UI */}
+      {toastVisible && (
+        <div
+          style={{
+            position: "fixed",
+            top: 30,
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#333",
+            color: "#fff",
+            padding: "12px 24px",
+            borderRadius: 8,
+            zIndex: 4000,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            fontWeight: "bold",
+          }}
+        >
+          {toastMessage}
+        </div>
+      )}
       <div
         className="naver-map"
         ref={mapRef}

@@ -363,18 +363,23 @@ export default function RoomManageEditPage() {
       const data = await response.json()
       
       if (response.ok) {
-        alert("SVG가 성공적으로 저장되었습니다.")
+        showToast("SVG가 성공적으로 저장되었습니다.")
+        // 저장 성공 후, 현재 상태를 새로운 기본 상태로 업데이트합니다.
+        // 이렇게 하면 페이지를 새로고침하지 않고도 편집을 계속할 수 있습니다.
+        setSvgRaw(updatedSvg)
+        setSvgNodes(allNodes)
+        setSvgCategories(allCategories)
         // 저장 성공 후 임시 데이터 초기화
         setPendingNodes([])
         setPendingCategories([])
         setDeletedNodes([])
         setDeletedCategories([])
       } else {
-        alert("SVG 저장에 실패했습니다: " + (data.error || "알 수 없는 오류"))
+        showToast("SVG 저장에 실패했습니다: " + (data.error || "알 수 없는 오류"))
       }
     } catch (error) {
       console.error("SVG 저장 오류:", error)
-      alert("SVG 저장 중 오류가 발생했습니다: " + error.message)
+      showToast("SVG 저장 중 오류가 발생했습니다: " + error.message)
     } finally {
       setLoading(false)
     }

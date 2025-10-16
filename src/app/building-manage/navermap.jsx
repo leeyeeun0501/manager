@@ -36,6 +36,10 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     active: false,
     fromNode: null,
   })
+  // 토스트 메시지 상태
+  const [toastMessage, setToastMessage] = useState("")
+  const [toastVisible, setToastVisible] = useState(false)
+
   const [recentlyAddedNode, setRecentlyAddedNode] = useState(null)
 
   const tempMarkerRef = useRef(null)
@@ -53,6 +57,13 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     imageIndex: 0,
     totalImages: 0
   })
+
+  // 토스트 메시지 함수
+  const showToast = (msg, duration = 3000) => {
+    setToastMessage(msg)
+    setToastVisible(true)
+    setTimeout(() => setToastVisible(false), duration)
+  }
 
   // 지도 API 스크립트 준비 여부
   const [ready, setReady] = useState(false)
@@ -622,7 +633,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   // 건물 설명 수정
   async function handleUpdateBuildingDesc(e) {
     e.preventDefault()
-    if (!deletePopup.node_name) {
+    if (!deletePopup.node_name) {      
       alert("건물 이름이 없습니다.")
       return
     }
@@ -738,7 +749,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   // 건물/노드 추가 저장
   async function handleAddNode(e) {
     e.preventDefault()
-    if (addPopup.x == null || addPopup.y == null) {
+    if (addPopup.x == null || addPopup.y == null) {      
       alert("위치를 선택하세요.")
       return
     }
@@ -2033,16 +2044,16 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         <div
           style={{
             position: "fixed",
-            top: 32,
+            top: 30,
             left: "50%",
             transform: "translateX(-50%)",
             zIndex: 3500,
-            background: "#00C3FF",
+            backgroundColor: "#333",
             color: "#fff",
-            padding: "10px 24px",
+            padding: "12px 24px",
             borderRadius: 8,
             fontWeight: "bold",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
           }}
         >
           연결할 두 번째 노드를 클릭하세요! (ESC로 취소)

@@ -1,12 +1,30 @@
 /* globals.css */
 
+:root {
+  /* Color Palette */
+  --color-primary: #0070f3;
+  --color-primary-active: #005bb5;
+  --color-background: #f4f7fc;
+  --color-surface: #fff;
+  --color-text-primary: #222;
+  --color-text-secondary: #888;
+  --color-error: #e00;
+  --color-border: #bbb;
+  --color-input-focus-bg: #f9fcff;
+
+  /* Sizing & Radius */
+  --radius-large: 24px;
+  --input-padding-vertical: 14px;
+  --input-padding-horizontal: 18px;
+}
+
 html,
 body {
   margin: 0;
   padding: 0;
-  background: #f4f7fc;
+  background: var(--color-background);
   font-family: "Pretendard", "Noto Sans KR", sans-serif;
-  color: #222;
+  color: var(--color-text-primary);
   width: 100vw;
   height: 100vh;
   overflow-x: auto;

@@ -1,15 +1,15 @@
 // login
 "use client"
 import "../globals.css"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import styles from "./login.module.css"
 import LoadingOverlay from "../components/loadingoverlay" // 이 컴포넌트가 존재하지 않으면 제거해주세요.
 import { resetSessionExpired } from "../utils/apiHelper"
 
 export default function LoginPage() {
-  const [id, setId] = useState("")
-  const [pw, setPw] = useState("")
+  const idRef = useRef(null)
+  const pwRef = useRef(null)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -19,11 +19,15 @@ export default function LoginPage() {
     e.preventDefault()
     setError("")
     setLoading(true)
+
+    const id = idRef.current.value
+    const pw = pwRef.current.value
+
     try {
       const res = await fetch("/api/login-route", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, pw }),
+        body: JSON.stringify({ id, pw })
       })
       const data = await res.json()
       if (data.success && data.token) {
@@ -35,10 +39,6 @@ export default function LoginPage() {
         localStorage.setItem("userId", data.user.id)
         localStorage.setItem("userName", data.user.name)
         localStorage.setItem("islogin", "true")
-        
-        // 비밀번호를 해시화하여 저장 (비밀번호 확인용)
-        const hashedPassword = btoa(pw) // 간단한 base64 인코딩 (실제로는 더 안전한 해싱 사용 권장)
-        localStorage.setItem("userPasswordHash", hashedPassword)
         
         console.log("로그인 성공 - 저장된 토큰:", localStorage.getItem("token"))
         console.log("저장된 사용자 ID:", localStorage.getItem("userId"))
@@ -72,8 +72,7 @@ export default function LoginPage() {
             name="id"
             type="text"
             placeholder="아이디"
-            value={id}
-            onChange={(e) => setId(e.target.value)}
+            ref={idRef}
             required
             className={styles["login-input"]}
             autoComplete="username"
@@ -82,8 +81,7 @@ export default function LoginPage() {
             name="pw"
             type="password"
             placeholder="비밀번호"
-            value={pw}
-            onChange={(e) => setPw(e.target.value)}
+            ref={pwRef}
             required
             className={styles["login-input"]}
             autoComplete="current-password"

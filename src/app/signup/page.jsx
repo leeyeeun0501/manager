@@ -1,55 +1,79 @@
 // signup
 "use client"
 import "../globals.css"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import styles from "./signup.module.css"
 import LoadingOverlay from "../components/loadingoverlay"
 
+// 전화번호 하이픈 자동 삽입 함수
+const formatPhoneNumber = (value) => {
+  const number = value.replace(/[^0-9]/g, "")
+  if (number.length < 4) return number
+  if (number.length < 7) {
+    return number.replace(/(\d{3})(\d{1,3})/, "$1-$2")
+  }
+  if (number.length < 11) {
+    return number.replace(/(\d{3})(\d{3,4})(\d{1,4})/, "$1-$2-$3")
+  }
+  return number.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3")
+}
+
 export default function SignupPage() {
-  const [form, setForm] = useState({
-    id: "",
-    pw: "",
-    pwConfirm: "",
-    name: "",
-    phone: "",
-    emailId: "",
-    emailDomain: "wsu.ac.kr",
-    customEmailDomain: "",
-  })
+  const formRef = useRef(null)
+  const idRef = useRef(null)
+  const pwRef = useRef(null)
+  const pwConfirmRef = useRef(null)
+  const nameRef = useRef(null)
+  const phoneRef = useRef(null)
+  const emailIdRef = useRef(null)
+  const emailDomainRef = useRef(null)
+  const customEmailDomainRef = useRef(null)
+
+  const [isCustomDomain, setIsCustomDomain] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  // 전화번호 하이픈 자동 삽입 함수
-  const formatPhoneNumber = (value) => {
-    const number = value.replace(/[^0-9]/g, "")
-    if (number.length < 4) return number
-    if (number.length < 7) {
-      return number.replace(/(\d{3})(\d{1,3})/, "$1-$2")
-    }
-    if (number.length < 11) {
-      return number.replace(/(\d{3})(\d{3,4})(\d{1,4})/, "$1-$2-$3")
-    }
-    return number.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3")
+  // 입력 핸들러
+  const handlePhoneInput = (e) => {
+    e.target.value = formatPhoneNumber(e.target.value)
   }
 
-  // 입력 핸들러
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    if (name === "phone") {
-      setForm((prev) => ({ ...prev, phone: formatPhoneNumber(value) }))
-    } else if (name === "emailDomain") {
-      setForm((prev) => ({
-        ...prev,
-        emailDomain: value,
-        customEmailDomain: "",
-      }))
-    } else if (name === "customEmailDomain") {
-      setForm((prev) => ({ ...prev, customEmailDomain: value }))
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }))
+  const handleDomainChange = (e) => {
+    setIsCustomDomain(e.target.value === "직접입력")
+  }
+
+  // 유효성 검사 함수
+  const validateForm = (data) => {
+    if (data.pw !== data.pwConfirm) {
+      return "비밀번호가 일치하지 않습니다."
     }
+    if (data.pw.length < 6) {
+      return "비밀번호는 6자 이상이어야 합니다."
+    }
+    if (!data.emailId.trim()) {
+      return "이메일 아이디를 입력해주세요."
+    }
+    if (!data.domain) {
+      return "이메일 도메인을 입력해주세요."
+    }
+    return null
+  }
+
+  // 회원가입 API 호출 함수
+  const registerUser = async (submitData) => {
+    const res = await fetch("/api/signup-route", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(submitData),
+    })
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.message || "회원가입에 실패했습니다.")
+    }
+    return res.json()
   }
 
   // 비번 한 번 더 확인 핸들러
@@ -58,57 +82,34 @@ export default function SignupPage() {
     setError("")
     setLoading(true)
 
-    if (form.pw !== form.pwConfirm) {
-      setError("비밀번호가 일치하지 않습니다.")
-      setLoading(false)
-      return
-    }
-
-    if (form.pw.length < 6) {
-      setError("비밀번호는 6자 이상이어야 합니다.")
-      setLoading(false)
-      return
-    }
-
-    const domain =
-      form.emailDomain === "직접입력"
-        ? form.customEmailDomain.trim()
-        : form.emailDomain
-
-    if (!form.emailId.trim()) {
-      setError("이메일 아이디를 입력해주세요.")
-      setLoading(false)
-      return
-    }
-    if (!domain) {
-      setError("이메일 도메인을 입력해주세요.")
-      setLoading(false)
-      return
-    }
-    const email = `${form.emailId.trim()}@${domain}`
-    const submitData = {
-      id: form.id,
-      pw: form.pw,
-      name: form.name,
-      phone: form.phone,
-      email,
-    }
-
     try {
-      const res = await fetch("/api/signup-route", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(submitData),
-      })
-      if (res.ok) {
-        alert("회원가입이 완료되었습니다.")
-        router.push("/login")
-      } else {
-        const data = await res.json()
-        setError(data.message || "회원가입에 실패했습니다.")
+      const id = idRef.current.value
+      const pw = pwRef.current.value
+      const pwConfirm = pwConfirmRef.current.value
+      const name = nameRef.current.value
+      const phone = phoneRef.current.value
+      const emailId = emailIdRef.current.value
+      const emailDomain = emailDomainRef.current.value
+      const customEmailDomain = customEmailDomainRef.current?.value || ""
+
+      const domain =
+        emailDomain === "직접입력" ? customEmailDomain.trim() : emailDomain
+
+      const validationError = validateForm({ pw, pwConfirm, emailId, domain })
+      if (validationError) {
+        setError(validationError)
+        setLoading(false)
+        return
       }
-    } catch {
-      setError("회원가입 중 오류가 발생했습니다.")
+
+      const email = `${emailId.trim()}@${domain}`
+      const submitData = { id, pw, name, phone, email }
+
+      await registerUser(submitData)
+      alert("회원가입이 완료되었습니다.")
+      router.push("/login")
+    } catch (err) {
+      setError(err.message || "회원가입 중 오류가 발생했습니다.")
     } finally {
       setLoading(false)
     }
@@ -125,13 +126,12 @@ export default function SignupPage() {
       {loading && <LoadingOverlay />}
       <div className={styles["signup-box"]}>
         <h2 className={styles["signup-title"]}>회원가입</h2>
-        <form onSubmit={handleSubmit} className={styles["signup-form"]}>
+        <form ref={formRef} onSubmit={handleSubmit} className={styles["signup-form"]}>
           <input
             name="id"
             type="text"
             placeholder="아이디"
-            value={form.id}
-            onChange={handleChange}
+            ref={idRef}
             required
             className={styles["signup-input"]}
             autoComplete="username"
@@ -140,8 +140,7 @@ export default function SignupPage() {
             name="pw"
             type="password"
             placeholder="비밀번호"
-            value={form.pw}
-            onChange={handleChange}
+            ref={pwRef}
             required
             className={styles["signup-input"]}
             autoComplete="new-password"
@@ -150,8 +149,7 @@ export default function SignupPage() {
             name="pwConfirm"
             type="password"
             placeholder="비밀번호 확인"
-            value={form.pwConfirm}
-            onChange={handleChange}
+            ref={pwConfirmRef}
             required
             className={styles["signup-input"]}
             autoComplete="new-password"
@@ -160,8 +158,7 @@ export default function SignupPage() {
             name="name"
             type="text"
             placeholder="이름"
-            value={form.name}
-            onChange={handleChange}
+            ref={nameRef}
             required
             className={styles["signup-input"]}
             autoComplete="name"
@@ -170,8 +167,8 @@ export default function SignupPage() {
             name="phone"
             type="text"
             placeholder="전화번호"
-            value={form.phone}
-            onChange={handleChange}
+            ref={phoneRef}
+            onInput={handlePhoneInput}
             required
             className={styles["signup-input"]}
             maxLength={13}
@@ -184,20 +181,18 @@ export default function SignupPage() {
               name="emailId"
               type="text"
               placeholder="이메일"
-              value={form.emailId}
-              onChange={handleChange}
+              ref={emailIdRef}
               required
               className={styles["email-id-input"]}
               autoComplete="off"
             />
             <span className={styles["email-at"]}>@</span>
-            {form.emailDomain === "직접입력" ? (
+            {isCustomDomain ? (
               <input
                 name="customEmailDomain"
                 type="text"
                 placeholder="도메인 직접 입력 (예: example.com)"
-                value={form.customEmailDomain}
-                onChange={handleChange}
+                ref={customEmailDomainRef}
                 required
                 className={styles["email-domain-input"]}
                 autoComplete="off"
@@ -205,8 +200,9 @@ export default function SignupPage() {
             ) : (
               <select
                 name="emailDomain"
-                value={form.emailDomain}
-                onChange={handleChange}
+                ref={emailDomainRef}
+                onChange={handleDomainChange}
+                defaultValue="wsu.ac.kr"
                 className={styles["email-domain-select"]}
                 required
               >

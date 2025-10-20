@@ -2,7 +2,7 @@
 "use client"
 
 import { useEffect } from 'react'
-import { isAuthenticated, handleTokenExpired } from './apiHelper'
+import { isAuthenticated, apiGet } from './apiHelper'
 
 // 세션 체크 중복 방지
 let isCheckingSession = false
@@ -20,15 +20,9 @@ export const useSessionCheck = (checkInterval = 30000) => {
       
       try {
         isCheckingSession = true
-        const response = await fetch('/api/session-check', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        })
-
+        // ✅ apiGet을 사용하여 fetchWithAuth의 401 인터셉터를 활용
+        await apiGet('/api/session-check')
         // 전역 인터셉터가 처리하므로 여기서는 별도 처리 불필요
-        // 401/419 응답은 전역 인터셉터에서 자동으로 handleTokenExpired 호출
       } catch (error) {
         // 네트워크 오류는 무시
         console.warn('세션 체크 실패:', error)

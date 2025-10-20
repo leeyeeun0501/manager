@@ -54,6 +54,16 @@ export default function InquiryPage() {
     answerRate: 0,
   })
 
+  // 팝업 메시지 상태
+  const [toastMessage, setToastMessage] = useState("")
+  const [toastVisible, setToastVisible] = useState(false)
+
+  const showToast = (msg, duration = 3000) => {
+    setToastMessage(msg)
+    setToastVisible(true)
+    setTimeout(() => setToastVisible(false), duration)
+  }
+
   // 텍스트 자르기 함수
   const truncateText = (text, maxLength = 20) => {
     if (!text) return ""
@@ -282,15 +292,15 @@ export default function InquiryPage() {
       const res = await apiPut("/api/inquiry-route", requestData)
       const data = await parseJsonResponse(res)
       if (data.success) {
-        alert("답변이 성공적으로 등록되었습니다.")
+        showToast("답변이 성공적으로 등록되었습니다.")
         closeModal()
         fetchInquiries()
       } else {
-        alert(data.error || "답변 등록에 실패했습니다.")
+        showToast(data.error || "답변 등록에 실패했습니다.")
       }
     } catch (error) {
       console.error("답변 등록 오류:", error)
-      alert("서버 오류가 발생했습니다.")
+      showToast("서버 오류가 발생했습니다.")
     }
     setSubmitting(false)
   }
@@ -313,6 +323,26 @@ export default function InquiryPage() {
   return (
     <div className={styles.inquiryRoot}>
       {loading && <LoadingOverlay />}
+      {/* 토스트 메시지 UI */}
+      {toastVisible && (
+        <div
+          style={{
+            position: "fixed",
+            top: 30,
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#333",
+            color: "#fff",
+            padding: "12px 24px",
+            borderRadius: 8,
+            zIndex: 3000,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            fontWeight: "bold",
+          }}
+        >
+          {toastMessage}
+        </div>
+      )}
       <span className={styles.inquiryHeader}>문의 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className={styles.inquiryContent}>

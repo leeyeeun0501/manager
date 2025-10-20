@@ -92,6 +92,16 @@ export default function BuildingPage() {
     floor: "",
   })
 
+  // 팝업 메시지 상태
+  const [toastMessage, setToastMessage] = useState("")
+  const [toastVisible, setToastVisible] = useState(false)
+
+  const showToast = (msg, duration = 3000) => {
+    setToastMessage(msg)
+    setToastVisible(true)
+    setTimeout(() => setToastVisible(false), duration)
+  }
+
   const getCacheBustedUrl = (url) => {
     if (!url) return url
     const separator = url.includes("?") ? "&" : "?"
@@ -224,9 +234,9 @@ export default function BuildingPage() {
       const data = await parseJsonResponse(res)
       console.log("🏢 층 추가 응답 데이터:", data)
       
-      if (data && !data.error) {
+      if (res.ok && data && !data.error) {
         console.log("✅ 층 추가 성공")
-        alert("층 추가가 완료되었습니다!")
+        showToast("층 추가가 완료되었습니다!")
         setShowAddFloor(false)
         setAddFloorBuilding("")
         setAddFloorNum("1")
@@ -270,7 +280,7 @@ export default function BuildingPage() {
       
       if (data && data.success) {
         console.log("✅ 층 삭제 성공")
-        setFloors((prev) =>
+        setFloors(prev =>
           prev.filter(
             (f) =>
               !(
@@ -279,14 +289,14 @@ export default function BuildingPage() {
               )
           )
         )
-        alert("층 삭제가 완료되었습니다.")
+        showToast("층 삭제가 완료되었습니다.")
       } else {
-        console.log("❌ 층 삭제 실패:", data.error)
-        alert(data.error || "층 삭제 실패")
+        console.log("❌ 층 삭제 실패:", data.error || "알 수 없는 오류")
+        showToast(data.error || "층 삭제 실패")
       }
     } catch (err) {
       console.error("❌ 층 삭제 오류:", err)
-      alert("층 삭제 중 오류가 발생했습니다.")
+      showToast("층 삭제 중 오류가 발생했습니다.")
     }
   }
 
@@ -361,6 +371,26 @@ export default function BuildingPage() {
   return (
     <div className={styles["building-root"]}>
       {loading && <LoadingOverlay />}
+      {/* 토스트 메시지 UI */}
+      {toastVisible && (
+        <div
+          style={{
+            position: "fixed",
+            top: 30,
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#333",
+            color: "#fff",
+            padding: "12px 24px",
+            borderRadius: 8,
+            zIndex: 30000,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            fontWeight: "bold",
+          }}
+        >
+          {toastMessage}
+        </div>
+      )}
       <span className={styles["building-header"]}>층 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className={styles["building-content"]}>
@@ -959,7 +989,7 @@ export default function BuildingPage() {
                     const data = await parseJsonResponse(res)
                     
                     if (data && !data.error) {
-                      alert("도면이 성공적으로 수정되었습니다!")
+                      showToast("도면이 성공적으로 수정되었습니다!")
                       await fetchFloors(selectedBuilding)
                     } else {
                       setEditMapError(data.error || "도면 수정 실패")
@@ -1098,7 +1128,7 @@ export default function BuildingPage() {
                     const data = await parseJsonResponse(res)
                     
                     if (data && !data.error) {
-                      alert("도면이 성공적으로 추가되었습니다!")
+                      showToast("도면이 성공적으로 추가되었습니다!")
                       setFileAddModal({ open: false, building: "", floor: "" })
                       await fetchFloors(fileAddModal.building)
                     } else {

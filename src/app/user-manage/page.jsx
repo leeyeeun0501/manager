@@ -30,6 +30,16 @@ export default function UserManagePage() {
     return 1
   })
 
+  // 팝업 메시지 상태
+  const [toastMessage, setToastMessage] = useState("")
+  const [toastVisible, setToastVisible] = useState(false)
+
+  const showToast = (msg, duration = 3000) => {
+    setToastMessage(msg)
+    setToastVisible(true)
+    setTimeout(() => setToastVisible(false), duration)
+  }
+
   // 현재 보여줄 페이지 범위의 user만 추출 (검색된 결과 기준)
   const totalUsers = filteredUsers.length
   const totalPages = Math.ceil(totalUsers / itemsPerPage)
@@ -118,10 +128,10 @@ export default function UserManagePage() {
       const res = await apiDelete("/api/user-route", { id })
       const data = await parseJsonResponse(res)
       if (!data.success) throw new Error(data.error || "삭제 실패")
-      alert("사용자가 삭제되었습니다.")
+      showToast("사용자가 삭제되었습니다.")
       await fetchUsers(true)
     } catch (err) {
-      alert(err.message)
+      showToast(err.message)
     }
   }
 
@@ -148,6 +158,26 @@ export default function UserManagePage() {
   return (
     <div className={styles.userRoot}>
       {loading && <LoadingOverlay />}
+      {/* 토스트 메시지 UI */}
+      {toastVisible && (
+        <div
+          style={{
+            position: "fixed",
+            top: 30,
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#333",
+            color: "#fff",
+            padding: "12px 24px",
+            borderRadius: 8,
+            zIndex: 3000,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            fontWeight: "bold",
+          }}
+        >
+          {toastMessage}
+        </div>
+      )}
       <span className={styles.userHeader}>사용자 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className={styles.userContent}>

@@ -44,10 +44,22 @@ export default function RoomManageEditPage() {
   const [toastMessage, setToastMessage] = useState("")
   const [toastVisible, setToastVisible] = useState(false)
 
-  // 전역 세션 체크가 layout.js에서 처리되므로 개별 세션 체크는 불필요
+  // ✅ 반응형 캔버스 크기 설정
+  const [canvasSize, setCanvasSize] = useState({ width: 1000, height: 700 })
+  useEffect(() => {
+    const handleResize = () => {
+      // 최대 크기는 1000x700, 그 이하에서는 화면 비율에 맞춰 자동 축소
+      const baseWidth = 1000
+      const baseHeight = 700
+      const width = Math.min(baseWidth, window.innerWidth * 0.8)
+      const height = Math.min(baseHeight, window.innerHeight * 0.7)
+      setCanvasSize({ width, height })
+    }
 
-  const CANVAS_WIDTH = 1000
-  const CANVAS_HEIGHT = 700
+    handleResize()
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
   const mapContainerRef = useRef(null)
 
   // 카테고리 한글-영어 매핑
@@ -106,9 +118,9 @@ export default function RoomManageEditPage() {
 
     // SVG 컨테이너의 실제 크기와 위치 가져오기
     const containerRect = mapContainerRef.current.getBoundingClientRect()
-    const scale = Math.min(CANVAS_WIDTH / svgViewBox.width, CANVAS_HEIGHT / svgViewBox.height)
-    const offsetX = (CANVAS_WIDTH - svgViewBox.width * scale) / 2
-    const offsetY = (CANVAS_HEIGHT - svgViewBox.height * scale) / 2
+    const scale = Math.min(canvasSize.width / svgViewBox.width, canvasSize.height / svgViewBox.height)
+    const offsetX = (canvasSize.width - svgViewBox.width * scale) / 2
+    const offsetY = (canvasSize.height - svgViewBox.height * scale) / 2
 
     // 클릭한 위치를 SVG 좌표계로 변환 (더 간단한 방법)
     const relativeX = event.clientX - containerRect.left
@@ -737,7 +749,7 @@ export default function RoomManageEditPage() {
         </div>
       )}
       <div className={styles["room-content"]}>
-        <div className={styles["room-manage-map-wrap"]} style={{ position: "relative" }}>
+        <div className={styles["room-manage-map-wrap"]} style={{ position: "relative", alignItems: 'center' }}>
           {/* 툴바 */}
           <div className={styles["edit-toolbar"]}>
             <button
@@ -793,7 +805,16 @@ export default function RoomManageEditPage() {
             </button>
           </div>
           <div
-            style={{ position: "relative", width: CANVAS_WIDTH, height: CANVAS_HEIGHT, border: "1px solid #ddd", backgroundColor: "#f8f9fa", overflow: "hidden" }}
+            style={{
+              position: "relative",
+              width: canvasSize.width,
+              height: canvasSize.height,
+              border: "1px solid #ddd",
+              backgroundColor: "#f8f9fa",
+              overflow: "hidden",
+              margin: "0 auto",
+              borderRadius: "10px",
+            }}
           >
             {loading && (
               <div className={styles["room-manage-canvas-placeholder"]}>맵 로딩 중...</div>
@@ -806,9 +827,9 @@ export default function RoomManageEditPage() {
             )}
 
             {!loading && building && floor && svgRaw && (() => {
-              const scale = Math.min(CANVAS_WIDTH / svgViewBox.width, CANVAS_HEIGHT / svgViewBox.height)
-              const offsetX = (CANVAS_WIDTH - svgViewBox.width * scale) / 2
-              const offsetY = (CANVAS_HEIGHT - svgViewBox.height * scale) / 2
+              const scale = Math.min(canvasSize.width / svgViewBox.width, canvasSize.height / svgViewBox.height)
+              const offsetX = (canvasSize.width - svgViewBox.width * scale) / 2
+              const offsetY = (canvasSize.height - svgViewBox.height * scale) / 2
 
               return (
                 <div

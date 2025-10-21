@@ -1,6 +1,6 @@
 // management
 "use client"
-import React, { useEffect, useState, useRef } from "react"
+import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
 import styles from "./management.module.css"
 import NaverMapSimple from "./navermap"
@@ -20,26 +20,7 @@ export default function ManagementPage() {
     user: 0,
   })
   const [userMarkers, setUserMarkers] = useState([])
-  const [isWebSocketConnected, setIsWebSocketConnected] = useState(false)
-  const [ws, setWs] = useState(null)
-  const [userId, setUserId] = useState("")
   const [loading, setLoading] = useState(true)
-
-  const userIdRef = useRef("")
-
-  useEffect(() => {
-    userIdRef.current = userId
-  }, [userId])
-
-  // userId
-  useEffect(() => {
-    const storedId = localStorage.getItem("userId")
-    if (storedId) {
-      setUserId(storedId)
-    } else {
-      setUserId("admin")
-    }
-  }, [])
 
   // 건물, 강의실, 사용자 수 조회
   useEffect(() => {
@@ -147,113 +128,6 @@ export default function ManagementPage() {
     const intervalId = setInterval(fetchMarkers, 5000)
     return () => clearInterval(intervalId)
   }, [])
-
-  // 웹소켓 등록: userId가 준비된 이후에 연결 ?????
-  // 문의 실시간 알림
-  useEffect(() => {
-    if (!userId) return
-
-    let websocketInstance = null
-    let reconnectTimeoutId = null
-    let isConnecting = false
-
-    const connectWebSocket = () => {
-      if (isConnecting) return
-      isConnecting = true
-
-      try {
-        const websocketUrl = "ws://16.176.179.75:3002/friend/ws"
-
-        const newWs = new WebSocket(websocketUrl)
-
-        newWs.onopen = () => {
-          isConnecting = false
-          setIsWebSocketConnected(true)
-          setWs(newWs)
-          // 항상 최신 userIdRef.current를 전송
-          newWs.send(
-            JSON.stringify({
-              type: "register",
-              userId: userIdRef.current,
-              timestamp: new Date().toISOString(),
-            })
-          )
-        }
-
-        newWs.onclose = (event) => {
-          isConnecting = false
-          setIsWebSocketConnected(false)
-          setWs(null)
-          // 정상적인 종료가 아닐 때만 재연결
-          if (event.code !== 1000) {
-            reconnectTimeoutId = setTimeout(() => {
-              if (!isWebSocketConnected) {
-                connectWebSocket()
-              }
-            }, 3000)
-          }
-        }
-
-        newWs.onerror = (error) => {
-          isConnecting = false
-          setIsWebSocketConnected(false)
-        }
-
-        newWs.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data)
-            switch (data.type) {
-              case "registered":
-                break
-              case "heartbeat_response":
-                break
-              case "friend_logged_in":
-                alert(`친구 로그인 알림: ${data.message}`)
-                break
-              case "online_users":
-                break
-              default:
-                break
-            }
-          } catch (error) {
-            console.error("메시지 파싱 오류:", error)
-          }
-        }
-
-        websocketInstance = newWs
-      } catch (error) {
-        isConnecting = false
-        console.error("웹소켓 연결 오류:", error)
-      }
-    }
-
-    connectWebSocket()
-    // 언마운트시 정리
-    return () => {
-      if (websocketInstance) {
-        websocketInstance.close()
-      }
-      if (reconnectTimeoutId) clearTimeout(reconnectTimeoutId)
-    }
-  }, [userId])
-
-  // 하트비트 전송
-  useEffect(() => {
-    if (!ws || !isWebSocketConnected) return
-
-    const heartbeatInterval = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(
-          JSON.stringify({
-            type: "heartbeat",
-            timestamp: new Date().toISOString(),
-          })
-        )
-      }
-    }, 30000)
-
-    return () => clearInterval(heartbeatInterval)
-  }, [ws, isWebSocketConnected])
 
   return (
     <div className={styles["management-root"]}>

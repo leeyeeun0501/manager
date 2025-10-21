@@ -52,11 +52,8 @@ export default function SignupPage() {
     if (data.pw.length < 6) {
       return "비밀번호는 6자 이상이어야 합니다."
     }
-    if (!data.emailId.trim()) {
-      return "이메일 아이디를 입력해주세요."
-    }
-    if (!data.domain) {
-      return "이메일 도메인을 입력해주세요."
+    if (!data.emailId.trim() || !data.domain) {
+      return "이메일을 입력해주세요."
     }
     return null
   }

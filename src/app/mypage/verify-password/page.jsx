@@ -34,7 +34,7 @@ export default function VerifyPasswordPage() {
 
       // 입력된 비밀번호를 해시화하여 저장된 해시와 비교
       const inputPasswordHash = btoa(currentPassword)
-      
+
       if (inputPasswordHash === storedPasswordHash) {
         // 비밀번호 확인 성공 시 sessionStorage에 플래그 설정
         sessionStorage.setItem("passwordVerified", "true")

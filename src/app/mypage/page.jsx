@@ -3,19 +3,9 @@
 import "../globals.css"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
-import LoadingOverlay from "../components/loadingoverlay"
-import { apiGet, apiPost, apiDelete, parseJsonResponse } from "../utils/apiHelper"
+import LoadingOverlay from "../components/loadingoverlay" // prettier-ignore
+import { apiGet, apiPost, apiDelete, parseJsonResponse, extractUserData, formatPhoneNumber } from "../utils/apiHelper"
 import styles from "./mypage.module.css"
-
-// 전화번호 하이픈 자동 삽입 함수
-const formatPhoneNumber = (value) => {
-  const number = value.replace(/[^0-9]/g, "")
-  if (number.length < 4) return number
-  if (number.length < 7) return number.replace(/(\d{3})(\d{1,3})/, "$1-$2")
-  if (number.length < 11)
-    return number.replace(/(\d{3})(\d{3,4})(\d{1,4})/, "$1-$2-$3")
-  return number.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3")
-}
 
 export default function MyPage() {
   const [user, setUser] = useState({
@@ -23,6 +13,9 @@ export default function MyPage() {
     name: "",
     phone: "",
     email: "",
+    emailId: "",
+    emailDomain: "wsu.ac.kr",
+    isCustomDomain: false,
   })
   const [pw, setPw] = useState("")
   const [pwConfirm, setPwConfirm] = useState("")
@@ -33,16 +26,6 @@ export default function MyPage() {
   const [deleteMsg, setDeleteMsg] = useState("")
   const [deleting, setDeleting] = useState(false)
   const [showPopup, setShowPopup] = useState(false)
-  const [emailId, setEmailId] = useState("")
-  const [emailDomain, setEmailDomain] = useState("wsu.ac.kr")
-  const [customEmailDomain, setCustomEmailDomain] = useState("")
-
-  function handleEmailChange(e) {
-    const { name, value } = e.target
-    if (name === "emailId") setEmailId(value)
-    else if (name === "emailDomain") setEmailDomain(value)
-    else if (name === "customEmailDomain") setCustomEmailDomain(value)
-  }
 
   // 마이 페이지 정보
   useEffect(() => {
@@ -80,70 +63,22 @@ export default function MyPage() {
     apiGet(`/api/mypage-route?id=${encodeURIComponent(id)}`)
       .then(parseJsonResponse)
       .then((data) => {
-        console.log("마이페이지 - API 응답:", data)
-        console.log("마이페이지 - API 응답 타입:", typeof data)
-        console.log("마이페이지 - API 응답 키들:", Object.keys(data))
-        
-        // 서버 응답 구조에 맞게 데이터 추출
-        let userData = null
-        
-        console.log("마이페이지 - data.user:", data.user)
-        console.log("마이페이지 - data.user 타입:", typeof data.user)
-        
-        if (data.success && data.user) {
-          // data.user가 객체인지 배열인지 확인
-          if (Array.isArray(data.user)) {
-            userData = data.user[0]
-          } else if (data.user.data && Array.isArray(data.user.data)) {
-            userData = data.user.data[0]
-          } else {
-            userData = data.user
-          }
-        } else if (data.success && data.data && Array.isArray(data.data) && data.data.length > 0) {
-          userData = data.data[0]
-        } else if (data.data && data.data.user) {
-          userData = Array.isArray(data.data.user) ? data.data.user[0] : data.data.user
-        } else if (Array.isArray(data)) {
-          userData = data[0]
-        } else if (data.data) {
-          userData = Array.isArray(data.data) ? data.data[0] : data.data
-        }
-
-        console.log("마이페이지 - 사용자 데이터:", userData)
-        
+        const userData = extractUserData(data)
         if (userData) {
-          console.log("마이페이지 - 사용자 데이터 키들:", Object.keys(userData))
-          
-          // 비밀번호 필드가 있는지 확인
-          if (userData.Password || userData.password || userData.Pw || userData.pw) {
-            console.log("⚠️ 마이페이지 - 비밀번호 필드가 포함되어 있습니다!")
-          }
-
-          const updatedUser = {
-            id: userData.Id || "",
+          setUser((prev) => ({
+            ...prev,
+            id: userData.Id || prev.id,
             name: userData.Name || "",
             phone: userData.Phone || "",
             email: userData.Email || "",
-          }
-          
-          console.log("마이페이지 - 받아온 사용자 데이터:", userData)
-          console.log("마이페이지 - 추출된 사용자 정보:", updatedUser)
-          
-          // 비밀번호나 다른 민감한 정보가 있는지 확인하고 제거
-          if (userData.Password || userData.password || userData.Pw || userData.pw) {
-            console.log("⚠️ 마이페이지 - 비밀번호 필드가 서버 응답에 포함되어 있습니다. 제거합니다.")
-          }
-          console.log("마이페이지 - 업데이트할 사용자 정보:", updatedUser)
-
-          // 사용자 정보를 직접 설정
-          setUser(updatedUser)
-          console.log("마이페이지 - 사용자 정보 설정 완료:", updatedUser)
+          }))
 
           // 이메일 분리
           const email = userData.Email
           if (email) {
             const parts = email.split("@")
-            setEmailId(parts[0] || "")
+            const emailIdPart = parts[0] || ""
+            const domainPart = parts[1] || ""
             const domainList = [
               "wsu.ac.kr",
               "naver.com",
@@ -151,31 +86,25 @@ export default function MyPage() {
               "hanmail.net",
               "nate.com",
             ]
-            if (domainList.includes(parts[1])) {
-              setEmailDomain(parts[1])
-              setCustomEmailDomain("")
+            const isKnownDomain = domainList.includes(domainPart)
+            setUser((prev) => ({
+              ...prev,
+              emailId: emailIdPart,
+              emailDomain: isKnownDomain ? domainPart : "직접입력",
+              isCustomDomain: !isKnownDomain,
+              customEmailDomain: isKnownDomain ? "" : domainPart,
+            }))
             } else {
-              setEmailDomain("직접입력")
-              setCustomEmailDomain(parts[1] || "")
-            }
+            setUser((prev) => ({ ...prev, emailId: "", emailDomain: "wsu.ac.kr", isCustomDomain: false }))
           }
         } else {
-          console.log("마이페이지 - 사용자 데이터를 찾을 수 없습니다:", data)
-          console.log("마이페이지 - 전체 응답 구조:", JSON.stringify(data, null, 2))
+          setApiError("사용자 정보를 불러오지 못했습니다.")
         }
       })
       .catch((error) => {
-        console.error("마이페이지 - API 오류:", error)
-        console.error("마이페이지 - 오류 상세:", error.message)
-        console.error("마이페이지 - 오류 스택:", error.stack)
         setApiError(error.message || "API 호출 실패")
       })
   }, [])
-
-  // 사용자 정보 변경 감지
-  useEffect(() => {
-    console.log("마이페이지 - 사용자 정보 변경됨:", user)
-  }, [user])
 
   // 비번, 이메일, 전화번호 수정 핸들러
   const handleEdit = async (e) => {
@@ -189,9 +118,8 @@ export default function MyPage() {
 
     setLoading(true)
     try {
-      const domain =
-        emailDomain === "직접입력" ? customEmailDomain.trim() : emailDomain
-      const email = `${emailId.trim()}@${domain}`
+      const domain = user.isCustomDomain ? user.customEmailDomain.trim() : user.emailDomain
+      const email = `${user.emailId.trim()}@${domain}`
       const res = await fetch("/api/mypage-route", {
         method: "PUT",
         headers: { 
@@ -282,7 +210,7 @@ export default function MyPage() {
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       {/* 팝업 메시지 */}
       {showPopup && (
-        <div className={styles["mypage-popup"]}>회원정보가 수정되었습니다.</div>
+        <div className={styles["toast-popup"]}>회원정보가 수정되었습니다.</div>
       )}
       <div className={styles["mypage-box"]}>
         <div className={styles["mypage-title"]}>마이페이지</div>
@@ -316,20 +244,20 @@ export default function MyPage() {
               name="emailId"
               type="text"
               placeholder="이메일"
-              value={emailId}
-              onChange={handleEmailChange}
+              value={user.emailId}
+              onChange={(e) => setUser({ ...user, emailId: e.target.value })}
               required
               className={styles["email-id-input"]}
               autoComplete="off"
             />
             <span className={styles["email-at"]}>@</span>
-            {emailDomain === "직접입력" ? (
+            {user.isCustomDomain ? (
               <input
                 name="customEmailDomain"
                 type="text"
                 placeholder="도메인 직접 입력 (예: example.com)"
-                value={customEmailDomain}
-                onChange={handleEmailChange}
+                value={user.customEmailDomain}
+                onChange={(e) => setUser({ ...user, customEmailDomain: e.target.value })}
                 required
                 className={styles["email-domain-input"]}
                 autoComplete="off"
@@ -337,8 +265,10 @@ export default function MyPage() {
             ) : (
               <select
                 name="emailDomain"
-                value={emailDomain}
-                onChange={handleEmailChange}
+                value={user.emailDomain}
+                onChange={(e) =>
+                  setUser({ ...user, emailDomain: e.target.value, isCustomDomain: e.target.value === "직접입력" })
+                }
                 className={styles["email-domain-select"]}
                 required
               >

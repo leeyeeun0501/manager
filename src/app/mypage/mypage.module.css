@@ -200,28 +200,26 @@
   color: #d32f2f;
 }
 
-.mypage-popup {
+/* 다른 페이지와 동일한 검은색 토스트 팝업 */
+.toast-popup {
   position: fixed;
-  top: 60px;
+  top: 30px;
   left: 50%;
   transform: translateX(-50%);
-  background: #fff;
-  color: #222;
-  padding: 16px 36px;
-  border-radius: 18px;
+  background-color: #333;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  z-index: 3000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   font-weight: 600;
-  font-size: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  z-index: 9999;
-  border: 1px solid #eee;
-  text-align: center;
   animation: fadeInOut 2s;
 }
 
 @keyframes fadeInOut {
   0% {
     opacity: 0;
-    transform: translateX(-50%) translateY(-10px);
+    transform: translate(-50%, -10px);
   }
   10% {
     opacity: 1;
@@ -233,7 +231,7 @@
   }
   100% {
     opacity: 0;
-    transform: translateX(-50%) translateY(-10px);
+    transform: translate(-50%, -10px);
   }
 }
 

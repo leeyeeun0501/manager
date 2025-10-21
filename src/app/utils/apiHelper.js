@@ -133,3 +133,38 @@ export const logout = (redirect = true) => {
     }
   }
 }
+
+// 다양한 API 응답 구조에서 사용자 데이터 배열/객체를 추출하는 함수
+export const extractUserData = (data) => {
+  if (!data) return null
+
+  // 1. data.success && data.user 형태
+  if (data.success && data.user) {
+    if (Array.isArray(data.user)) return data.user[0]
+    if (data.user.data && Array.isArray(data.user.data)) return data.user.data[0]
+    return data.user
+  }
+  // 2. data.data.user 형태
+  if (data.data?.user) {
+    return Array.isArray(data.data.user) ? data.data.user[0] : data.data.user
+  }
+  // 3. data.data 형태 (배열 또는 객체)
+  if (data.data) {
+    return Array.isArray(data.data) ? data.data[0] : data.data
+  }
+  // 4. data 자체가 배열인 경우
+  if (Array.isArray(data)) return data[0]
+
+  // 5. 최상위 객체
+  return data
+}
+
+// 전화번호 하이픈 자동 삽입 함수
+export const formatPhoneNumber = (value) => {
+  if (!value) return ""
+  const number = value.replace(/[^0-9]/g, "")
+  if (number.length < 4) return number
+  if (number.length < 7) return number.replace(/(\d{3})(\d{1,3})/, "$1-$2")
+  if (number.length < 11) return number.replace(/(\d{3})(\d{3,4})(\d{1,4})/, "$1-$2-$3")
+  return number.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3")
+}

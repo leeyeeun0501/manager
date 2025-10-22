@@ -290,56 +290,11 @@ export default function NaverMapSimple({ markers = [] }) {
           title: `경로점 ${node.id}`,
           icon: {
             content: `
-              <div style="
-                position: relative;
-                width: 24px;
-                height: 32px;
-              ">
-                <div style="
-                  position: absolute;
-                  bottom: 0;
-                  left: 50%;
-                  transform: translateX(-50%);
-                  width: 0;
-                  height: 0;
-                  border-left: 8px solid transparent;
-                  border-right: 8px solid transparent;
-                  border-top: 16px solid #0066FF;
-                "></div>
-                <div style="
-                  position: absolute;
-                  bottom: 2px;
-                  left: 50%;
-                  transform: translateX(-50%);
-                  width: 0;
-                  height: 0;
-                  border-left: 6px solid transparent;
-                  border-right: 6px solid transparent;
-                  border-top: 12px solid #0066FF;
-                "></div>
-                <div style="
-                  position: absolute;
-                  top: 0;
-                  left: 50%;
-                  transform: translateX(-50%);
-                  width: 12px;
-                  height: 12px;
-                  background: white;
-                  border: 2px solid #0066FF;
-                  border-radius: 50%;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                ">
-                  <div style="
-                    width: 4px;
-                    height: 4px;
-                    background: #0066FF;
-                    border-radius: 50%;
-                  "></div>
-                </div>
-              </div>
-            `,
+              <div class="${styles.pathMarker}">
+                <div class="${styles.pathMarkerTriangleBase}"></div>
+                <div class="${styles.pathMarkerTriangleInner}"></div>
+                <div class="${styles.pathMarkerCircle}"><div class="${styles.pathMarkerCircleDot}"></div></div>
+              </div>`,
             size: new window.naver.maps.Size(24, 32),
             anchor: new window.naver.maps.Point(12, 32),
           },

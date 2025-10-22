@@ -68,7 +68,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
       {!menuOpen && (
         <div
           onClick={() => setMenuOpen(true)}
-          className={styles.bmBurgerButton} /* cursor: pointer 스타일은 .bmBurgerButton 클래스에 추가됨 */
+          className={styles.bmBurgerButton}
           aria-label="메뉴 열기"
           role="button"
           tabIndex={0}

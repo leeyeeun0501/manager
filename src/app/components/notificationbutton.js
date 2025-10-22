@@ -1,9 +1,11 @@
-// notificationbutton
+// 문의 알림
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { FaBell } from "react-icons/fa"
 import { apiGet, parseJsonResponse } from "../utils/apiHelper"
+
+const INQUIRY_FETCH_INTERVAL = 30000; // 30초
 
 export default function NotificationButton() {
   const [inquiryCount, setInquiryCount] = useState(0)
@@ -15,32 +17,26 @@ export default function NotificationButton() {
       try {
         const data = await apiGet("/api/inquiry-route")
         const responseData = await parseJsonResponse(data)
-        
-        // data.data 구조로 변경 - 이중 중첩 구조 처리
-        let inquiries = []
-        if (responseData.inquiries && Array.isArray(responseData.inquiries)) {
-          inquiries = responseData.inquiries
-        } else if (responseData.data?.data?.inquiries && Array.isArray(responseData.data.data.inquiries)) {
-          inquiries = responseData.data.data.inquiries
-        } else if (responseData.data?.inquiries && Array.isArray(responseData.data.inquiries)) {
-          inquiries = responseData.data.inquiries
-        } else if (responseData.data && Array.isArray(responseData.data)) {
-          inquiries = responseData.data
-        } else if (Array.isArray(responseData)) {
-          inquiries = responseData
-        }
 
-        const pendingInquiries = inquiries.filter((inquiry) => inquiry.Status === "pending")
+        // 다양한 API 응답 구조를 간결하게 처리
+        const inquiries =
+          responseData?.inquiries ||
+          responseData?.data?.data?.inquiries ||
+          responseData?.data?.inquiries ||
+          responseData?.data ||
+          responseData ||
+          [];
+
+        const pendingInquiries = Array.isArray(inquiries) ? inquiries.filter((inquiry) => inquiry.Status === "pending") : [];
         setInquiryCount(pendingInquiries.length)
       } catch (error) {
-        // 에러가 발생해도 카운트는 0으로 설정
+        console.error("Failed to fetch inquiry count:", error);
         setInquiryCount(0)
       }
     }
 
     fetchInquiryCount()
-
-    const interval = setInterval(fetchInquiryCount, 30000)
+    const interval = setInterval(fetchInquiryCount, INQUIRY_FETCH_INTERVAL)
 
     return () => clearInterval(interval)
   }, [])
@@ -67,29 +63,6 @@ export default function NotificationButton() {
       }}
     >
       <FaBell size={20} color="#555" />
-      {/* 임시 테스트용 - 항상 표시 */}
-      <span
-        style={{
-          position: "absolute",
-          top: -3,
-          right: -3,
-          background: "#ff4444",
-          color: "white",
-          borderRadius: "50%",
-          width: 20,
-          height: 20,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "12px",
-          fontWeight: "bold",
-          border: "2px solid #fff",
-          zIndex: 1000,
-          boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
-        }}
-      >
-        {inquiryCount}
-      </span>
       {inquiryCount > 0 && (
         <span
           style={{

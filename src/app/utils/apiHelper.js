@@ -17,8 +17,9 @@ let isHandlingTokenExpired = false
 // 토큰 만료 처리 함수
 export const handleTokenExpired = () => {
   // 중복 실행 방지
-  if (typeof window === 'undefined' || isHandlingTokenExpired) {
-    return
+  if (typeof window === 'undefined') return; // 서버 사이드에서는 실행하지 않음
+  if (isHandlingTokenExpired) { // 클라이언트에서만 중복 실행 방지
+    return;
   }
   isHandlingTokenExpired = true
     

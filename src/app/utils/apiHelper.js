@@ -117,6 +117,22 @@ export const parseJsonResponse = async (response) => {
   }
 }
 
+// 다양한 API 응답 구조에서 사용자 '목록' 데이터를 추출하는 함수
+export const extractUserListData = (data) => {
+  if (!data) return [];
+
+  const users = 
+    data.users?.data ||
+    data.data?.data?.users ||
+    data.data?.users ||
+    data.users ||
+    data.data ||
+    data;
+
+  // 최종 결과가 배열인지 확인하여 반환
+  return Array.isArray(users) ? users : [];
+}
+
 // 토큰이 있는지 확인하는 함수
 export const isAuthenticated = () => {
   return !!getToken()

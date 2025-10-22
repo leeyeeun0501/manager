@@ -1,4 +1,4 @@
-// user-manage
+// 사용자 관리 페이지
 "use client"
 import "../globals.css"
 import React, { useEffect, useState } from "react"
@@ -6,8 +6,23 @@ import Menu from "../components/menu"
 import { FaTrashAlt } from "react-icons/fa"
 import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./user-manage.module.css"
-import { apiGet, apiDelete, parseJsonResponse } from "../utils/apiHelper"
+import { apiGet, apiDelete, parseJsonResponse, extractUserListData } from "../utils/apiHelper"
 import { useSessionCheck } from "../utils/useSessionCheck"
+
+function formatDateTime(isoString) {
+  if (!isoString) return ""
+  const d = new Date(isoString)
+  if (isNaN(d)) return ""
+  const pad = (n) => n.toString().padStart(2, "0")
+  return (
+    d.getFullYear() + "-" +
+    pad(d.getMonth() + 1) + "-" +
+    pad(d.getDate()) + " " +
+    pad(d.getHours()) + ":" +
+    pad(d.getMinutes()) + ":" +
+    pad(d.getSeconds())
+  )
+}
 
 export default function UserManagePage() {
   // 세션 체크 활성화
@@ -57,21 +72,7 @@ export default function UserManagePage() {
       const res = await apiGet("/api/user-route")
       const data = await parseJsonResponse(res)
       
-      // data.data 구조로 변경 - 더 정확한 처리
-      let usersArr = []
-      if (data.users && data.users.data && Array.isArray(data.users.data)) {
-        usersArr = data.users.data
-      } else if (data.data?.data?.users && Array.isArray(data.data.data.users)) {
-        usersArr = data.data.data.users
-      } else if (data.data?.users && Array.isArray(data.data.users)) {
-        usersArr = data.data.users
-      } else if (data.users && Array.isArray(data.users)) {
-        usersArr = data.users
-      } else if (Array.isArray(data.data)) {
-        usersArr = data.data
-      } else if (Array.isArray(data)) {
-        usersArr = data
-      }
+      const usersArr = extractUserListData(data)
       // 생성일 내림차순(최신이 위로)
       usersArr.sort((a, b) => {
         const dateA = new Date(a.CreatedAt || a.createdAt || a.datetime || 0)
@@ -135,46 +136,12 @@ export default function UserManagePage() {
     }
   }
 
-  function formatDateTime(isoString) {
-    if (!isoString) return ""
-    const d = new Date(isoString)
-    if (isNaN(d)) return ""
-    const pad = (n) => n.toString().padStart(2, "0")
-    return (
-      d.getFullYear() +
-      "-" +
-      pad(d.getMonth() + 1) +
-      "-" +
-      pad(d.getDate()) +
-      " " +
-      pad(d.getHours()) +
-      ":" +
-      pad(d.getMinutes()) +
-      ":" +
-      pad(d.getSeconds())
-    )
-  }
-
   return (
     <div className={styles.userRoot}>
       {loading && <LoadingOverlay />}
       {/* 토스트 메시지 UI */}
       {toastVisible && (
-        <div
-          style={{
-            position: "fixed",
-            top: 30,
-            left: "50%",
-            transform: "translateX(-50%)",
-            backgroundColor: "#333",
-            color: "#fff",
-            padding: "12px 24px",
-            borderRadius: 8,
-            zIndex: 3000,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-            fontWeight: "bold",
-          }}
-        >
+        <div className={styles.toastPopup}>
           {toastMessage}
         </div>
       )}
@@ -182,11 +149,11 @@ export default function UserManagePage() {
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className={styles.userContent}>
         {error ? (
-          <div style={{ color: "red" }}>{error}</div>
+          <div className={styles.errorText}>{error}</div>
         ) : (
           <>
             {/* 검색 입력 */}
-            <div style={{ marginBottom: "20px", display: "flex", justifyContent: "flex-end", paddingRight: "200px" }}>
+            <div className={styles.searchContainer}>
               <input
                 type="text"
                 placeholder="검색"
@@ -196,7 +163,7 @@ export default function UserManagePage() {
               />
             </div>
 
-            <div style={{ width: "100%", overflow: "hidden", maxWidth: "100%" }}>
+            <div className={styles.tableWrapper}>
               <table className={`${styles.userTable} ${styles.centerTable}`}>
               <thead>
                 <tr>
@@ -247,7 +214,7 @@ export default function UserManagePage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} style={{ textAlign: "center" }}>
+                    <td colSpan={7} className={styles.noData}>
                       사용자 데이터가 없습니다.
                     </td>
                   </tr>

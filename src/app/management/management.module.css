@@ -173,3 +173,56 @@
 .menu-link:hover {
   color: #005bb5;
 }
+
+.speechBubble {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80px;
+  height: 34px;
+  border-radius: 11px;
+  background: white;
+  border: 1.5px solid #111;
+  font-weight: bold;
+  font-size: 17px;
+  color: #111;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  word-break: normal;
+  white-space: nowrap;
+  line-height: 1.1;
+  letter-spacing: 1px;
+  padding: 2px 3px 0 3px;
+}
+
+.userId {
+  z-index: 1;
+  font-family: sans-serif;
+}
+
+.triangleBorder {
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid #111;
+  z-index: 0;
+}
+
+.triangleFill {
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid #fff;
+  z-index: 1;
+}

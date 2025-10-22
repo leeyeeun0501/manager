@@ -2,43 +2,40 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
 import { apiGet, parseJsonResponse } from "../utils/apiHelper";
+import BuildingInfoModal from "../components/BuildingInfoModal";
+import styles from "./management.module.css";
 
 const NAVER_MAPS_SCRIPT_URL = "https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=yxffktqahm";
 
 // 마커 팝업 컨텐츠 생성
 function createSpeechBubbleMarkerContent(userId) {
   return `
-    <div style="
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 80px; /* 폭 넉넉히 */
-      height: 34px;
-      border-radius: 11px;
-      background: white;
-      border: 1.5px solid #111;
-      font-weight: bold;
-      font-size: 17px;
-      color: #111;
-      box-shadow: 0px 2px 6px rgba(0,0,0,0.08);
-      text-align: center;
-      word-break: normal; /* 변경 */
-      white-space: nowrap; /* 변경 */
-      line-height: 1.1;
-      letter-spacing: 1px;
-      padding: 2px 3px 0 3px;
-    ">
-      <span style="z-index:1; font-family:sans-serif;">${userId}</span>
-      <div style="position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%);
-        width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent;
-        border-top: 8px solid #111; z-index:0;"></div>
-      <div style="position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%);
-        width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent;
-        border-top: 7px solid #fff; z-index:1;"></div>
+    <div class="${styles.speechBubble}">
+      <span class="${styles.userId}">${userId}</span>
+      <div class="${styles.triangleBorder}"></div>
+      <div class="${styles.triangleFill}"></div>
     </div>
   `
 }
+
+// 지도 요소 스타일 상수
+const BUILDING_CIRCLE_OPTIONS = {
+  radius: 2,
+  fillColor: "#0066ff",
+  fillOpacity: 1,
+  strokeColor: "#0066ff",
+  strokeOpacity: 1,
+  strokeWeight: 2,
+};
+
+const BUILDING_MARKER_OPTIONS = {
+  draggable: false,
+  opacity: 0.3,
+  zIndex: 100,
+  clickable: true,
+  cursor: "pointer",
+};
+
 
 export default function NaverMapSimple({ markers = [] }) {
   const mapRef = useRef(null)
@@ -244,26 +241,17 @@ export default function NaverMapSimple({ markers = [] }) {
     buildingData.forEach((building) => {
       // building-manage와 동일한 원형 마커
       const circle = new window.naver.maps.Circle({
+        ...BUILDING_CIRCLE_OPTIONS,
         map: mapInstanceRef.current,
         center: new window.naver.maps.LatLng(building.x, building.y),
-        radius: 2,
-        fillColor: "#0066ff",
-        fillOpacity: 1,
-        strokeColor: "#0066ff",
-        strokeOpacity: 1,
-        strokeWeight: 2,
       })
       buildingCirclesRef.current.push(circle)
 
       const marker = new window.naver.maps.Marker({
+        ...BUILDING_MARKER_OPTIONS,
         position: new window.naver.maps.LatLng(building.x, building.y),
         map: mapInstanceRef.current,
-        draggable: false,
-        opacity: 0.3,
         title: building.node_name || building.id,
-        zIndex: 100,
-        clickable: true,
-        cursor: "pointer",
       })
 
       // 건물 마커 클릭 이벤트
@@ -376,198 +364,13 @@ export default function NaverMapSimple({ markers = [] }) {
         }}
       />
 
-      {/* 건물 정보 모달 */}
       {selectedBuilding && (
-        <div
-          style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            zIndex: 3000,
-            background: "#fff",
-            borderRadius: "16px",
-            padding: "24px",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-            minWidth: "300px",
-            maxWidth: "400px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "16px",
-            }}
-          >
-            <h3
-              style={{
-                margin: 0,
-                fontSize: "18px",
-                fontWeight: "600",
-                color: "#333",
-              }}
-            >
-              건물 정보
-            </h3>
-            <button
-              onClick={() => {
-                setSelectedBuilding(null)
-                setBuildingDetails(null)
-              }}
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: "20px",
-                cursor: "pointer",
-                color: "#999",
-                padding: "4px",
-              }}
-            >
-              ×
-            </button>
-          </div>
-
-          <div style={{ marginBottom: "16px" }}>
-            <div style={{ marginBottom: "12px" }}>
-              <strong>이름:</strong>{" "}
-              {selectedBuilding.node_name || selectedBuilding.id}
-            </div>
-
-            {/* 건물 이미지 */}
-            {buildingDetails && (
-              <div style={{ marginBottom: "12px" }}>
-                <strong>사진:</strong>
-                <div style={{ marginTop: "8px" }}>
-                  {(() => {
-                    let imageArr = []
-                    if (
-                      Array.isArray(buildingDetails.Image) &&
-                      buildingDetails.Image.length > 0
-                    ) {
-                      imageArr = [...buildingDetails.Image]
-                    } else if (
-                      Array.isArray(buildingDetails.image) &&
-                      buildingDetails.image.length > 0
-                    ) {
-                      imageArr = [...buildingDetails.image]
-                    } else if (buildingDetails.image) {
-                      imageArr = [buildingDetails.image]
-                    } else if (buildingDetails.image_url) {
-                      imageArr = [buildingDetails.image_url]
-                    }
-
-                    if (imageArr.length > 0) {
-                      return (
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: "8px",
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          {imageArr.slice(0, 3).map((imageUrl, idx) => (
-                            <img
-                              key={idx}
-                              src={imageUrl}
-                              alt={`건물 사진 ${idx + 1}`}
-                              style={{
-                                width: "60px",
-                                height: "60px",
-                                objectFit: "cover",
-                                borderRadius: "8px",
-                                border: "1px solid #eee",
-                              }}
-                              onError={(e) => {
-                                e.target.style.display = "none"
-                              }}
-                            />
-                          ))}
-                        </div>
-                      )
-                    } else {
-                      return (
-                        <div
-                          style={{
-                            color: "#999",
-                            fontSize: "14px",
-                            fontStyle: "italic",
-                          }}
-                        >
-                          사진 없음
-                        </div>
-                      )
-                    }
-                  })()}
-                </div>
-              </div>
-            )}
-
-            {/* 건물 설명 */}
-            {buildingDetails && (
-              <div style={{ marginBottom: "12px" }}>
-                <strong>설명:</strong>
-                <div
-                  style={{
-                    marginTop: "8px",
-                    fontSize: "14px",
-                    color: "#666",
-                    lineHeight: "1.4",
-                  }}
-                >
-                  {buildingDetails.Description ||
-                    buildingDetails.Desc ||
-                    buildingDetails.desc ||
-                    "설명 없음"}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: "8px",
-            }}
-          >
-            <button
-              onClick={() => {
-                setSelectedBuilding(null)
-                setBuildingDetails(null)
-              }}
-              style={{
-                padding: "8px 16px",
-                borderRadius: "8px",
-                border: "1px solid #ddd",
-                background: "#fff",
-                color: "#666",
-                cursor: "pointer",
-                fontSize: "14px",
-              }}
-            >
-              닫기
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 모달 배경 오버레이 */}
-      {selectedBuilding && (
-        <div
-          onClick={() => {
-            setSelectedBuilding(null)
-            setBuildingDetails(null)
-          }}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.5)",
-            zIndex: 2999,
+        <BuildingInfoModal
+          building={selectedBuilding}
+          details={buildingDetails}
+          onClose={() => {
+            setSelectedBuilding(null);
+            setBuildingDetails(null);
           }}
         />
       )}

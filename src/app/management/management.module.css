@@ -279,3 +279,17 @@
   background: #0066ff;
   border-radius: 50%;
 }
+
+.mapWrapper {
+  position: relative;
+}
+
+.mapContainer {
+  width: 140%;
+  height: 650px;
+  border-radius: 18px;
+  border: 1.5px solid #222;
+  background: #eee;
+  margin: 0 auto;
+  transform: translateX(-15%);
+}

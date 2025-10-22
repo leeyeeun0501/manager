@@ -305,19 +305,8 @@ export default function NaverMapSimple({ markers = [] }) {
   }, [pathData, ready])
 
   return (
-    <div style={{ position: "relative" }}>
-      <div
-        ref={mapRef}
-        style={{
-          width: "140%",
-          height: "650px",
-          borderRadius: "18px",
-          border: "1.5px solid #222",
-          background: "#eee",
-          margin: "0 auto",
-          transform: "translateX(-15%)",
-        }}
-      />
+    <div className={styles.mapWrapper}>
+      <div ref={mapRef} className={styles.mapContainer} />
 
       {selectedBuilding && (
         <BuildingInfoModal

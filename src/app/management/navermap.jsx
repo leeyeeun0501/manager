@@ -1,7 +1,9 @@
 // navermap
 "use client"
 import { useEffect, useRef, useState } from "react"
-import { apiGet, parseJsonResponse } from "../utils/apiHelper"
+import { apiGet, parseJsonResponse } from "../utils/apiHelper";
+
+const NAVER_MAPS_SCRIPT_URL = "https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=yxffktqahm";
 
 // 마커 팝업 컨텐츠 생성
 function createSpeechBubbleMarkerContent(userId) {
@@ -62,8 +64,7 @@ export default function NaverMapSimple({ markers = [] }) {
       return
     }
     const script = document.createElement("script")
-    script.src =
-      "https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=yxffktqahm"
+    script.src = NAVER_MAPS_SCRIPT_URL;
     script.async = true
     script.onload = () => setReady(true)
     document.head.appendChild(script)
@@ -97,74 +98,35 @@ export default function NaverMapSimple({ markers = [] }) {
     }
   }, [ready])
 
-  // tower-route 데이터 가져오기
+  // tower-route 데이터(경로 및 건물) 가져오기
   useEffect(() => {
-    const fetchPathData = async () => {
+    const fetchData = async () => {
       try {
-        const response = await apiGet("/api/tower-route")
-        const data = await parseJsonResponse(response)
-        if (data.nodes && Array.isArray(data.nodes)) {
-          const filteredNodes = data.nodes.filter(
-            (node) => {
-              // 기본 필터: id가 있고 "O"가 포함되지 않은 것
-              if (!node.id || node.id.toString().includes("O")) {
-                return false
-              }
-              
-              // ~문으로 끝나는 경로점 제외
-              const nodeName = node.node_name || node.name || node.id || ""
-              if (nodeName.toString().endsWith("문")) {
-                return false
-              }
-              
-              return true
-            }
-          )
-          setPathData(filteredNodes)
-        }
-      } catch (error) {
-      }
-    }
-
-    fetchPathData()
-  }, [])
-
-  // 건물 데이터 가져오기
-  useEffect(() => {
-    const fetchBuildingData = async () => {
-      try {
-        setBuildingData([])
-
         const response = await apiGet("/api/tower-route")
         const data = await parseJsonResponse(response)
 
         if (data.nodes && Array.isArray(data.nodes)) {
-          const buildings = data.nodes.filter(
-            (node) => {
-              // 기본 필터: id가 있고 "O"가 포함되지 않은 것
-              if (!node.id || node.id.toString().includes("O")) {
-                return false
-              }
-              
-              // ~문으로 끝나는 건물 제외
-              const nodeName = node.node_name || node.name || node.id || ""
-              if (nodeName.toString().endsWith("문")) {
-                return false
-              }
-              
-              return true
+          const filteredNodes = data.nodes.filter((node) => {
+            // 기본 필터: id가 있고 "O"가 포함되지 않아야 함
+            if (!node.id || node.id.toString().includes("O")) {
+              return false;
             }
-          )
-          setBuildingData(buildings)
-        } else {
-          setBuildingData([])
+            // "~문"으로 끝나는 노드 제외
+            const nodeName = node.node_name || node.name || node.id || "";
+            return !nodeName.toString().endsWith("문");
+          });
+          // 경로점과 건물 데이터를 한 번에 설정
+          setPathData(filteredNodes);
+          setBuildingData(filteredNodes);
         }
       } catch (error) {
-        setBuildingData([])
+        console.error("Failed to fetch tower-route data:", error);
+        setPathData([]);
+        setBuildingData([]);
       }
-    }
+    };
 
-    fetchBuildingData()
+    fetchData();
   }, [])
 
   // 건물 상세 정보 가져오기
@@ -280,12 +242,6 @@ export default function NaverMapSimple({ markers = [] }) {
     if (!buildingData || buildingData.length === 0) return
 
     buildingData.forEach((building) => {
-      // ~문으로 끝나는 건물은 마커 표시하지 않음
-      const buildingName = building.node_name || building.name || building.id || ""
-      if (buildingName.toString().endsWith("문")) {
-        return // 마커 생성하지 않고 건너뛰기
-      }
-
       // building-manage와 동일한 원형 마커
       const circle = new window.naver.maps.Circle({
         map: mapInstanceRef.current,
@@ -339,13 +295,7 @@ export default function NaverMapSimple({ markers = [] }) {
       pathRef.current.forEach((marker) => marker.setMap(null))
     }
 
-    const pathMarkers = pathData
-      .filter((node) => {
-        // ~문으로 끝나는 경로점은 마커 표시하지 않음
-        const nodeName = node.node_name || node.name || node.id || ""
-        return !nodeName.toString().endsWith("문")
-      })
-      .map((node) => {
+    const pathMarkers = pathData.map((node) => {
         return new window.naver.maps.Marker({
           position: new window.naver.maps.LatLng(node.x, node.y),
           map: mapInstanceRef.current,

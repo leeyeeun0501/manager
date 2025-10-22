@@ -38,7 +38,6 @@ export default function ManagementPage() {
           parseJsonResponse(userRes),
         ])
 
-        // data.data 구조 처리 - 우선순위: data.data > data > 직접 접근
         let buildingNames = []
         if (buildingData.data?.data?.names && Array.isArray(buildingData.data.data.names)) {
           buildingNames = buildingData.data.data.names
@@ -89,7 +88,6 @@ export default function ManagementPage() {
       apiGet("/api/login-route")
         .then(parseJsonResponse)
         .then((data) => {
-          // data.data 구조로 변경 - 우선순위: data.data > data > 직접 접근
           let userData = []
           if (data.data?.data && Array.isArray(data.data.data)) {
             userData = data.data.data
@@ -130,7 +128,7 @@ export default function ManagementPage() {
   }, [])
 
   return (
-    <div className={styles["management-root"]}>
+    <div className={styles["management-root"]}> 
       {loading && <LoadingOverlay />}
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <main className={styles["management-content"]}>

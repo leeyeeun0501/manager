@@ -1,4 +1,4 @@
-// verify-password
+// 비밀번호 확인
 "use client"
 import "../mypage.module.css"
 import React, { useState } from "react"

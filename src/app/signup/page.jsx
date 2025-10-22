@@ -1,4 +1,4 @@
-// signup
+// 회원가입
 "use client"
 import "../globals.css"
 import { useState, useRef } from "react"

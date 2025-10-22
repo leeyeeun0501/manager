@@ -1,4 +1,4 @@
-// profilebutton
+// 마이 페이지 아이콘
 "use client"
 import { useRouter } from "next/navigation"
 import { FaUserCircle } from "react-icons/fa"

@@ -1,4 +1,4 @@
-// navermap
+// 메인 화면
 "use client"
 import { useEffect, useRef, useState } from "react"
 import { apiGet, parseJsonResponse } from "../utils/apiHelper";

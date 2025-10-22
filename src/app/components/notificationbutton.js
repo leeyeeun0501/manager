@@ -1,4 +1,4 @@
-// 문의 알림
+// 문의 알림 아이콘
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"

@@ -1,4 +1,4 @@
-// login
+// 로그인
 "use client"
 import "../globals.css"
 import { useState, useRef } from "react"

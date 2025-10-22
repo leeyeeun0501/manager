@@ -1,4 +1,4 @@
-// mypage
+// 마이 페이지
 "use client"
 import "../globals.css"
 import React, { useEffect, useState } from "react"

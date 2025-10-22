@@ -1,4 +1,4 @@
-// menu
+// 메뉴
 "use client"
 import { slide as Menu } from "react-burger-menu"
 import {
@@ -53,13 +53,13 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
   }
 
   const menuItems = [
-    { label: "Home 화면", icon: <FaHome />, path: "/management" },
+    { label: "Home", icon: <FaHome />, path: "/management" },
     { label: "Map 관리", icon: <FaMapMarkedAlt />, path: "/building-manage" },
     { label: "Floor 관리", icon: <FaBuilding />, path: "/floor-manage" },
     { label: "Room 관리", icon: <FaDoorOpen />, path: "/room-manage" },
     { label: "User 관리", icon: <FaUser />, path: "/user-manage" },
-    { label: "문의 관리", icon: <FaQuestionCircle />, path: "/inquiry" },
-    { label: "마이페이지", icon: <FaUser />, path: "/mypage/verify-password" },
+    { label: "Inquiry 관리", icon: <FaQuestionCircle />, path: "/inquiry" },
+    { label: "My Page", icon: <FaUser />, path: "/mypage/verify-password" },
   ]
 
   return (
@@ -68,8 +68,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
       {!menuOpen && (
         <div
           onClick={() => setMenuOpen(true)}
-          className={styles.bmBurgerButton}
-          style={{ cursor: "pointer" }}
+          className={styles.bmBurgerButton} /* cursor: pointer 스타일은 .bmBurgerButton 클래스에 추가됨 */
           aria-label="메뉴 열기"
           role="button"
           tabIndex={0}
@@ -100,9 +99,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
         </div>
 
         {menuItems.map((item) => {
-          // 마이페이지의 경우 /mypage로 시작하는 모든 경로에서 활성화
-          // Room 관리의 경우 /room-manage로 시작하는 모든 경로에서 활성화
-          const isActive = item.label === "마이페이지" 
+          const isActive = item.label === "My Page" 
             ? pathname.startsWith("/mypage")
             : item.label === "Room 관리"
             ? pathname.startsWith("/room-manage")
@@ -123,7 +120,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
         })}
 
         <button className={styles.logoutBtn} onClick={handleLogout}>
-          <FaSignOutAlt style={{ marginRight: 12, fontSize: "1.1em" }} />
+          <FaSignOutAlt className={styles.logoutIcon} />
           로그아웃
         </button>
       </Menu>

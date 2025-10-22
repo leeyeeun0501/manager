@@ -1,4 +1,4 @@
-// LoadingOverlay
+// 로딩 중
 import React from "react"
 
 export default function LoadingOverlay() {

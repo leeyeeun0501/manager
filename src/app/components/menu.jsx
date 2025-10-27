@@ -58,7 +58,7 @@ export default function HamburgerMenu({ menuOpen, setMenuOpen }) {
     { label: "Floor 관리", icon: <FaBuilding />, path: "/floor-manage" },
     { label: "Room 관리", icon: <FaDoorOpen />, path: "/room-manage" },
     { label: "User 관리", icon: <FaUser />, path: "/user-manage" },
-    { label: "Inquiry 관리", icon: <FaQuestionCircle />, path: "/inquiry" },
+    { label: "Inquiry 관리", icon: <FaQuestionCircle />, path: "/inquiry-manage" },
     { label: "My Page", icon: <FaUser />, path: "/mypage/verify-password" },
   ]
 

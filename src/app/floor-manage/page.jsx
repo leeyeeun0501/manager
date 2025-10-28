@@ -225,17 +225,9 @@ export default function BuildingPage() {
     formData.append("floor_number", addFloorNum)
     formData.append("file", addFloorFile)
     try {
-      console.log("🏢 층 추가 시작:", { building: addFloorBuilding, floor: addFloorNum, file: addFloorFile?.name })
-      
       const res = await apiPost("/api/floor-route", formData)
-      console.log("🏢 층 추가 응답 상태:", res.status)
-      console.log("🏢 층 추가 응답 헤더:", Object.fromEntries(res.headers.entries()))
-      
       const data = await parseJsonResponse(res)
-      console.log("🏢 층 추가 응답 데이터:", data)
-      
       if (res.ok && data && !data.error) {
-        console.log("✅ 층 추가 성공")
         showToast("층 추가가 완료되었습니다!")
         setShowAddFloor(false)
         setAddFloorBuilding("")
@@ -246,12 +238,9 @@ export default function BuildingPage() {
         // '전체 건물' 또는 특정 건물 상태에 따라 갱신
         await fetchFloors(selectedBuilding)
       } else {
-        console.log("❌ 층 추가 실패:", data.error)
         setAddFloorError(data.error || "층 추가 실패")
       }
     } catch (err) {
-      console.error("❌ 층 추가 오류:", err)
-      console.error("❌ 오류 스택:", err.stack)
       setAddFloorError("층 추가 중 오류가 발생했습니다.")
     }
   }
@@ -266,20 +255,13 @@ export default function BuildingPage() {
       return
 
     try {
-      console.log("🗑️ 층 삭제 시작:", { building: buildingName, floor: floorNum })
-      
       const res = await apiDelete(
         `/api/floor-route?building=${encodeURIComponent(
           buildingName
         )}&floor=${encodeURIComponent(floorNum)}`
       )
-      console.log("🗑️ 층 삭제 응답 상태:", res.status)
-      
       const data = await parseJsonResponse(res)
-      console.log("🗑️ 층 삭제 응답 데이터:", data)
-      
       if (data && data.success) {
-        console.log("✅ 층 삭제 성공")
         setFloors(prev =>
           prev.filter(
             (f) =>
@@ -291,11 +273,9 @@ export default function BuildingPage() {
         )
         showToast("층 삭제가 완료되었습니다.")
       } else {
-        console.log("❌ 층 삭제 실패:", data.error || "알 수 없는 오류")
         showToast(data.error || "층 삭제 실패")
       }
     } catch (err) {
-      console.error("❌ 층 삭제 오류:", err)
       showToast("층 삭제 중 오류가 발생했습니다.")
     }
   }

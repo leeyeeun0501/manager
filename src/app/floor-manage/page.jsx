@@ -284,55 +284,19 @@ export default function BuildingPage() {
   function ClipFileInput({ onFileChange, fileName }) {
     const fileInputRef = useRef(null)
     return (
-      <div
-        style={{
-          width: "100%",
-          height: 48,
-          position: "relative",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
+      <div className={styles.clipFileInputRoot}>
         <input
           type="text"
           readOnly
           value={fileName || ""}
           placeholder="SVG 파일"
-          style={{
-            width: "100%",
-            height: "100%",
-            padding: "0 44px 0 12px",
-            border: "none",
-            outline: "none",
-            borderRadius: 14,
-            fontSize: 16,
-            background: "transparent",
-            color: fileName ? "#222" : "#aaa",
-            fontFamily: "inherit",
-            boxSizing: "border-box",
-            cursor: "pointer",
-          }}
+          className={`${styles.clipFileInputDisplay} ${fileName ? styles.fileSelected : ""}`}
           onClick={() => fileInputRef.current && fileInputRef.current.click()}
         />
         <button
           type="button"
           onClick={() => fileInputRef.current && fileInputRef.current.click()}
-          style={{
-            position: "absolute",
-            top: "50%",
-            right: 10,
-            transform: "translateY(-50%)",
-            background: "none",
-            border: "none",
-            padding: 0,
-            margin: 0,
-            cursor: "pointer",
-            color: "#2574f5",
-            fontSize: 22,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          className={styles.clipFileIconButton}
           aria-label="SVG 파일 업로드"
         >
           <FaPaperclip size={22} />
@@ -341,7 +305,7 @@ export default function BuildingPage() {
           ref={fileInputRef}
           type="file"
           accept=".svg"
-          style={{ display: "none" }}
+          className={styles.clipFileInputHidden}
           onChange={onFileChange}
         />
       </div>

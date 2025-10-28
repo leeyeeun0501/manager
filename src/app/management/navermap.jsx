@@ -1,4 +1,4 @@
-// 메인 화면
+// 메인 화면 지도 관련
 "use client"
 import { useEffect, useRef, useState } from "react"
 import { apiGet, parseJsonResponse } from "../utils/apiHelper";

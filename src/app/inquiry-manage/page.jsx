@@ -1,4 +1,4 @@
-// inquiry
+// 문의 관리 페이지
 "use client"
 import React, { useEffect, useState } from "react"
 import Menu from "../components/menu"
@@ -38,13 +38,7 @@ export default function InquiryPage() {
 
   // 페이징
   const itemsPerPage = 7
-  const [currentPage, setCurrentPage] = useState(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("INQUIRY_MANAGE_PAGE")
-      return saved ? Number(saved) : 1
-    }
-    return 1
-  })
+  const [currentPage, setCurrentPage] = useState(1)
 
   // 문의 통계 상태
   const [inquiryStats, setInquiryStats] = useState({
@@ -75,10 +69,6 @@ export default function InquiryPage() {
     console.log('🚀 inquiry 페이지 - useEffect 실행됨')
     fetchInquiries()
   }, [])
-
-  useEffect(() => {
-    localStorage.setItem("INQUIRY_MANAGE_PAGE", currentPage)
-  }, [currentPage])
 
   // 문의 불러오기
   const fetchInquiries = async () => {

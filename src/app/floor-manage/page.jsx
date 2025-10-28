@@ -352,40 +352,14 @@ export default function BuildingPage() {
     <div className={styles["building-root"]}>
       {loading && <LoadingOverlay />}
       {/* 토스트 메시지 UI */}
-      {toastVisible && (
-        <div
-          style={{
-            position: "fixed",
-            top: 30,
-            left: "50%",
-            transform: "translateX(-50%)",
-            backgroundColor: "#333",
-            color: "#fff",
-            padding: "12px 24px",
-            borderRadius: 8,
-            zIndex: 30000,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-            fontWeight: "bold",
-          }}
-        >
-          {toastMessage}
-        </div>
-      )}
+      {toastVisible && <div className={styles.toastPopup}>{toastMessage}</div>}
       <span className={styles["building-header"]}>층 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className={styles["building-content"]}>
         {/* 건물/층 선택 콤보박스 */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 18,
-            marginBottom: 18,
-            justifyContent: "space-between",
-          }}
-        >
+        <div className={styles.filterContainer}>
           {/* 건물/층 콤보 박스 */}
-          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <div className={styles.selectGroup}>
             <select
               className={styles["building-select"]}
               value={selectedBuilding}
@@ -464,24 +438,11 @@ export default function BuildingPage() {
                   <tr key={row.building + "-" + row.floor + "-" + idx}>
                     <td>{row.building}</td>
                     <td>{row.floor}</td>
-                    <td
-                      style={{ position: "relative" }}
-                      onMouseEnter={() =>
-                        setHoveredKey(`${row.building}-${row.floor}`)
-                      }
-                      onMouseLeave={() => setHoveredKey("")}
-                    >
+                    <td className={styles.fileCell} onMouseEnter={() => setHoveredKey(`${row.building}-${row.floor}`)} onMouseLeave={() => setHoveredKey("")}>
                       {row.file ? (
                         <button
                           type="button"
-                          style={{
-                            color: "#2574f5",
-                            fontWeight: 600,
-                            textDecoration: "underline",
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                          }}
+                          className={styles.filePreviewBtn}
                           onClick={() => {
                             setMapModalFile(row.file)
                             setMapModalOpen(true)
@@ -498,19 +459,7 @@ export default function BuildingPage() {
                           <span style={{ color: "#aaa" }}>없음</span>
                           {hoveredKey === `${row.building}-${row.floor}` && (
                             <button
-                              style={{
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                                color: "#2574f5",
-                                fontSize: 18,
-                                marginLeft: 6,
-                                padding: 0,
-                                verticalAlign: "middle",
-                                display: "inline-flex",
-                                alignItems: "center",
-                              }}
-                              aria-label="맵 파일 추가"
+                              className={styles.addFileIconBtn} aria-label="맵 파일 추가"
                               onClick={() => {
                                 setFileAddModal({
                                   open: true,
@@ -536,12 +485,6 @@ export default function BuildingPage() {
                           handleDeleteFloor(row.building, row.floor)
                         }
                         title="삭제"
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          fontSize: "1.1rem",
-                        }}
                       >
                         <FaTrashAlt size={18} color="#e74c3c" />
                       </button>
@@ -551,15 +494,7 @@ export default function BuildingPage() {
               ) : (
                 <tr>
                   <td
-                    colSpan={4}
-                    style={{
-                      textAlign: "center",
-                      padding: "40px 20px",
-                      color: "#666",
-                      fontSize: "16px",
-                      fontWeight: "500",
-                    }}
-                  >
+                    colSpan={4} className={styles.noDataCell}>
                     {selectedBuilding && selectedFloor
                       ? `${selectedBuilding} ${selectedFloor}층 데이터가 없습니다`
                       : selectedBuilding
@@ -597,48 +532,12 @@ export default function BuildingPage() {
 
         {/* 층 추가 팝업 */}
         {showAddFloor && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
-              background: "rgba(0,0,0,0.14)",
-              zIndex: 10000,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            onClick={() => setShowAddFloor(false)}
-          >
+          <div className={styles.modalBackdrop} onClick={() => setShowAddFloor(false)}>
             <div
-              style={{
-                background: "#fff",
-                borderRadius: 18,
-                minWidth: 380,
-                maxWidth: "95vw",
-                padding: "36px 32px 28px 32px",
-                boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "stretch",
-                position: "relative",
-              }}
+              className={styles.modalContainer}
               onClick={(e) => e.stopPropagation()}
             >
-              <div
-                style={{
-                  fontWeight: 700,
-                  fontSize: 18,
-                  color: "#1976d2",
-                  marginBottom: 18,
-                  textAlign: "center",
-                  borderBottom: "2px solid #1976d2",
-                  paddingBottom: 6,
-                  letterSpacing: "-0.5px",
-                }}
-              >
+              <div className={styles.modalTitle}>
                 층 추가
               </div>
               <form
@@ -654,23 +553,7 @@ export default function BuildingPage() {
                   value={addFloorBuilding}
                   onChange={(e) => setAddFloorBuilding(e.target.value)}
                   required
-                  style={{
-                    width: "90%",
-                    height: 48,
-                    padding: "0 12px",
-                    borderRadius: 14,
-                    border: "1.5px solid #b3d1fa",
-                    fontSize: 16,
-                    background: "#fff",
-                    color: "#222",
-                    fontFamily: "inherit",
-                    outline: "none",
-                    boxSizing: "border-box",
-                    margin: "0 auto",
-                    display: "block",
-                    appearance: "none",
-                    cursor: "pointer",
-                  }}
+                  className={styles.modalSelect}
                 >
                   <option value="">건물 선택</option>
                   {buildingOptions.map((b, idx) => (
@@ -681,85 +564,34 @@ export default function BuildingPage() {
                 </select>
                 {/* 층 선택: 화살표 방식 */}
                 <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    width: "90%",
-                    margin: "0 auto",
-                    border: "1.5px solid #b3d1fa",
-                    borderRadius: 14,
-                    height: 48,
-                    background: "#fff",
-                    padding: "0 8px",
-                    boxSizing: "border-box",
-                    justifyContent: "space-between",
-                  }}
+                  className={styles.floorSelector}
                 >
                   <input
                     type="text"
                     value={addFloorNum}
                     readOnly
                     required
-                    style={{
-                      flex: 1,
-                      textAlign: "left",
-                      fontSize: 16,
-                      border: "none",
-                      outline: "none",
-                      background: "transparent",
-                      color: "#222",
-                      fontFamily: "inherit",
-                    }}
+                    className={styles.floorSelectorInput}
                   />
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      gap: 4,
-                      alignItems: "center",
-                    }}
-                  >
+                  <div className={styles.floorSelectorButtons}>
                     <button
                       type="button"
                       onClick={handleFloorUp}
-                      style={{
-                        border: "none",
-                        background: "transparent",
-                        fontSize: 18,
-                        cursor: "pointer",
-                        color: "#2574f5",
-                      }}
+                      className={styles.floorArrowBtn}
                     >
                       ▲
                     </button>
                     <button
                       type="button"
                       onClick={handleFloorDown}
-                      style={{
-                        border: "none",
-                        background: "transparent",
-                        fontSize: 18,
-                        cursor: "pointer",
-                        color: "#2574f5",
-                      }}
+                      className={styles.floorArrowBtn}
                     >
                       ▼
                     </button>
                   </div>
                 </div>
                 <div
-                  style={{
-                    width: "90%",
-                    margin: "0 auto",
-                    background: "#fff",
-                    borderRadius: 14,
-                    border: "1.5px solid #b3d1fa",
-                    height: 48,
-                    boxSizing: "border-box",
-                    display: "flex",
-                    alignItems: "center",
-                    padding: 0,
-                  }}
+                  className={styles.fileInputContainer}
                 >
                   <ClipFileInput
                     onFileChange={(e) => setAddFloorFile(e.target.files[0])}
@@ -767,34 +599,14 @@ export default function BuildingPage() {
                   />
                 </div>
                 {addFloorError && (
-                  <div
-                    style={{ color: "#e74c3c", fontSize: 15, margin: "4px 0" }}
-                  >
+                  <div className={styles.modalErrorText}>
                     {addFloorError}
                   </div>
                 )}
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 10,
-                    marginTop: 14,
-                    width: "100%",
-                    justifyContent: "flex-end",
-                  }}
-                >
+                <div className={styles.modalActionButtons}>
                   <button
                     type="button"
-                    style={{
-                      flex: 1,
-                      padding: "10px 0",
-                      borderRadius: 24,
-                      border: "none",
-                      fontSize: 15,
-                      fontWeight: 600,
-                      background: "#eee",
-                      color: "#333",
-                      cursor: "pointer",
-                    }}
+                    className={styles.modalCancelBtn}
                     onClick={() => {
                       setShowAddFloor(false)
                       setAddFloorBuilding("")
@@ -809,17 +621,7 @@ export default function BuildingPage() {
                   </button>
                   <button
                     type="submit"
-                    style={{
-                      flex: 1,
-                      padding: "10px 0",
-                      borderRadius: 24,
-                      border: "none",
-                      fontSize: 15,
-                      fontWeight: 600,
-                      background: "#2574f5",
-                      color: "#fff",
-                      cursor: "pointer",
-                    }}
+                    className={styles.modalSubmitBtn}
                   >
                     저장
                   </button>
@@ -831,19 +633,7 @@ export default function BuildingPage() {
 
         {/* 2D 도면 팝업 */}
         {mapModalOpen && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
-              background: "rgba(0,0,0,0.18)",
-              zIndex: 20000,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+          <div className={styles.modalBackdrop}
             onClick={() => {
               setMapModalOpen(false)
               setEditMapFile(null)
@@ -852,64 +642,24 @@ export default function BuildingPage() {
             }}
           >
             <div
-              style={{
-                background: "#fff",
-                borderRadius: 18,
-                minWidth: 600,
-                maxWidth: "90vw",
-                maxHeight: "90vh",
-                padding: "28px 28px 18px 28px",
-                boxShadow: "0 2px 16px rgba(0,0,0,0.12)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                position: "relative",
-                overflow: "auto",
-              }}
+              className={styles.mapModalContainer}
               onClick={(e) => e.stopPropagation()}
             >
               <button
-                style={{
-                  position: "absolute",
-                  top: 12,
-                  right: 18,
-                  background: "none",
-                  border: "none",
-                  fontSize: 22,
-                  cursor: "pointer",
-                  color: "#aaa",
-                }}
+                className={styles.mapModalCloseBtn}
                 onClick={() => setMapModalOpen(false)}
                 aria-label="닫기"
               >
                 ✕
               </button>
               <div
-                style={{
-                  marginBottom: 18,
-                  fontWeight: 700,
-                  fontSize: 18,
-                  color: "#2574f5",
-                }}
+                className={styles.mapModalTitle}
               >
                 2D 도면 미리보기
               </div>
-              <div
-                style={{ marginBottom: 12, fontWeight: "bold", fontSize: 16 }}
-              >
+              <div className={styles.mapModalInfo}>
                 {/* 건물명/층수 표시 */}
-                <div
-                  style={{
-                    width: "100%",
-                    fontSize: 16,
-                    color: "#2574f5",
-                    fontWeight: 600,
-                    marginBottom: 12,
-                    textAlign: "center",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                  }}
-                >
+                <div className={styles.mapModalBuildingInfo}>
                   건물명: {editMapBuilding} / 층수: {editMapFloor}
                 </div>
               </div>
@@ -917,31 +667,13 @@ export default function BuildingPage() {
               <object
                 type="image/svg+xml"
                 data={getCacheBustedUrl(mapModalFile)}
-                style={{
-                  width: "400px",
-                  height: "400px",
-                  maxWidth: "40vw",
-                  maxHeight: "60vh",
-                  border: "none",
-                  borderRadius: 10,
-                  background: "#f7f9fc",
-                  display: "block",
-                  margin: "0 auto",
-                }}
+                className={styles.mapModalSvgObject}
               >
                 SVG 미리보기를 지원하지 않는 브라우저입니다.
               </object>
               {/* 파일 선택 + 수정 버튼을 이미지 아래에 세로로 */}
               <form
-                style={{
-                  marginTop: 24,
-                  width: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 14,
-                  maxWidth: 340,
-                }}
+                className={styles.mapModalForm}
                 onSubmit={async (e) => {
                   e.preventDefault()
                   setEditMapError("")
@@ -984,19 +716,7 @@ export default function BuildingPage() {
                   setEditMapLoading(false)
                 }}
               >
-                <div
-                  style={{
-                    width: "100%",
-                    background: "#fff",
-                    borderRadius: 14,
-                    border: "1.5px solid #b3d1fa",
-                    height: 48,
-                    boxSizing: "border-box",
-                    display: "flex",
-                    alignItems: "center",
-                    padding: 0,
-                  }}
-                >
+                <div className={styles.fileInputContainer}>
                   <ClipFileInput
                     onFileChange={(e) => setEditMapFile(e.target.files[0])}
                     fileName={editMapFile ? editMapFile.name : ""}
@@ -1005,25 +725,13 @@ export default function BuildingPage() {
                   />
                 </div>
                 {editMapError && (
-                  <div style={{ color: "#e74c3c", fontSize: 15 }}>
+                  <div className={styles.modalErrorText}>
                     {editMapError}
                   </div>
                 )}
                 <button
                   type="submit"
-                  style={{
-                    width: "100%",
-                    padding: "12px 0",
-                    borderRadius: 14,
-                    border: "none",
-                    fontSize: 16,
-                    fontWeight: 700,
-                    background: "#2574f5",
-                    color: "#fff",
-                    cursor: "pointer",
-                    marginTop: 8,
-                    opacity: editMapLoading ? 0.6 : 1,
-                  }}
+                  className={styles.mapModalSubmitBtn}
                   disabled={editMapLoading}
                 >
                   {editMapLoading ? "수정 중..." : "도면 파일 수정"}
@@ -1035,49 +743,17 @@ export default function BuildingPage() {
 
         {/* 2D 도면 추가 팝업 */}
         {fileAddModal.open && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
-              background: "rgba(0,0,0,0.14)",
-              zIndex: 20000,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+          <div className={styles.modalBackdrop}
             onClick={() =>
               setFileAddModal({ open: false, building: "", floor: "" })
             }
           >
             <div
-              style={{
-                background: "#fff",
-                borderRadius: 18,
-                minWidth: 380,
-                maxWidth: "95vw",
-                padding: "36px 32px 28px 32px",
-                boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "stretch",
-                position: "relative",
-              }}
+              className={styles.modalContainer}
               onClick={(e) => e.stopPropagation()}
             >
               <div
-                style={{
-                  fontWeight: 700,
-                  fontSize: 18,
-                  color: "#1976d2",
-                  marginBottom: 18,
-                  textAlign: "center",
-                  borderBottom: "2px solid #1976d2",
-                  paddingBottom: 6,
-                  letterSpacing: "-0.5px",
-                }}
+                className={styles.modalTitle}
               >
                 2D 도면 파일 추가
               </div>
@@ -1129,69 +805,26 @@ export default function BuildingPage() {
                 }}
               >
                 {/* 건물명/층수 표시 */}
-                <div
-                  style={{
-                    width: "90%",
-                    margin: "0 auto",
-                    fontSize: 16,
-                    color: "#2574f5",
-                    fontWeight: 600,
-                    marginBottom: 8,
-                    textAlign: "center",
-                  }}
-                >
+                <div className={styles.modalBuildingInfo}>
                   {" "}
                   건물명: {fileAddModal.building} / 층수: {fileAddModal.floor}
                 </div>
                 {/* 파일 선택 */}
-                <div
-                  style={{
-                    width: "90%",
-                    margin: "0 auto",
-                    background: "#fff",
-                    borderRadius: 14,
-                    border: "1.5px solid #b3d1fa",
-                    height: 48,
-                    boxSizing: "border-box",
-                    display: "flex",
-                    alignItems: "center",
-                    padding: 0,
-                  }}
-                >
+                <div className={styles.fileInputContainer}>
                   <ClipFileInput
                     onFileChange={(e) => setAddFile(e.target.files[0])}
                     fileName={addFile ? addFile.name : ""}
                   />
                 </div>
                 {addFileError && (
-                  <div
-                    style={{ color: "#e74c3c", fontSize: 15, margin: "4px 0" }}
-                  >
+                  <div className={styles.modalErrorText}>
                     {addFileError}
                   </div>
                 )}
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 10,
-                    marginTop: 14,
-                    width: "100%",
-                    justifyContent: "flex-end",
-                  }}
-                >
+                <div className={styles.modalActionButtons}>
                   <button
                     type="button"
-                    style={{
-                      flex: 1,
-                      padding: "10px 0",
-                      borderRadius: 24,
-                      border: "none",
-                      fontSize: 15,
-                      fontWeight: 600,
-                      background: "#eee",
-                      color: "#333",
-                      cursor: "pointer",
-                    }}
+                    className={styles.modalCancelBtn}
                     onClick={() =>
                       setFileAddModal({ open: false, building: "", floor: "" })
                     }
@@ -1200,18 +833,7 @@ export default function BuildingPage() {
                   </button>
                   <button
                     type="submit"
-                    style={{
-                      flex: 1,
-                      padding: "10px 0",
-                      borderRadius: 24,
-                      border: "none",
-                      fontSize: 15,
-                      fontWeight: 600,
-                      background: "#2574f5",
-                      color: "#fff",
-                      cursor: "pointer",
-                      opacity: addFileLoading ? 0.6 : 1,
-                    }}
+                    className={styles.modalSubmitBtn}
                     disabled={addFileLoading}
                   >
                     {addFileLoading ? "업로드 중..." : "저장"}

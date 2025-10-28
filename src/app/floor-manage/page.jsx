@@ -1,13 +1,33 @@
 // floor-manage
 "use client"
-import "../globals.css"
-import React, { useEffect, useState, useRef } from "react"
+import React, { useEffect, useState, useRef, useCallback } from "react"
 import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./floor-manage.module.css"
 import { FaTrashAlt, FaPaperclip } from "react-icons/fa"
 import { apiGet, apiPost, apiPut, apiDelete, parseJsonResponse } from "../utils/apiHelper"
 import { useSessionCheck } from "../utils/useSessionCheck"
+import "../globals.css"
+
+// 파일 선택 아이콘 버튼 컴포넌트를 외부로 분리하여 불필요한 재생성을 방지합니다.
+function ClipFileInput({ onFileChange, fileName, fileInputRef, accept }) {
+  return (
+    <div className={styles.clipFileInputRoot}>
+      <input
+        type="text"
+        readOnly
+        value={fileName || ""}
+        placeholder="SVG 파일"
+        className={`${styles.clipFileInputDisplay} ${fileName ? styles.fileSelected : ""}`}
+        onClick={() => fileInputRef.current && fileInputRef.current.click()}
+      />
+      <button type="button" onClick={() => fileInputRef.current && fileInputRef.current.click()} className={styles.clipFileIconButton} aria-label="SVG 파일 업로드">
+        <FaPaperclip size={22} />
+      </button>
+      <input ref={fileInputRef} type="file" accept={accept || ".svg"} className={styles.clipFileInputHidden} onChange={onFileChange} />
+    </div>
+  )
+}
 
 export default function BuildingPage() {
   // 세션 체크 활성화
@@ -96,17 +116,17 @@ export default function BuildingPage() {
   const [toastMessage, setToastMessage] = useState("")
   const [toastVisible, setToastVisible] = useState(false)
 
-  const showToast = (msg, duration = 3000) => {
+  const showToast = useCallback((msg, duration = 3000) => {
     setToastMessage(msg)
     setToastVisible(true)
     setTimeout(() => setToastVisible(false), duration)
-  }
+  }, [])
 
-  const getCacheBustedUrl = (url) => {
+  const getCacheBustedUrl = useCallback((url) => {
     if (!url) return url
     const separator = url.includes("?") ? "&" : "?"
     return url + separator + "ts=" + Date.now()
-  }
+  }, [])
 
   // 층 표 필터 및 페이지네이션
   const floorFiltered = selectedFloor
@@ -158,20 +178,20 @@ export default function BuildingPage() {
 
   const currentFloorIndex = floorList.indexOf(addFloorNum)
 
-  const handleFloorUp = () => {
+  const handleFloorUp = useCallback(() => {
     if (currentFloorIndex < floorList.length - 1) {
       setAddFloorNum(floorList[currentFloorIndex + 1])
     }
-  }
+  }, [currentFloorIndex, floorList])
 
-  const handleFloorDown = () => {
+  const handleFloorDown = useCallback(() => {
     if (currentFloorIndex > 0) {
       setAddFloorNum(floorList[currentFloorIndex - 1])
     }
-  }
+  }, [currentFloorIndex, floorList])
 
   // 층 정보 fetch 함수 분리
-  async function fetchFloors(buildingName = selectedBuilding) {
+  const fetchFloors = useCallback(async (buildingName) => {
     let url = "/api/floor-route"
     if (buildingName) {
       url += `?building=${encodeURIComponent(buildingName)}`
@@ -184,7 +204,7 @@ export default function BuildingPage() {
       setFloors([])
     }
     setSelectedFloor("")
-  }
+  }, [])
 
   // 건물 목록 로드
   useEffect(() => {
@@ -209,11 +229,11 @@ export default function BuildingPage() {
 
   // 선택된 건물이 바뀔 때 층 정보 로드
   useEffect(() => {
-    fetchFloors(selectedBuilding)
-  }, [selectedBuilding])
+    fetchFloors(selectedBuilding);
+  }, [selectedBuilding, fetchFloors]);
 
   // 층 추가 핸들러
-  const handleAddFloor = async (e) => {
+  const handleAddFloor = useCallback(async (e) => {
     e.preventDefault()
     setAddFloorError("")
     if (!addFloorBuilding || !addFloorNum || !addFloorFile) {
@@ -243,10 +263,10 @@ export default function BuildingPage() {
     } catch (err) {
       setAddFloorError("층 추가 중 오류가 발생했습니다.")
     }
-  }
+  }, [addFloorBuilding, addFloorNum, addFloorFile, showToast, fetchFloors, selectedBuilding])
 
   // 층 삭제 핸들러
-  const handleDeleteFloor = async (buildingName, floorNum) => {
+  const handleDeleteFloor = useCallback(async (buildingName, floorNum) => {
     if (
       !window.confirm(
         `정말로 ${buildingName}의 ${floorNum}층을 삭제하시겠습니까?`
@@ -278,39 +298,7 @@ export default function BuildingPage() {
     } catch (err) {
       showToast("층 삭제 중 오류가 발생했습니다.")
     }
-  }
-
-  // 파일 선택 아이콘 버튼 컴포넌트
-  function ClipFileInput({ onFileChange, fileName }) {
-    const fileInputRef = useRef(null)
-    return (
-      <div className={styles.clipFileInputRoot}>
-        <input
-          type="text"
-          readOnly
-          value={fileName || ""}
-          placeholder="SVG 파일"
-          className={`${styles.clipFileInputDisplay} ${fileName ? styles.fileSelected : ""}`}
-          onClick={() => fileInputRef.current && fileInputRef.current.click()}
-        />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current && fileInputRef.current.click()}
-          className={styles.clipFileIconButton}
-          aria-label="SVG 파일 업로드"
-        >
-          <FaPaperclip size={22} />
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".svg"
-          className={styles.clipFileInputHidden}
-          onChange={onFileChange}
-        />
-      </div>
-    )
-  }
+  }, [showToast])
 
   return (
     <div className={styles["building-root"]}>

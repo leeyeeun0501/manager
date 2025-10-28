@@ -1,6 +1,6 @@
 // 문의 관리 페이지
 "use client"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay"
 import Image from "next/image"
@@ -65,12 +65,7 @@ export default function InquiryPage() {
     return text.substring(0, maxLength) + "..."
   }
 
-  useEffect(() => {
-    fetchInquiries()
-  }, [])
-
-  // 문의 불러오기
-  const fetchInquiries = async () => {
+  const fetchInquiries = useCallback(async () => {
     setLoading(true)
     try {
       const res = await apiGet("/api/inquiry-route")
@@ -110,63 +105,63 @@ export default function InquiryPage() {
         created_at: item.Created_At,
       }))
       setInquiries(mappedList)
-
-      // 문의 통계 계산
-      const total = mappedList.length
-      
-      const pending = mappedList.filter(
-        (q) => q.status === "답변 대기"
-      ).length
-      
-      const answered = mappedList.filter(
-        (q) => q.status === "answered" || q.status === "답변 완료"
-      ).length
-      
-      const answerRate = total > 0 ? Math.round((answered / total) * 100) : 0
-
-      const stats = {
-        total,
-        pending,
-        answered,
-        answerRate,
-      }
-      setInquiryStats(stats)
-
-      const categories = [
-        ...new Set(mappedList.map((item) => item.category).filter(Boolean)),
-      ]
-
-      const defaultCategories = [
-        "경로 안내 오류",
-        "장소/정보 오류",
-        "버그 신고",
-        "기능 제안",
-        "기타 문의",
-      ]
-
-      const allCategories = [...new Set([...categories, ...defaultCategories])]
-
-      const options = [
-        { value: "all", label: "문의 유형 전체" },
-        ...allCategories.map((cat) => ({ value: cat, label: cat })),
-      ]
-      setCategoryOptions(options)
     } catch (err) {
       setInquiries([])
-      setCategoryOptions([{ value: "all", label: "문의 유형 전체" }])
-      setInquiryStats({ total: 0, pending: 0, answered: 0, answerRate: 0 })
     }
     setLoading(false)
-  }
+  }, [])
+
+  const calculateStats = useCallback((inquiryList) => {
+    const total = inquiryList.length
+    const pending = inquiryList.filter((q) => q.status === "답변 대기").length
+    const answered = inquiryList.filter(
+      (q) => q.status === "answered" || q.status === "답변 완료"
+    ).length
+    const answerRate = total > 0 ? Math.round((answered / total) * 100) : 0
+    setInquiryStats({ total, pending, answered, answerRate })
+  }, [])
+
+  const generateCategoryOptions = useCallback((inquiryList) => {
+    const categories = [
+      ...new Set(inquiryList.map((item) => item.category).filter(Boolean)),
+    ]
+    const defaultCategories = [
+      "경로 안내 오류",
+      "장소/정보 오류",
+      "버그 신고",
+      "기능 제안",
+      "기타 문의",
+    ]
+    const allCategories = [...new Set([...categories, ...defaultCategories])]
+    const options = [
+      { value: "all", label: "문의 유형 전체" },
+      ...allCategories.map((cat) => ({ value: cat, label: cat })),
+    ]
+    setCategoryOptions(options)
+  }, [])
+
+  useEffect(() => {
+    fetchInquiries()
+  }, [fetchInquiries])
+
+  useEffect(() => {
+    if (inquiries.length > 0) {
+      calculateStats(inquiries)
+      generateCategoryOptions(inquiries)
+    } else {
+      setInquiryStats({ total: 0, pending: 0, answered: 0, answerRate: 0 })
+      setCategoryOptions([{ value: "all", label: "문의 유형 전체" }])
+    }
+  }, [inquiries, calculateStats, generateCategoryOptions])
 
   // 모달·사진·답변 함수
-  const openModal = (inquiry) => {
+  const openModal = useCallback((inquiry) => {
     setSelectedInquiry(inquiry)
     setAnswerText(inquiry.answer || "")
     setIsModalOpen(true)
-  }
+  }, [])
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setIsModalOpen(false)
     setSelectedInquiry(null)
     setAnswerText("")
@@ -174,21 +169,21 @@ export default function InquiryPage() {
     setTranslatedTitle("")
     setTranslatedContent("")
     setIsTranslating(false)
-  }
+  }, [])
 
-  const openImageModal = (imageUrl) => {
+  const openImageModal = useCallback((imageUrl) => {
     setSelectedImage(imageUrl)
     setIsImageModalOpen(true)
-  }
+  }, [])
 
-  const closeImageModal = () => {
+  const closeImageModal = useCallback(() => {
     setIsImageModalOpen(false)
     setSelectedImage("")
-  }
+  }, [])
 
   // 번역 함수  ??????
   // 수정 예정
-  const handleTranslate = async () => {
+  const handleTranslate = useCallback(async () => {
     if (!selectedInquiry) return
 
     setIsTranslating(true)
@@ -225,9 +220,9 @@ export default function InquiryPage() {
     } finally {
       setIsTranslating(false)
     }
-  }
+  }, [selectedInquiry])
 
-  const toggleTranslation = () => {
+  const toggleTranslation = useCallback(() => {
     if (showTranslation) {
       setShowTranslation(false)
       setTranslatedTitle("")
@@ -235,9 +230,9 @@ export default function InquiryPage() {
     } else {
       handleTranslate()
     }
-  }
+  }, [showTranslation, handleTranslate])
 
-  const submitAnswer = async () => {
+  const submitAnswer = useCallback(async () => {
     if (!answerText.trim()) {
       alert("답변 내용을 입력해주세요.")
       return
@@ -266,7 +261,7 @@ export default function InquiryPage() {
       showToast("서버 오류가 발생했습니다.")
     }
     setSubmitting(false)
-  }
+  }, [selectedInquiry, answerText, closeModal, fetchInquiries, showToast])
 
   // 카테고리, 페이징
   const filtered =

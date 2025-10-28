@@ -438,3 +438,93 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.toastPopup {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  z-index: 3000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  font-weight: bold;
+}
+
+.noInquiries {
+  text-align: center;
+  padding: 32px;
+  color: #888;
+}
+
+.inquiryImage {
+  border-radius: 8px;
+  object-fit: cover;
+  background: #f5f6fa;
+  cursor: pointer;
+}
+
+.noImageText {
+  color: #999;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.answerBtn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 22px;
+  color: #3b8dff;
+}
+
+.modalSubHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.translateBtn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #2574f5;
+  background: transparent;
+  color: #2574f5;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.translateBtnActive {
+  background: #2574f5;
+  color: white;
+}
+
+.translationBox {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.translationTitle {
+  margin: 0 0 8px 0;
+  color: #2574f5;
+  font-size: 0.95rem;
+}
+
+.translationText {
+  margin: 4px 0;
+  font-size: 0.9rem;
+}
+
+.modalImage {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+}

@@ -288,21 +288,7 @@ export default function InquiryPage() {
       {loading && <LoadingOverlay />}
       {/* 토스트 메시지 UI */}
       {toastVisible && (
-        <div
-          style={{
-            position: "fixed",
-            top: 30,
-            left: "50%",
-            transform: "translateX(-50%)",
-            backgroundColor: "#333",
-            color: "#fff",
-            padding: "12px 24px",
-            borderRadius: 8,
-            zIndex: 3000,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-            fontWeight: "bold",
-          }}
-        >
+        <div className={styles.toastPopup}>
           {toastMessage}
         </div>
       )}
@@ -371,13 +357,7 @@ export default function InquiryPage() {
                 {pagedInquiries.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={8}
-                      style={{
-                        textAlign: "center",
-                        padding: 32,
-                        color: "#888",
-                      }}
-                    >
+                      colSpan={8} className={styles.noInquiries}>
                       문의가 없습니다.
                     </td>
                   </tr>
@@ -405,23 +385,11 @@ export default function InquiryPage() {
                             src={q.image_url}
                             alt="문의 사진"
                             width={48}
-                            height={48}
-                            style={{
-                              borderRadius: 8,
-                              objectFit: "cover",
-                              background: "#f5f6fa",
-                              cursor: "pointer",
-                            }}
+                            height={48} className={styles.inquiryImage}
                             onClick={() => openImageModal(q.image_url)}
                           />
                         ) : (
-                          <span
-                            style={{
-                              color: "#999",
-                              fontSize: "0.85rem",
-                              fontStyle: "italic",
-                            }}
-                          >
+                          <span className={styles.noImageText}>
                             사진 없음
                           </span>
                         )}
@@ -432,13 +400,6 @@ export default function InquiryPage() {
                           className={styles.answerBtn}
                           onClick={() => openModal(q)}
                           title="답변 작성"
-                          style={{
-                            border: "none",
-                            background: "none",
-                            cursor: "pointer",
-                            fontSize: 22,
-                            color: "#3b8dff",
-                          }}
                         >
                           <FaRegCommentDots />
                         </button>
@@ -485,29 +446,12 @@ export default function InquiryPage() {
             </div>
             <div className={styles.modalBody}>
               <div className={styles.inquiryInfo}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "12px",
-                  }}
-                >
+                <div className={styles.modalSubHeader}>
                   <h4>문의 정보</h4>
                   <button
                     onClick={toggleTranslation}
                     disabled={isTranslating}
-                    style={{
-                      padding: "6px 12px",
-                      borderRadius: "6px",
-                      border: "1px solid #2574f5",
-                      background: showTranslation ? "#2574f5" : "transparent",
-                      color: showTranslation ? "white" : "#2574f5",
-                      cursor: "pointer",
-                      fontSize: "0.9rem",
-                      fontWeight: "600",
-                      transition: "all 0.2s",
-                    }}
+                    className={`${styles.translateBtn} ${showTranslation ? styles.translateBtnActive : ''}`}
                   >
                     {isTranslating
                       ? "번역 중..."
@@ -534,28 +478,14 @@ export default function InquiryPage() {
 
                 {/* 번역 결과 표시 */}
                 {showTranslation && (
-                  <div
-                    style={{
-                      marginTop: "16px",
-                      padding: "12px",
-                      background: "#f8f9fa",
-                      borderRadius: "6px",
-                      border: "1px solid #e9ecef",
-                    }}
-                  >
-                    <h5
-                      style={{
-                        margin: "0 0 8px 0",
-                        color: "#2574f5",
-                        fontSize: "0.95rem",
-                      }}
-                    >
+                  <div className={styles.translationBox}>
+                    <h5 className={styles.translationTitle}>
                       한국어 번역
                     </h5>
-                    <p style={{ margin: "4px 0", fontSize: "0.9rem" }}>
+                    <p className={styles.translationText}>
                       <strong>제목:</strong> {translatedTitle}
                     </p>
-                    <p style={{ margin: "4px 0", fontSize: "0.9rem" }}>
+                    <p className={styles.translationText}>
                       <strong>내용:</strong> {translatedContent}
                     </p>
                   </div>
@@ -609,12 +539,7 @@ export default function InquiryPage() {
                 src={selectedImage}
                 alt="문의 사진"
                 width={600}
-                height={600}
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "80vh",
-                  objectFit: "contain",
-                }}
+                height={600} className={styles.modalImage}
               />
             </div>
           </div>

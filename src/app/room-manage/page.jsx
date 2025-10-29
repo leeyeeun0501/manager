@@ -1,4 +1,4 @@
-// room-manage
+// 강의실 관리 페이지
 "use client"
 import "../globals.css"
 import React, { useRef, useState, useEffect } from "react"
@@ -919,15 +919,7 @@ export default function RoomManagePage() {
                     {pagedRooms.length === 0 ? (
                       <tr>
                         <td
-                          colSpan="8"
-                          style={{
-                            textAlign: "center",
-                            padding: "40px 20px",
-                            color: "#666",
-                            fontSize: "16px",
-                            fontWeight: "500",
-                          }}
-                        >
+                          colSpan="8" className={styles.noDataCell}>
                           데이터가 없습니다
                         </td>
                       </tr>
@@ -985,14 +977,7 @@ export default function RoomManagePage() {
                           </td>
                           <td>
                             <button
-                              style={{
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                                padding: 0,
-                                marginLeft: 3,
-                              }}
-                              title="강의실 전체 정보 수정"
+                              className={styles.editIconButton}
                               onClick={() => {
                                 setEditRoom(room)
                                 setEditRoomName(room.name)
@@ -1055,26 +1040,15 @@ export default function RoomManagePage() {
           </div>
           {/* 맵 */}
           <div className={styles["room-manage-map-wrap"]}>
-            <div style={{ textAlign: "right", marginBottom: "8px" }}>
+            <div className={styles.mapToolbar}>
               <button
-                style={{
-                  padding: "6px 14px",
-                  fontSize: "14px",
-                  fontWeight: "bold",
-                  color: "#fff",
-                  backgroundColor:
-                    filterBuilding && filterFloor && svgRaw ? "#2574f5" : "#ccc",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor:
-                    filterBuilding && filterFloor && svgRaw
-                      ? "pointer"
-                      : "not-allowed",
-                }}
+                className={`${styles.editMapButton} ${!(filterBuilding && filterFloor && svgRaw) ? styles.editMapButtonDisabled : ''}`}
                 disabled={!(filterBuilding && filterFloor && svgRaw)}
                 onClick={() => {
                   if (filterBuilding && filterFloor) {
-                    router.push(`/room-manage/edit?building=${filterBuilding}&floor=${filterFloor}`);
+                    router.push(
+                      `/room-manage/edit?building=${filterBuilding}&floor=${filterFloor}`
+                    )
                   }
                 }}
               >
@@ -1082,15 +1056,7 @@ export default function RoomManagePage() {
               </button>
             </div>
             <div
-              style={{
-                position: "relative",
-                width: CANVAS_SIZE,
-                height: CANVAS_SIZE,
-                border: "1px solid #ddd",
-                backgroundColor: "#f8f9fa",
-                overflow: "hidden",
-              }}
-            >
+              className={styles.mapCanvasContainer} style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}>
               {mapLoading && (
                 <div className={styles["room-manage-canvas-placeholder"]}>
                   맵 로딩 중...
@@ -1130,36 +1096,18 @@ export default function RoomManagePage() {
                   return (
                     <div
                       ref={mapContainerRef}
-                      style={{
-                        width: svgViewBox.width,
-                        height: svgViewBox.height,
-                        transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
-                        transformOrigin: "top left",
-                        position: "relative",
-                      }}
+                      className={styles.svgWrapper}
+                      style={{ width: svgViewBox.width, height: svgViewBox.height, transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})` }}
                     >
                       {/* SVG 배경 */}
                       <div
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                        }}
+                        className={styles.svgBackground}
                         dangerouslySetInnerHTML={{ __html: svgRaw }}
                       />
                       {/* 네비 노드 연결선 (엣지) */}
                       <svg
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: svgViewBox.width,
-                          height: svgViewBox.height,
-                          pointerEvents: "none",
-                          zIndex: 2,
-                        }}
+                        className={styles.svgOverlay}
+                        style={{ width: svgViewBox.width, height: svgViewBox.height }}
                       >
                         {/* edges 배열이 있다면, 현재 층의 연결된 노드만 선으로 표시 */}
                         {edges &&
@@ -1224,30 +1172,14 @@ export default function RoomManagePage() {
                       {/* 네비 노드 오버레이(버튼) */}
                       {svgNodes.map((node, index) => (
                         <div
-                          key={`node-overlay-${node.id}-${index}`}
-                          style={{
-                            position: "absolute",
-                            left: `${node.x - node.width / 2}px`,
-                            top: `${node.y - node.height / 2}px`,
-                            width: `${node.width}px`,
-                            height: `${node.height}px`,
-                            border:
-                              selectedNode?.id === node.id
-                                ? "2px solid #ff4757"
-                                : "1px solid #007bff",
-                            backgroundColor:
-                              selectedNode?.id === node.id
-                                ? "rgba(255, 71, 87, 0.3)"
-                                : "rgba(0, 123, 255, 0.1)",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "10px",
-                            color: "#333",
-                            fontWeight: "bold",
-                          }}
+                           key={`node-overlay-${node.id}-${index}`}
+                           className={`${styles.nodeOverlay} ${selectedNode?.id === node.id ? styles.nodeOverlaySelected : ''}`}
+                           style={{
+                             left: `${node.x - node.width / 2}px`,
+                             top: `${node.y - node.height / 2}px`,
+                             width: `${node.width}px`,
+                             height: `${node.height}px`,
+                           }}
                           onClick={(e) => handleNodeClick(node, e)}
                           title={`ID: ${node.id}`}
                         ></div>
@@ -1259,104 +1191,43 @@ export default function RoomManagePage() {
           </div>
           {showEdgeModal && edgeModalNode && (
             <div
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100vw",
-                height: "100vh",
-                background: "rgba(0,0,0,0.4)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 1001,
-              }}
+              className={styles.edgeModalOverlay}
               onClick={() => setShowEdgeModal(false)}
             >
               <div
-                style={{
-                  background: "white",
-                  borderRadius: 24,
-                  minWidth: 280,
-                  maxWidth: 350,
-                  padding: 28,
-                  boxShadow: "0 6px 32px rgba(0,0,0,0.18)",
-                  position: "relative",
-                }}
+                className={styles.edgeModalContent}
                 onClick={(e) => e.stopPropagation()}
               >
-                <h4
-                  style={{
-                    marginTop: 0,
-                    marginBottom: 18,
-                    textAlign: "center",
-                    color: "#2586e5",
-                    fontWeight: 700,
-                    fontSize: 20,
-                    borderBottom: "2px solid #2586e5",
-                    display: "inline-block",
-                    paddingBottom: 4,
-                    lineHeight: 1.2,
-                    width: "100%",
-                  }}
-                >
+                <div className={styles.edgeModalHeader}>
+                <h4 className={styles.edgeModalTitle}>
                   노드 정보
                 </h4>
-                <div
-                  style={{
-                    fontSize: 15,
-                    color: "#333",
-                    fontWeight: 500,
-                    lineHeight: 1.5,
-                    fontFamily: "Pretendard, 'Apple SD Gothic Neo', sans-serif",
-                    marginBottom: 2,
-                  }}
-                >
-                  <strong>건물:</strong>
-                  <span style={{ fontWeight: 400, marginLeft: 4 }}>
+                </div>
+                <div className={styles.edgeModalBody}>
+                <div className={styles.edgeModalInfoItem}>
+                  <strong className={styles.edgeModalInfoLabel}>건물:</strong>
+                  <span className={styles.edgeModalInfoValue}>
                     {edgeModalNode.building}
                   </span>
                 </div>
-                <div
-                  style={{
-                    fontSize: 15,
-                    color: "#333",
-                    fontWeight: 500,
-                    lineHeight: 1.5,
-                    fontFamily: "Pretendard, 'Apple SD Gothic Neo', sans-serif",
-                    marginBottom: 2,
-                  }}
-                >
-                  <strong>층:</strong>
-                  <span style={{ fontWeight: 400, marginLeft: 4 }}>
+                <div className={styles.edgeModalInfoItem}>
+                  <strong className={styles.edgeModalInfoLabel}>층:</strong>
+                  <span className={styles.edgeModalInfoValue}>
                     {edgeModalNode.floor}
                   </span>
                 </div>
-                <div
-                  style={{
-                    fontSize: 15,
-                    color: "#333",
-                    fontWeight: 500,
-                    lineHeight: 1.5,
-                    fontFamily: "Pretendard, 'Apple SD Gothic Neo', sans-serif",
-                    marginBottom: 2,
-                  }}
-                >
-                  <strong>ID:</strong>
-                  <span style={{ fontWeight: 400, marginLeft: 4 }}>
+                <div className={styles.edgeModalInfoItem}>
+                  <strong className={styles.edgeModalInfoLabel}>ID:</strong>
+                  <span className={styles.edgeModalInfoValue}>
                     {(() => {
                       const parts = edgeModalNode.id.split("@")
                       const lastPart = parts[parts.length - 1]
-
-                      // b로 시작하거나 stairs가 포함된 경우 호를 붙이지 않음
                       if (
                         lastPart.toLowerCase().startsWith("b") ||
                         lastPart.toLowerCase().includes("stairs")
                       ) {
                         return lastPart
                       }
-
-                      // 숫자로 끝나는 경우 호를 붙임
                       if (/^\d+$/.test(lastPart)) {
                         return `${lastPart}호`
                       }
@@ -1366,10 +1237,10 @@ export default function RoomManagePage() {
                   </span>
                 </div>
                 {/* 연결된 노드 목록 */}
-                <div style={{ marginTop: 16 }}>
-                  <div style={{ fontWeight: "bold", marginBottom: 6 }}>
+                <div className={styles.edgeModalConnectedNodes}>
+                  <strong>
                     연결된 노드
-                  </div>
+                  </strong>
                   {connectedNodes.length === 0 ? (
                     <div style={{ color: "#888" }}>연결된 노드 없음</div>
                   ) : (
@@ -1404,24 +1275,7 @@ export default function RoomManagePage() {
                       return (
                         <button
                           key={`${edge.otherNodeId}-${idx}`}
-                          onClick={() => handleDisconnectEdge(edge.otherNodeId)}
-                          style={{
-                            padding: "8px 18px",
-                            borderRadius: 20,
-                            border: "none",
-                            fontSize: 15,
-                            fontWeight: 700,
-                            background: "#ffa500",
-                            color: "#fff",
-                            cursor: "pointer",
-                            marginRight: 8,
-                            marginBottom: 8,
-                            marginTop: 3,
-                            minWidth: 67,
-                            textAlign: "center",
-                            boxShadow: "0 1px 3px rgba(0,0,0,0.07)",
-                          }}
-                        >
+                          onClick={() => handleDisconnectEdge(edge.otherNodeId)} className={styles.edgeModalConnectedNodeItem}>
                           {labelText}
                         </button>
                       )
@@ -1429,27 +1283,11 @@ export default function RoomManagePage() {
                   )}
                 </div>
                 {/* 기존 버튼들 */}
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 10,
-                    justifyContent: "flex-end",
-                    marginTop: 16,
-                  }}
-                >
+                </div>
+                <div className={styles.edgeModalActions}>
                   <button
                     onClick={() => setShowEdgeModal(false)}
-                    style={{
-                      padding: "10px 22px",
-                      borderRadius: 24,
-                      border: "none",
-                      fontSize: 15,
-                      fontWeight: 600,
-                      background: "#eee",
-                      color: "#333",
-                      cursor: "pointer",
-                    }}
-                  >
+                    className={styles.edgeModalButton}>
                     취소
                   </button>
                   <button
@@ -1459,17 +1297,7 @@ export default function RoomManagePage() {
                       setEdgeConnectMode(true)
                       setEdgeToNode(null)
                     }}
-                    style={{
-                      padding: "10px 22px",
-                      borderRadius: 24,
-                      border: "none",
-                      fontSize: 15,
-                      fontWeight: 600,
-                      background: "#0070f3",
-                      color: "#fff",
-                      cursor: "pointer",
-                    }}
-                  >
+                    className={`${styles.edgeModalButton} ${styles.edgeModalPrimaryButton}`}>
                     엣지 연결
                   </button>
                   {/*  계단 노드에서만 노출되는 버튼 */}
@@ -1483,17 +1311,7 @@ export default function RoomManagePage() {
                         setSelectedStairsNode(edgeModalNode)
                         setShowStairsSelectModal(true)
                       }}
-                      style={{
-                        padding: "10px 22px",
-                        borderRadius: 24,
-                        border: "none",
-                        fontSize: 15,
-                        fontWeight: 600,
-                        background: "#1976d2",
-                        color: "#fff",
-                        cursor: "pointer",
-                      }}
-                    >
+                      className={`${styles.edgeModalButton} ${styles.edgeModalStairsButton}`}>
                       다른 층으로 이동
                     </button>
                   )}
@@ -1503,175 +1321,61 @@ export default function RoomManagePage() {
           )}
           {/* stairs 연결 선택 모달 */}
           {showStairsSelectModal && (
-            <div
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100vw",
-                height: "100vh",
-                background: "rgba(0,0,0,0.14)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 1500,
-              }}
+            <div className={styles.stairsModalOverlay}
               onClick={() => setShowStairsSelectModal(false)}
             >
               <div
-                style={{
-                  background: "#fff",
-                  borderRadius: 18,
-                  minWidth: 320,
-                  maxWidth: "95vw",
-                  padding: "32px 28px 24px 28px",
-                  boxShadow: "0 2px 16px rgba(0,0,0,0.13)",
-                  display: "flex",
-                  flexDirection: "column",
-                  maxHeight: "90vh",
-                  overflow: "hidden",
-                }}
+                className={styles.stairsModalContent}
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* 타이틀 */}
-                <div
-                  style={{
-                    fontWeight: "bold",
-                    fontSize: 17,
-                    color: "#1976d2",
-                    marginBottom: 16,
-                    textAlign: "center",
-                    borderBottom: "2px solid #1976d2",
-                    paddingBottom: 7,
-                  }}
-                >
+                <div className={styles.stairsModalHeader}>
+                <h4 className={styles.stairsModalTitle}>
                   다른 층 계단 연결
+                </h4>
                 </div>
 
                 {/* 상태별 처리 */}
-                {stairsLoading ? (
-                  <div style={{ textAlign: "center", margin: 18 }}>
-                    계단 목록을 불러오는 중...
-                  </div>
-                ) : stairsError ? (
-                  <div
-                    style={{
-                      color: "#e74c3c",
-                      textAlign: "center",
-                      margin: 12,
-                    }}
-                  >
-                    {stairsError}
-                  </div>
-                ) : (
-                  <>
-                    {/* Select: 연결할 계단 선택 */}
-                    <select
-                      value={targetStairId || ""}
-                      onChange={(e) => setTargetStairId(e.target.value)}
-                      style={{
-                        width: "100%",
-                        height: 46,
-                        fontSize: 15,
-                        border: "1.3px solid #b3d1fa",
-                        borderRadius: 11,
-                        padding: "6px 15px",
-                        marginBottom: 24,
-                        outline: "none",
-                      }}
-                    >
-                      <option value="">연결할 계단 선택</option>
-                      {stairsList
-                        .filter((id) => id !== (selectedStairsNode?.id || ""))
-                        .map((id) => {
-                          const parts = id.split("@")
-                          const floor = parts[1] || ""
-                          const stairName = parts[2] || ""
-                          return (
-                            <option key={id} value={id}>
-                              {floor}층 - {stairName}
-                            </option>
-                          )
-                        })}
-                    </select>
-
-                    {/* 🟡 stairsNodes 목록 표시 */}
-                    {stairsNodes.length > 0 && (
-                      <div style={{ marginBottom: 20 }}>
-                        <div
-                          style={{
-                            fontWeight: 600,
-                            marginBottom: 8,
-                            fontSize: 14,
-                            color: "#555",
-                          }}
-                        >
-                          연결된 계단 목록
-                        </div>
-                        <ul
-                          style={{
-                            listStyle: "none",
-                            padding: 0,
-                            margin: 0,
-                            maxHeight: 160,
-                            overflowY: "auto",
-                          }}
-                        >
-                          {stairsNodes.map((node) => (
-                            <li
-                              key={node.id}
-                              style={{
-                                padding: "6px 10px",
-                                background: "#f1f1f1",
-                                borderRadius: 8,
-                                marginBottom: 6,
-                                fontSize: 14,
-                                color: "#333",
-                              }}
-                            >
-                              {node.floor}층 -{" "}
-                              {(() => {
-                                const displayName = node.name || node.id
-                                const parts = displayName.split("@")
-                                const lastPart = parts[parts.length - 1]
-
-                                // b로 시작하거나 stairs가 포함된 경우 호를 붙이지 않음
-                                if (
-                                  lastPart.toLowerCase().startsWith("b") ||
-                                  lastPart.toLowerCase().includes("stairs")
-                                ) {
+                <div className={styles.stairsModalBody}>
+                  {stairsLoading ? (
+                    <div style={{ textAlign: "center", margin: 18 }}>계단 목록을 불러오는 중...</div>
+                  ) : stairsError ? (
+                    <div style={{ color: "#e74c3c", textAlign: "center", margin: 12 }}>{stairsError}</div>
+                  ) : (
+                    <>
+                      <select value={targetStairId || ""} onChange={(e) => setTargetStairId(e.target.value)} className={styles.stairsModalSelect}>
+                        <option value="">연결할 계단 선택</option>
+                        {stairsList.filter((id) => id !== (selectedStairsNode?.id || "")).map((id) => {
+                            const parts = id.split("@")
+                            const floor = parts[1] || ""
+                            const stairName = parts[2] || ""
+                            return (<option key={id} value={id}>{floor}층 - {stairName}</option>)
+                          })}
+                      </select>
+                      {stairsNodes.length > 0 && (
+                        <div className={styles.stairsModalList}>
+                          <strong>연결된 계단 목록</strong>
+                          <ul>
+                            {stairsNodes.map((node) => (<li key={node.id} className={styles.stairsModalListItem}>{node.floor}층 - {(() => {
+                                  const displayName = node.name || node.id
+                                  const parts = displayName.split("@")
+                                  const lastPart = parts[parts.length - 1]
+                                  if (lastPart.toLowerCase().startsWith("b") || lastPart.toLowerCase().includes("stairs")) { return lastPart }
+                                  if (/^\d+$/.test(lastPart)) { return `${lastPart}호` }
                                   return lastPart
-                                }
-
-                                // 숫자로 끝나는 경우 호를 붙임
-                                if (/^\d+$/.test(lastPart)) {
-                                  return `${lastPart}호`
-                                }
-
-                                return lastPart
-                              })()}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </>
-                )}
+                                })()}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
 
                 {/* 버튼 영역 */}
-                <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
+                <div className={styles.stairsModalActions}>
                   <button
-                    style={{
-                      flex: 1,
-                      padding: "9px 0",
-                      borderRadius: 19,
-                      border: "none",
-                      fontSize: 15,
-                      fontWeight: 600,
-                      background: "#eee",
-                      color: "#222",
-                      cursor: "pointer",
-                    }}
+                    className={styles.stairsModalButton}
                     onClick={() => {
                       setShowStairsSelectModal(false)
                       setTargetStairId("")
@@ -1696,17 +1400,7 @@ export default function RoomManagePage() {
                       setSelectedStairsNode(null)
                     }}
                     disabled={!targetStairId}
-                    style={{
-                      padding: "10px 22px",
-                      borderRadius: 24,
-                      border: "none",
-                      fontSize: 15,
-                      fontWeight: 600,
-                      background: "#0070f3",
-                      color: "#fff",
-                      cursor: "pointer",
-                    }}
-                  >
+                    className={`${styles.stairsModalButton} ${styles.stairsModalPrimaryButton}`}>
                     엣지 연결
                   </button>
                 </div>
@@ -1715,40 +1409,18 @@ export default function RoomManagePage() {
           )}
           {/* 두 번째 노드 선택 안내 모달 */}
           {showEdgeConnectModal && edgeFromNode && (
-            <div
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100vw",
-                height: "100vh",
-                background: "rgba(0,0,0,0.4)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 2000,
-              }}
-            >
-              <div
-                style={{
-                  background: "#fff",
-                  padding: "32px 24px",
-                  borderRadius: "10px",
-                  boxShadow: "0 4px 32px rgba(0,0,0,0.15)",
-                  minWidth: "320px",
-                  textAlign: "center",
-                }}
-              >
-                <h3>엣지 연결</h3>
-                <div style={{ marginBottom: 8, fontWeight: 500 }}>
+            <div className={styles.edgeConnectModalOverlay}>
+              <div className={styles.edgeConnectModalContent}>
+                <h3 className={styles.edgeConnectModalTitle}>엣지 연결</h3>
+                <div className={styles.edgeConnectModalText}>
                   {filterBuilding} {filterFloor} {edgeFromNode.id}에서 연결할
                   노드를 선택하세요.
                 </div>
-                <div style={{ color: "#007bff", marginBottom: 10 }}>
+                <div className={styles.edgeConnectModalHighlight}>
                   지도에서 <b>다른 노드</b>를 클릭하세요.
                 </div>
                 <button
-                  style={{ marginTop: 12 }}
+                  className={styles.edgeConnectModalButton}
                   onClick={() => {
                     setShowEdgeConnectModal(false)
                     setEdgeStep(0)
@@ -1763,21 +1435,7 @@ export default function RoomManagePage() {
           )}
           {/* 토스트 메시지 UI */}
           {toastVisible && (
-            <div
-              style={{
-                position: "fixed",
-                top: 30,
-                left: "50%",
-                transform: "translateX(-50%)",
-                backgroundColor: "#333",
-                color: "#fff",
-                padding: "12px 24px",
-                borderRadius: 8,
-                zIndex: 3000,
-                boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-                fontWeight: "bold",
-              }}
-            >
+            <div className={styles.toastPopup}>
               {toastMessage}
             </div>
           )}
@@ -1786,90 +1444,31 @@ export default function RoomManagePage() {
       {/* 강의실 정보 수정 모달 */}
       {showEditRoomModal && editRoom && (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            background: "rgba(0,0,0,0.13)",
-            zIndex: 10000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          className={styles.editRoomModalOverlay}
           onClick={() => setShowEditRoomModal(false)}
         >
           <div
-            style={{
-              background: "#fff",
-              borderRadius: 18,
-              minWidth: 380,
-              maxWidth: "96vw",
-              padding: "36px 32px 29px 32px",
-              boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "stretch",
-              position: "relative",
-            }}
+            className={styles.editRoomModalContent}
             onClick={(e) => e.stopPropagation()}
           >
             {/* 타이틀 */}
-            <div
-              style={{
-                fontWeight: 700,
-                fontSize: 18,
-                color: "#1976d2",
-                marginBottom: 19,
-                textAlign: "center",
-                borderBottom: "2px solid #1976d2",
-                paddingBottom: 7,
-                letterSpacing: "-0.5px",
-              }}
-            >
+            <div className={styles.editRoomModalHeader}>
+            <h4 className={styles.editRoomModalTitle}>
               강의실 전체 정보 수정
+            </h4>
             </div>
             {/* 강의실 정보 한 줄 */}
-            <div
-              style={{
-                width: "90%",
-                margin: "0 auto",
-                fontSize: 16,
-                color: "#2574f5",
-                fontWeight: 600,
-                marginBottom: 12,
-                textAlign: "center",
-              }}
-            >
+            <div className={styles.editRoomModalInfo}>
               {`건물명: ${editRoom?.building} / 층수: ${editRoom?.floor} / 호수: ${editRoom?.name}`}
             </div>
             {/* 강의실 설명 */}
             <input
               value={editRoomDesc}
               onChange={(e) => setEditRoomDesc(e.target.value)}
-              placeholder="강의실 설명"
-              style={{
-                width: "100%",
-                height: 44,
-                padding: "0 12px",
-                borderRadius: 12,
-                border: "1.5px solid #b3d1fa",
-                fontSize: 16,
-                marginBottom: 13,
-                background: "#f7fbff",
-                color: "#222",
-                fontFamily: "inherit",
-                outline: "none",
-                boxSizing: "border-box",
-              }}
-            />
+              placeholder="강의실 설명" className={styles.editRoomModalInput} />
             {/* 사용자/전화/이메일 한 세트 행별 입력 + 삭제 버튼 */}
             {editRoomUsers.map((item, i) => (
-              <div
-                key={i}
-                style={{ display: "flex", gap: 9, marginBottom: 11 }}
-              >
+              <div key={i} className={styles.editRoomModalUserRow}>
                 <input
                   value={item.user}
                   onChange={(e) => {
@@ -1880,75 +1479,28 @@ export default function RoomManagePage() {
                   placeholder={`사용자${
                     editRoomUsers.length > 1 ? ` ${i + 1}` : ""
                   }`}
-                  style={{
-                    flex: 1,
-                    padding: "8px 10px",
-                    borderRadius: 11,
-                    border: "1.3px solid #b3d1fa",
-                    fontSize: 15.5,
-                    background: "#fff",
-                    color: "#222",
-                  }}
-                />
+                  className={styles.editRoomModalUserInput} />
                 <input
                   value={item.phone}
                   onChange={(e) => {
                     const arr = [...editRoomUsers]
                     arr[i].phone = e.target.value
                     setEditRoomUsers(arr)
-                  }}
-                  placeholder="전화번호"
-                  style={{
-                    flex: 1.27,
-                    padding: "8px 10px",
-                    borderRadius: 11,
-                    border: "1.3px solid #b3d1fa",
-                    fontSize: 15.5,
-                    background: "#fff",
-                    color: "#222",
-                  }}
-                />
+                  }} placeholder="전화번호" className={styles.editRoomModalUserInput} />
                 <input
                   value={item.email}
                   onChange={(e) => {
                     const arr = [...editRoomUsers]
                     arr[i].email = e.target.value
                     setEditRoomUsers(arr)
-                  }}
-                  placeholder="이메일"
-                  style={{
-                    flex: 1.27,
-                    padding: "8px 10px",
-                    borderRadius: 11,
-                    border: "1.3px solid #b3d1fa",
-                    fontSize: 15.5,
-                    background: "#fff",
-                    color: "#222",
-                  }}
-                />
+                  }} placeholder="이메일" className={styles.editRoomModalUserInput} />
                 <button
                   onClick={() => {
                     if (editRoomUsers.length === 1) return
                     setEditRoomUsers((prev) =>
                       prev.filter((_, idx) => idx !== i)
                     )
-                  }}
-                  style={{
-                    marginLeft: 3,
-                    background: "#f8d7da",
-                    color: "#a94442",
-                    border: "none",
-                    borderRadius: 6,
-                    cursor: "pointer",
-                    padding: "0 11px",
-                    fontWeight: 700,
-                    fontSize: 19,
-                    height: 36,
-                    alignSelf: "center",
-                  }}
-                  title="삭제"
-                  type="button"
-                >
+                  }} className={styles.editRoomModalDeleteUserButton} title="삭제" type="button">
                   －
                 </button>
               </div>
@@ -1956,37 +1508,13 @@ export default function RoomManagePage() {
             {/* + 추가 버튼 */}
             <button
               type="button"
-              onClick={() =>
-                setEditRoomUsers((prev) => [
-                  ...prev,
-                  { user: "", phone: "", email: "" },
-                ])
-              }
-              style={{
-                margin: "5px 0 16px 0",
-                background: "#e3f2fd",
-                color: "#1976d2",
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                padding: "6px 0",
-                fontWeight: 600,
-                width: "100%",
-                fontSize: 15,
-              }}
-            >
+              onClick={() => setEditRoomUsers((prev) => [...prev, { user: "", phone: "", email: "" }])}
+              className={styles.editRoomModalAddUserButton}>
               + 사용자 추가
             </button>
             {/* 에러 메시지 */}
             {editRoomError && (
-              <div
-                style={{
-                  color: "#e74c3c",
-                  fontSize: 15,
-                  marginBottom: 9,
-                  textAlign: "center",
-                }}
-              >
+              <div className={styles.editRoomModalError}>
                 {editRoomError}
               </div>
             )}
@@ -1994,25 +1522,11 @@ export default function RoomManagePage() {
             <div
               style={{ display: "flex", gap: 10, marginTop: 7, width: "100%" }}
             >
-              <button
-                onClick={() => setShowEditRoomModal(false)}
-                style={{
-                  flex: 1,
-                  padding: "12px 0",
-                  borderRadius: 24,
-                  background: "#efefef",
-                  color: "#333",
-                  fontWeight: 600,
-                  fontSize: 16,
-                  border: "none",
-                  cursor: "pointer",
-                  marginRight: 2,
-                }}
-                type="button"
-              >
+              <button onClick={() => setShowEditRoomModal(false)} className={styles.editRoomModalButton} type="button">
                 취소
               </button>
               <button
+                className={`${styles.editRoomModalButton} ${styles.editRoomModalPrimaryButton}`}
                 onClick={async () => {
                   // 값 검증 등 필요시 추가!
                   try {
@@ -2039,20 +1553,7 @@ export default function RoomManagePage() {
                     setEditRoomError("수정 중 오류가 발생했습니다.")
                   }
                 }}
-                style={{
-                  flex: 1,
-                  padding: "12px 0",
-                  borderRadius: 24,
-                  background: "#2574f5",
-                  color: "#fff",
-                  fontWeight: 600,
-                  fontSize: 16,
-                  border: "none",
-                  cursor: "pointer",
-                  marginLeft: 2,
-                }}
-                type="button"
-              >
+                type="button">
                 저장
               </button>
             </div>

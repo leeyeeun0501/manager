@@ -747,6 +747,501 @@ body:has(.edit-page-root) {
   background: #f4f7fc !important;
 }
 
+.noDataCell {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.editIconButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 3px;
+}
+
+.mapToolbar {
+  text-align: right;
+  margin-bottom: 8px;
+}
+
+.editMapButton {
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #2574f5;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.editMapButton:hover:not(:disabled) {
+  background-color: #1e5bb8;
+}
+
+.editMapButtonDisabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.mapCanvasContainer {
+  position: relative;
+  border: 1px solid #ddd;
+  background-color: #f8f9fa;
+  overflow: hidden;
+}
+
+.svgWrapper {
+  transform-origin: top left;
+  position: relative;
+}
+
+.svgBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.svgOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.nodeOverlay {
+  position: absolute;
+  border: 1px solid #007bff;
+  background-color: rgba(0, 123, 255, 0.1);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #333;
+  font-weight: bold;
+}
+
+.nodeOverlaySelected {
+  border: 2px solid #ff4757;
+  background-color: rgba(255, 71, 87, 0.3);
+}
+
+.edgeModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+.edgeModalContent {
+  background: white;
+  border-radius: 24px;
+  min-width: 280px;
+  max-width: 350px;
+  padding: 28px;
+  box-shadow: 0 6px 32px rgba(0,0,0,0.18);
+  position: relative;
+}
+
+.edgeModalHeader {
+  margin-bottom: 18px;
+  text-align: center;
+  border-bottom: 2px solid #2586e5;
+  padding-bottom: 4px;
+}
+
+.edgeModalTitle {
+  margin-top: 0;
+  color: #2586e5;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.edgeModalBody {
+  /* Add styles if needed */
+}
+
+.edgeModalInfoItem {
+  font-size: 15px;
+  color: #333;
+  font-weight: 500;
+  line-height: 1.5;
+  font-family: Pretendard, 'Apple SD Gothic Neo', sans-serif;
+  margin-bottom: 2px;
+}
+
+.edgeModalInfoLabel {
+  /* Style for <strong> */
+}
+
+.edgeModalInfoValue {
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.edgeModalConnectedNodes {
+  margin-top: 16px;
+}
+
+.edgeModalConnectedNodes strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.edgeModalConnectedNodeItem {
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  background: #ffa500;
+  color: #fff;
+  cursor: pointer;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  margin-top: 3px;
+  min-width: 67px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+}
+
+.edgeModalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.edgeModalButton {
+  padding: 10px 22px;
+  border-radius: 24px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  background: #eee;
+  color: #333;
+  cursor: pointer;
+}
+
+.edgeModalPrimaryButton {
+  background: #0070f3;
+  color: #fff;
+}
+
+.edgeModalStairsButton {
+  background: #1976d2;
+  color: #fff;
+}
+
+.stairsModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1500;
+}
+
+.stairsModalContent {
+  background: #fff;
+  border-radius: 18px;
+  min-width: 320px;
+  max-width: 95vw;
+  padding: 32px 28px 24px 28px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.13);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.stairsModalHeader {
+  margin-bottom: 16px;
+  text-align: center;
+  border-bottom: 2px solid #1976d2;
+  padding-bottom: 7px;
+}
+
+.stairsModalTitle {
+  font-weight: bold;
+  font-size: 17px;
+  color: #1976d2;
+}
+
+.stairsModalBody {
+  /* Add styles if needed */
+}
+
+.stairsModalSelect {
+  width: 100%;
+  height: 46px;
+  font-size: 15px;
+  border: 1.3px solid #b3d1fa;
+  border-radius: 11px;
+  padding: 6px 15px;
+  margin-bottom: 24px;
+  outline: none;
+}
+
+.stairsModalList {
+  margin-bottom: 20px;
+}
+
+.stairsModalList strong {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #555;
+  display: block;
+}
+
+.stairsModalList ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.stairsModalListItem {
+  padding: 6px 10px;
+  background: #f1f1f1;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: #333;
+}
+
+.stairsModalActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.stairsModalButton {
+  flex: 1;
+  padding: 9px 0;
+  border-radius: 19px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  background: #eee;
+  color: #222;
+  cursor: pointer;
+}
+
+.stairsModalPrimaryButton {
+  background: #0070f3;
+  color: #fff;
+}
+
+.edgeConnectModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.edgeConnectModalContent {
+  background: #fff;
+  padding: 32px 24px;
+  border-radius: 10px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.15);
+  min-width: 320px;
+  text-align: center;
+}
+
+.edgeConnectModalTitle {
+  font-size: 1.25rem;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.edgeConnectModalText {
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.edgeConnectModalHighlight {
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+.edgeConnectModalButton {
+  margin-top: 12px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #f0f0f0;
+  cursor: pointer;
+}
+
+.editRoomModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.13);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editRoomModalContent {
+  background: #fff;
+  border-radius: 18px;
+  min-width: 380px;
+  max-width: 96vw;
+  padding: 36px 32px 29px 32px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  position: relative;
+}
+
+.editRoomModalHeader {
+  margin-bottom: 19px;
+  text-align: center;
+  border-bottom: 2px solid #1976d2;
+  padding-bottom: 7px;
+}
+
+.editRoomModalTitle {
+  font-weight: 700;
+  font-size: 18px;
+  color: #1976d2;
+  letter-spacing: -0.5px;
+}
+
+.editRoomModalInfo {
+  width: 90%;
+  margin: 0 auto;
+  font-size: 16px;
+  color: #2574f5;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.editRoomModalInput {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1.5px solid #b3d1fa;
+  font-size: 16px;
+  margin-bottom: 13px;
+  background: #f7fbff;
+  color: #222;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.editRoomModalUserRow {
+  display: flex;
+  gap: 9px;
+  margin-bottom: 11px;
+}
+
+.editRoomModalUserInput {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 11px;
+  border: 1.3px solid #b3d1fa;
+  font-size: 15.5px;
+  background: #fff;
+  color: #222;
+}
+
+.editRoomModalDeleteUserButton {
+  margin-left: 3px;
+  background: #f8d7da;
+  color: #a94442;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 0 11px;
+  font-weight: 700;
+  font-size: 19px;
+  height: 36px;
+  align-self: center;
+}
+
+.editRoomModalAddUserButton {
+  margin: 5px 0 16px 0;
+  background: #e3f2fd;
+  color: #1976d2;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 6px 0;
+  font-weight: 600;
+  width: 100%;
+  font-size: 15px;
+}
+
+.editRoomModalError {
+  color: #e74c3c;
+  font-size: 15px;
+  margin-bottom: 9px;
+  text-align: center;
+}
+
+.editRoomModalActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 7px;
+  width: 100%;
+}
+
+.editRoomModalButton {
+  flex: 1;
+  padding: 12px 0;
+  border-radius: 24px;
+  background: #efefef;
+  color: #333;
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+.editRoomModalPrimaryButton {
+  background: #2574f5;
+  color: #fff;
+}
+
 /* 도면 편집 페이지 전용 스타일 */
 .editPageToastPopup {
   position: fixed;

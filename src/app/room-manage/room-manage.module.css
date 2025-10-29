@@ -746,3 +746,145 @@ body:has(.edit-page-root) {
   overflow: hidden !important;
   background: #f4f7fc !important;
 }
+
+/* 도면 편집 페이지 전용 스타일 */
+.editPageToastPopup {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  z-index: 3000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-weight: bold;
+}
+
+.editPageHeaderInfo {
+  width: 100%;
+  font-size: 16px;
+  color: #2574f5;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.editPageButtonWrap {
+  text-align: right;
+  margin-bottom: 8px;
+}
+
+.editPageSaveButton {
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #28a745;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.editPageBackButton {
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #2574f5;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.editPageCanvasContainer {
+  position: relative;
+  border: 1px solid #ddd;
+  background-color: #f8f9fa;
+  overflow: hidden;
+  margin: 0 auto;
+  border-radius: 10px;
+}
+
+.editPageSvgWrapper {
+  transform-origin: top left;
+  position: relative;
+}
+
+.editPageNodeOverlay {
+  position: absolute;
+  border: 1px solid #007bff;
+  background-color: rgba(0, 123, 255, 0.08);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.editPageDeletedNodeOverlay {
+  position: absolute;
+  border: 1px solid #6c757d;
+  background-color: rgba(108, 117, 125, 0.1);
+  border-radius: 4px;
+  opacity: 0.5;
+}
+
+.editPagePendingNodeOverlay {
+  position: absolute;
+  border: 1px solid #ff6b6b;
+  background-color: rgba(255, 107, 107, 0.1);
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+.editPageSvgCategoryOverlay {
+  position: absolute;
+  border: 2px solid #ff6b6b;
+  background-color: rgba(255, 107, 107, 0.2);
+  cursor: pointer;
+}
+
+.editPageDeletedCategoryOverlay {
+  position: absolute;
+  border: 2px solid #6c757d;
+  background-color: rgba(108, 117, 125, 0.1);
+  opacity: 0.5;
+}
+
+.editPagePendingCategoryOverlay {
+  position: absolute;
+  border: 1px solid #4ecdc4;
+  background-color: rgba(78, 205, 196, 0.1);
+  animation: pulse 1.5s infinite;
+}
+
+.infoModalFieldLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #333;
+}
+
+.infoModalFieldValue {
+  padding: 12px 16px;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #333;
+}
+
+.infoModalDeleteButton {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background-color: #dc3545;
+  color: white;
+  margin-right: 8px;
+}

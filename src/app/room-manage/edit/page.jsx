@@ -1,4 +1,4 @@
-// room-manage/edit
+// 도면 편집 페이지
 "use client"
 import React, { useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -698,53 +698,17 @@ export default function RoomManageEditPage() {
   return (
     <div 
       className={`${styles["room-root"]} ${styles["edit-page-root"]}`}
-      style={{
-        margin: 0,
-        padding: 0,
-        width: '100vw',
-        height: '100vh',
-        background: '#f4f7fc',
-        overflow: 'hidden',
-        position: 'fixed',
-        top: 0,
-        left: 0
-      }}
     >
       {/* 토스트 메시지 UI */}
       {toastVisible && (
-        <div
-          style={{
-            position: "fixed",
-            top: 30,
-            left: "50%",
-            transform: "translateX(-50%)",
-            backgroundColor: "#333",
-            color: "#fff",
-            padding: "12px 24px",
-            borderRadius: 8,
-            zIndex: 3000,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-            fontWeight: "bold",
-          }}
-        >
+        <div className={styles.editPageToastPopup}>
           {toastMessage}
         </div>
       )}
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <span className={styles["room-header"]}>도면 편집 페이지</span>
       {building && floor && (
-        <div
-          style={{
-            width: "100%",
-            fontSize: 16,
-            color: "#2574f5",
-            fontWeight: 600,
-            marginBottom: 12,
-            textAlign: "center",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-          }}
-        >
+        <div className={styles.editPageHeaderInfo}>
           건물명: {building} / 층수: {floor}
         </div>
       )}
@@ -768,54 +732,23 @@ export default function RoomManageEditPage() {
             </button>
           </div>
           
-          <div style={{ textAlign: "right", marginBottom: "8px" }}>
+          <div className={styles.editPageButtonWrap}>
             {(pendingNodes.length > 0 || pendingCategories.length > 0 || deletedNodes.length > 0 || deletedCategories.length > 0) && (
               <button
                 onClick={handleSaveSvg}
-                style={{
-                  padding: "6px 14px",
-                  fontSize: "14px",
-                  fontWeight: "bold",
-                  color: "#fff",
-                  backgroundColor: "#28a745",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  marginRight: "8px"
-                }}
+                className={styles.editPageSaveButton}
               >
                 수정 완료 (추가: {pendingNodes.length}개 노드, {pendingCategories.length}개 카테고리 / 삭제: {deletedNodes.length}개 노드, {deletedCategories.length}개 카테고리)
               </button>
             )}
             <button
               onClick={() => router.back()}
-              style={{
-                padding: "6px 14px",
-                fontSize: "14px",
-                fontWeight: "bold",
-                color: "#fff",
-                backgroundColor: "#2574f5",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer",
-                marginRight: "8px"
-              }}
+              className={styles.editPageBackButton}
             >
               뒤로가기
             </button>
           </div>
-          <div
-            style={{
-              position: "relative",
-              width: canvasSize.width,
-              height: canvasSize.height,
-              border: "1px solid #ddd",
-              backgroundColor: "#f8f9fa",
-              overflow: "hidden",
-              margin: "0 auto",
-              borderRadius: "10px",
-            }}
-          >
+          <div className={styles.editPageCanvasContainer} style={{ width: canvasSize.width, height: canvasSize.height }}>
             {loading && (
               <div className={styles["room-manage-canvas-placeholder"]}>맵 로딩 중...</div>
             )}
@@ -835,36 +768,22 @@ export default function RoomManageEditPage() {
                 <div
                   ref={mapContainerRef}
                   onClick={handleMapClick}
-                  style={{
-                    width: svgViewBox.width,
-                    height: svgViewBox.height,
-                    transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
-                    transformOrigin: "top left",
-                    position: "relative",
-                    cursor: isAddingMode ? "crosshair" : "default",
-                  }}
+                  className={styles.editPageSvgWrapper}
+                  style={{ width: svgViewBox.width, height: svgViewBox.height, transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`, cursor: isAddingMode ? "crosshair" : "default" }}
                 >
-                  <div
-                    style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
-                    dangerouslySetInnerHTML={{ __html: svgRaw }}
-                  />
-
-
+                  <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }} dangerouslySetInnerHTML={{ __html: svgRaw }} />
+                  
                   {/* 기존 노드들 */}
                   {svgNodes.map((node, index) => (
                     <div
                       key={`node-overlay-${node.id}-${index}`}
                       onClick={() => handleNodeClick(node)}
+                      className={styles.editPageNodeOverlay}
                       style={{
-                        position: "absolute",
                         left: `${node.x - node.width / 2}px`,
                         top: `${node.y - node.height / 2}px`,
                         width: `${node.width}px`,
                         height: `${node.height}px`,
-                        border: "1px solid #007bff",
-                        backgroundColor: "rgba(0, 123, 255, 0.08)",
-                        borderRadius: 4,
-                        cursor: "pointer",
                       }}
                       title={`노드: ${node.id.split('@')[2]}`}
                     />
@@ -874,16 +793,12 @@ export default function RoomManageEditPage() {
                   {deletedNodes.map((node, index) => (
                     <div
                       key={`deleted-node-${node.id}-${index}`}
+                      className={styles.editPageDeletedNodeOverlay}
                       style={{
-                        position: "absolute",
                         left: `${node.x - node.width / 2}px`,
                         top: `${node.y - node.height / 2}px`,
                         width: `${node.width}px`,
                         height: `${node.height}px`,
-                        border: "1px solid #6c757d",
-                        backgroundColor: "rgba(108, 117, 125, 0.1)",
-                        borderRadius: 4,
-                        opacity: 0.5,
                       }}
                       title={`삭제된 노드: ${node.id.split('@')[2]}`}
                     />
@@ -893,16 +808,12 @@ export default function RoomManageEditPage() {
                   {pendingNodes.map((node, index) => (
                     <div
                       key={`pending-node-${node.id}-${index}`}
+                      className={styles.editPagePendingNodeOverlay}
                       style={{
-                        position: "absolute",
                         left: `${node.x - node.width / 2}px`,
                         top: `${node.y - node.height / 2}px`,
                         width: `${node.width}px`,
                         height: `${node.height}px`,
-                        border: "1px solid #ff6b6b",
-                        backgroundColor: "rgba(255, 107, 107, 0.1)",
-                        borderRadius: "50%",
-                        animation: "pulse 1.5s infinite",
                       }}
                       title={`새 노드: ${node.id}`}
                     />
@@ -1104,18 +1015,11 @@ export default function RoomManageEditPage() {
 
             {/* 정보 표시 */}
             <div className={styles["input-fields"]}>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#333' }}>
+              <div style={{ marginBottom: "16px" }}>
+                <label className={styles.infoModalFieldLabel}>
                   {selectedInfo.type === 'node' ? '노드명' : '카테고리명'}
                 </label>
-                <div style={{ 
-                  padding: '12px 16px', 
-                  backgroundColor: '#f8f9fa', 
-                  border: '1px solid #ddd', 
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  color: '#333'
-                }}>
+                <div className={styles.infoModalFieldValue}>
                   {selectedInfo.name}
                 </div>
               </div>
@@ -1132,17 +1036,7 @@ export default function RoomManageEditPage() {
                   }
                   setShowInfoModal(false)
                 }}
-                style={{
-                  padding: "10px 20px",
-                  borderRadius: "6px",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  border: "none",
-                  backgroundColor: "#dc3545",
-                  color: "white",
-                  marginRight: "8px"
-                }}
+                className={styles.infoModalDeleteButton}
               >
                 삭제
               </button>

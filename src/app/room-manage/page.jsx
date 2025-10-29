@@ -1,8 +1,8 @@
 // 강의실 관리 페이지
 "use client"
 import "../globals.css"
-import React, { useRef, useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import React, { useRef, useState, useEffect, useCallback, useMemo } from "react"
+import { useRouter } from "next/navigation" // MdEditSquare는 RoomTable로 이동
 import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./room-manage.module.css"
@@ -10,6 +10,7 @@ import { MdEditSquare } from "react-icons/md"
 import { apiGet, apiPost, apiPut, apiDelete, parseJsonResponse } from "../utils/apiHelper"
 import { useSessionCheck } from "../utils/useSessionCheck"
 
+import RoomTable from "./RoomTable" // RoomTable 컴포넌트 임포트
 export default function RoomManagePage() {
   // 세션 체크 활성화
   useSessionCheck()
@@ -70,7 +71,6 @@ export default function RoomManagePage() {
   const mapContainerRef = useRef(null)
 
   const [search, setSearch] = useState("")
-  const [filteredRooms, setFilteredRooms] = useState([])
 
   // 토스트 메시지 함수 = 캐시 무력화
   const showToast = (msg, duration = 3000) => {
@@ -78,13 +78,6 @@ export default function RoomManagePage() {
     setToastVisible(true)
     setTimeout(() => setToastVisible(false), duration)
   }
-
-  // 페이징
-  const totalRooms = rooms.length
-  const totalPages = Math.ceil(totalRooms / itemsPerPage)
-  const startIdx = (currentPage - 1) * itemsPerPage
-  const endIdx = startIdx + itemsPerPage
-  const pagedRooms = filteredRooms.slice(startIdx, endIdx)
 
   const [roomNodes, setRoomNodes] = useState({})
   const [edges, setEdges] = useState([])
@@ -106,7 +99,7 @@ export default function RoomManagePage() {
   ])
 
   // SVG 노드 파싱 함수
-  const parseSvgNodes = (svgXml, building, floor) => {
+  const parseSvgNodes = useCallback((svgXml, building, floor) => {
     const parser = new DOMParser()
     const doc = parser.parseFromString(svgXml, "image/svg+xml")
     const nodes = []
@@ -234,7 +227,7 @@ export default function RoomManagePage() {
     })
 
     return nodes
-  }
+  }, [])
 
   // 노드 클릭 핸들러
   const handleNodeClick = (node, event) => {
@@ -252,7 +245,7 @@ export default function RoomManagePage() {
   }
 
   // SVG 처리 및 viewBox 설정
-  const processSvg = (svgXml) => {
+  const processSvg = useCallback((svgXml) => {
     const parser = new DOMParser()
     const doc = parser.parseFromString(svgXml, "image/svg+xml")
     const svgEl = doc.querySelector("svg")
@@ -289,7 +282,7 @@ export default function RoomManagePage() {
     svgEl.removeAttribute("height")
 
     return doc.documentElement.outerHTML
-  }
+  }, [])
 
   // 건물 목록
   const fetchBuildings = async () => {
@@ -309,7 +302,7 @@ export default function RoomManagePage() {
   }
 
   // 층 목록
-  const fetchFloors = async (building) => {
+  const fetchFloors = useCallback(async (building) => {
     if (!building) {
       setFloorOptions([])
       return
@@ -325,10 +318,23 @@ export default function RoomManagePage() {
     } catch {
       setFloorOptions([])
     }
-  }
+  }, [])
+
+  // 강의실 데이터 정규화 함수
+  const normalizeRoom = useCallback((room) => {
+    return {
+      building: room.building || room.Building_Name || "",
+      floor: room.floor || room.Floor_Number || "",
+      name: room.name || room.Room_Name || "",
+      description: room.description || room.Room_Description || "",
+      room_user: room.room_user || room.Room_User || "",
+      user_phone: room.user_phone || room.User_Phone || "",
+      user_email: room.user_email || room.User_Email || "",
+    }
+  }, [])
 
   // 강의실 정보: 전체/건물/건물+층 조회
-  const fetchRooms = async (building, floor) => {
+  const fetchRooms = useCallback(async (building, floor) => {
     setLoading(true)
     setError("")
     try {
@@ -361,10 +367,10 @@ export default function RoomManagePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [normalizeRoom]) // normalizeRoom 함수를 의존성 배열에 추가
 
   // 데이터 재로딩 함수
-  const reloadMapData = () => {
+  const reloadMapData = useCallback(() => {
     if (filterBuilding && filterFloor) {
       setMapLoading(true)
 
@@ -420,9 +426,17 @@ export default function RoomManagePage() {
         .finally(() => setMapLoading(false))
     }
   }
+  , [filterBuilding, filterFloor, processSvg])
+
+  // @ 파싱
+  const getNodeSuffix = (id) => {
+    if (!id) return ""
+    const parts = id.split("@")
+    return parts[parts.length - 1]
+  }
 
   // 내부 도면 엣지 연결 함수
-  const connectEdge = async () => {
+  const connectEdge = useCallback(async () => {
     if (isEdgeDuplicate(edges, edgeFromNode?.id, edgeToNode?.id)) {
       showToast("이미 연결된 엣지입니다.")
       setEdgeFromNode(null)
@@ -444,18 +458,14 @@ export default function RoomManagePage() {
         to_node: getNodeSuffix(edgeToNode?.id),
       })
 
-      const text = await res.text()
-      let data = {}
-      try {
-        data = JSON.parse(text)
-      } catch {}
+      const data = await parseJsonResponse(res)
 
       if (!res.ok) {
         showToast(data.error || "엣지 연결 실패")
         return
       }
 
-      showToast("노드가 성공적으로 연결되었습니다.")
+      showToast(data.message || "노드가 성공적으로 연결되었습니다.")
       reloadMapData()
     } catch (err) {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
@@ -466,7 +476,7 @@ export default function RoomManagePage() {
       setEdgeConnectLoading(false)
       setEdgeConnectMode(false)
     }
-  }
+  }, [edges, edgeFromNode, edgeToNode, filterBuilding, filterFloor, reloadMapData])
 
   // 현재 선택된 노드의 id
   const connectedNodes = edges
@@ -478,7 +488,7 @@ export default function RoomManagePage() {
     }))
 
   // 내부 도면 엣지 연결 해제 함수
-  const handleDisconnectEdge = async (targetNodeId) => {
+  const handleDisconnectEdge = useCallback(async (targetNodeId) => {
     if (!edgeModalNode?.id || !targetNodeId) {
       showToast("노드 정보가 올바르지 않습니다.")
       return
@@ -525,27 +535,25 @@ export default function RoomManagePage() {
     } catch (err) {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
     }
-  }
+  }, [edgeModalNode, reloadMapData])
 
-  useEffect(() => {
-    setFilteredRooms(rooms)
-  }, [rooms])
-
-  useEffect(() => {
+  const filteredRooms = useMemo(() => {
     if (!search.trim()) {
-      setFilteredRooms(rooms)
-      setCurrentPage(1)
-      return
+      return rooms
     }
     const keyword = search.toLowerCase()
-    const filtered = rooms.filter((room) =>
+    return rooms.filter((room) =>
       Object.values(room).some((val) =>
         (val ?? "").toString().toLowerCase().includes(keyword)
       )
     )
-    console.log("filtered count:", filtered.length)
-    setFilteredRooms(filtered)
-  }, [search, rooms])
+  }, [rooms, search])
+
+  const totalPages = Math.ceil(filteredRooms.length / itemsPerPage)
+  const pagedRooms = useMemo(() => {
+    const startIdx = (currentPage - 1) * itemsPerPage
+    return filteredRooms.slice(startIdx, startIdx + itemsPerPage)
+  }, [filteredRooms, currentPage, itemsPerPage])
 
   // 엣지 연결
   useEffect(() => {
@@ -558,155 +566,91 @@ export default function RoomManagePage() {
     ) {
       connectEdge()
     }
-  }, [
-    edgeStep,
-    edgeFromNode,
-    edgeToNode,
-    filterBuilding,
-    filterFloor,
-    edgeConnectMode,
-  ])
+  }, [edgeStep, edgeFromNode, edgeToNode, edgeConnectMode, connectEdge])
 
   // 최초 건물 목록/강의실 목록
-  useEffect(() => {
+  useEffect(() => { // ✅ 최초 로딩 시
     fetchBuildings()
     fetchRooms()
-  }, [])
-
-  // 건물 선택 시
-  useEffect(() => {
-    if (!filterBuilding) {
-      setFloorOptions([])
-      setFilterFloor("")
-      setSvgRaw("")
-      setRoomNodes({})
-      setEdges([])
-      setSvgNodes([])
-      setRooms([])
-      fetchRooms()
-      return
-    }
-    setFilterFloor("")
-    fetchFloors(filterBuilding)
-  }, [filterBuilding])
-
-  // 층 선택 시
-  useEffect(() => {
-    if (!filterBuilding) {
-      fetchRooms()
-      return
-    }
-
-    if (!filterFloor) {
-      fetchRooms(filterBuilding)
-      setSvgRaw("")
-      setRoomNodes({})
-      setEdges([])
-      return
-    }
-
-    fetchRooms(filterBuilding, filterFloor)
-    // SVG맵 등도 여기에 처리
-  }, [filterBuilding, filterFloor])
+  }, [fetchRooms]) // fetchRooms는 useCallback으로 감싸져 있어 최초 1회만 실행됨
 
   // SVG 로드 (도면 요청)
-  useEffect(() => {
-    if (filterBuilding && filterFloor) {
-      setMapLoading(true)
+  const loadMapData = useCallback(async (building, floor) => {
+    setMapLoading(true)
+    // 상태 초기화
+    setSvgRaw("")
+    setRoomNodes({})
+    setEdges([])
+    setSvgNodes([])
 
-      apiGet(
-        `/api/map-route?building=${encodeURIComponent(
-          filterBuilding
-        )}&floor=${encodeURIComponent(filterFloor)}`
+    try {
+      const res = await apiGet(
+        `/api/map-route?building=${encodeURIComponent(building)}&floor=${encodeURIComponent(floor)}`
       )
-        .then(async (res) => parseJsonResponse(res))
-        .then((data) => {
-          const fileList = Array.isArray(data) ? data : [data]
-          const rawSvgUrl = fileList[0]?.File
-          const nodesInfo = fileList[0]?.nodes || {}
-          let edgesInfo = fileList[0]?.edges
+      const data = await parseJsonResponse(res)
 
-          if (!edgesInfo) {
-            edgesInfo = []
-            Object.entries(nodesInfo).forEach(([from, arr]) => {
-              arr.forEach((edgeObj) => {
-                const to =
-                  typeof edgeObj === "string"
-                    ? edgeObj
-                    : edgeObj.node || edgeObj.to
-                if (to) edgesInfo.push({ from, to })
-              })
-            })
-          }
+      const fileList = Array.isArray(data) ? data : [data]
+      const rawSvgUrl = fileList[0]?.File
+      const nodesInfo = fileList[0]?.nodes || {}
+      let edgesInfo = fileList[0]?.edges
 
-          if (rawSvgUrl) {
-            // 도면 URL 캐시 무력화 쿼리 추가
-            const svgUrl =
-              rawSvgUrl +
-              (rawSvgUrl.includes("?") ? "&" : "?") +
-              "ts=" +
-              Date.now()
-
-            // 상태 초기화를 fetch 이전에 확실히 수행
-            setSvgRaw("")
-            setSvgNodes([])
-            setRoomNodes({})
-            setEdges([])
-
-            fetch(svgUrl)
-              .then((res) => res.text())
-              .then((svgXml) => {
-                const processedSvg = processSvg(svgXml)
-
-                setSvgRaw(processedSvg)
-                setRoomNodes(nodesInfo)
-                setEdges(edgesInfo)
-
-                const parsedNodes = parseSvgNodes(
-                  svgXml,
-                  filterBuilding,
-                  filterFloor
-                )
-                setSvgNodes(parsedNodes)
-              })
-              .catch(() => {
-                setSvgRaw("")
-                setRoomNodes({})
-                setEdges([])
-                setSvgNodes([])
-              })
-          } else {
-            setSvgRaw("")
-            setRoomNodes({})
-            setEdges([])
-            setSvgNodes([])
-          }
+      if (!edgesInfo) {
+        edgesInfo = []
+        Object.entries(nodesInfo).forEach(([from, arr]) => {
+          arr.forEach((edgeObj) => {
+            const to = typeof edgeObj === "string" ? edgeObj : edgeObj.node || edgeObj.to
+            if (to) edgesInfo.push({ from, to })
+          })
         })
-        .catch(() => {
-          setSvgRaw("")
-          setRoomNodes({})
-          setEdges([])
-          setSvgNodes([])
-        })
-        .finally(() => setMapLoading(false))
-    } else {
-      // 건물/층 선택 초기화 시 상태 리셋
-      setSvgRaw("")
-      setRoomNodes({})
-      setEdges([])
-      setSvgNodes([])
+      }
+
+      if (rawSvgUrl) {
+        const svgUrl = rawSvgUrl + (rawSvgUrl.includes("?") ? "&" : "?") + "ts=" + Date.now()
+        const svgRes = await fetch(svgUrl)
+        if (!svgRes.ok) throw new Error("SVG 파일을 불러올 수 없습니다.")
+        
+        const svgXml = await svgRes.text()
+        const processedSvg = processSvg(svgXml)
+        const parsedNodes = parseSvgNodes(svgXml, building, floor)
+
+        setSvgRaw(processedSvg)
+        setRoomNodes(nodesInfo)
+        setEdges(edgesInfo)
+        setSvgNodes(parsedNodes)
+      }
+    } catch (error) {
+      console.error("맵 데이터 로딩 실패:", error)
+      // 에러 발생 시에도 상태는 초기화된 상태로 유지
+    } finally {
+      setMapLoading(false)
     }
-  }, [filterBuilding, filterFloor])
+  }, [processSvg]) // parseSvgNodes는 컴포넌트 내 일반 함수라 의존성 불필요
 
-  // 층 선택 시 도면 초기화
+  // ✅ 건물/층 필터 변경 시 데이터 로딩 로직 통합
   useEffect(() => {
-    if (filterFloor === "") {
+    // 맵 관련 상태 초기화
+    if (!filterBuilding || !filterFloor) {
       setSvgRaw("")
       setRoomNodes({})
       setEdges([])
       setSvgNodes([])
     }
-  }, [filterFloor])
+
+    // 건물 필터가 변경되면 층 목록을 새로 가져옴
+    if (filterBuilding) {
+      fetchFloors(filterBuilding)
+    } else {
+      setFloorOptions([])
+    }
+
+    // 강의실 목록 가져오기
+    fetchRooms(filterBuilding, filterFloor)
+
+    // 맵 데이터 가져오기 (건물과 층이 모두 선택된 경우에만)
+    if (filterBuilding && filterFloor) {
+      loadMapData(filterBuilding, filterFloor)
+    }
+  }, [filterBuilding, filterFloor, fetchRooms, fetchFloors, loadMapData])
 
   // 다른 층 계단 연결
   useEffect(() => {
@@ -741,35 +685,15 @@ export default function RoomManagePage() {
       .finally(() => setStairsLoading(false))
   }, [stairsBuilding, stairsFloor, stairsId])
 
-  // 강의실 데이터
-  function normalizeRoom(room) {
-    return {
-      building: room.building || room.Building_Name || "",
-      floor: room.floor || room.Floor_Number || "",
-      name: room.name || room.Room_Name || "",
-      description: room.description || room.Room_Description || "",
-      room_user: room.room_user || room.Room_User || "",
-      user_phone: room.user_phone || room.User_Phone || "",
-      user_email: room.user_email || room.User_Email || "",
-    }
-  }
-
-  // @ 파싱
-  function getNodeSuffix(id) {
-    if (!id) return ""
-    const parts = id.split("@")
-    return parts[parts.length - 1]
-  }
-
   // 중복 엣지 체크
-  function isEdgeDuplicate(edges, fromId, toId) {
+  const isEdgeDuplicate = useCallback((edges, fromId, toId) => {
     const fromInfo = parseNodeInfo(fromId)
     const toInfo = parseNodeInfo(toId)
 
     return edges.some((e) => {
       const eFromInfo = parseNodeInfo(e.from)
       const eToInfo = parseNodeInfo(e.to)
-
+  
       return (
         eFromInfo.building === fromInfo.building &&
         eFromInfo.floor === fromInfo.floor &&
@@ -779,10 +703,10 @@ export default function RoomManagePage() {
         eToInfo.node === toInfo.node
       )
     })
-  }
+  }, []) // parseNodeInfo는 의존성에 추가할 필요가 없습니다.
 
   // 계단 연결
-  async function connectEdgeToStairs(fromNode, toNodeInfo) {
+  const connectEdgeToStairs = useCallback(async (fromNode, toNodeInfo) => {
     const { building: toBuilding, floor: toFloor, node: toNode } = toNodeInfo
 
     const toNodeFullId = `${toBuilding}@${toFloor}@${toNode}`
@@ -814,7 +738,7 @@ export default function RoomManagePage() {
     } catch (err) {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
     }
-  }
+  }, [edges, reloadMapData, isEdgeDuplicate])
 
   // 노드 정보 파싱
   const parseNodeInfo = (fullId) => {
@@ -883,150 +807,21 @@ export default function RoomManagePage() {
         </div>
 
         <div className={styles["room-manage-main-row"]}>
-          {/* 표 */}
-          <div className={styles["room-manage-table-wrap"]}>
-            {loading && <p>로딩 중...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && (
-              <>
-                <table
-                  className={`${styles["user-table"]} ${styles["center-table"]} ${styles["bordered-table"]}`}
-                >
-                  <thead>
-                    <tr>
-                      <th>건물명</th>
-                      <th>층</th>
-                      <th>강의실명</th>
-                      <th>강의실 설명</th>
-                      <th>사용자</th>
-                      <th>전화번호</th>
-                      <th>이메일</th>
-                      <th>수정</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pagedRooms.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan="8" className={styles.noDataCell}>
-                          데이터가 없습니다
-                        </td>
-                      </tr>
-                    ) : (
-                      pagedRooms.map((room, idx) => (
-                        <tr
-                          key={
-                            room.building && room.floor && room.name
-                              ? `${room.building}-${room.floor}-${room.name}`
-                              : `row-${idx}`
-                          }
-                        >
-                          <td>{room.building}</td>
-                          <td>{room.floor}</td>
-                          <td>{room.name}</td>
-                          <td>{room.description}</td>
-                          <td>
-                            {Array.isArray(room.room_user)
-                              ? room.room_user.filter((v) => v && v.trim())
-                                  .length > 1
-                                ? room.room_user
-                                    .filter((v) => v && v.trim())
-                                    .join(", ")
-                                : room.room_user.find((v) => v && v.trim()) ||
-                                  ""
-                              : room.room_user && room.room_user.trim()
-                              ? room.room_user
-                              : ""}
-                          </td>
-                          <td>
-                            {Array.isArray(room.user_phone)
-                              ? room.user_phone.filter((v) => v && v.trim())
-                                  .length > 1
-                                ? room.user_phone
-                                    .filter((v) => v && v.trim())
-                                    .join(", ")
-                                : room.user_phone.find((v) => v && v.trim()) ||
-                                  ""
-                              : room.user_phone && room.user_phone.trim()
-                              ? room.user_phone
-                              : ""}
-                          </td>
-                          <td>
-                            {Array.isArray(room.user_email)
-                              ? room.user_email.filter((v) => v && v.trim())
-                                  .length > 1
-                                ? room.user_email
-                                    .filter((v) => v && v.trim())
-                                    .join(", ")
-                                : room.user_email.find((v) => v && v.trim()) ||
-                                  ""
-                              : room.user_email && room.user_email.trim()
-                              ? room.user_email
-                              : ""}
-                          </td>
-                          <td>
-                            <button
-                              className={styles.editIconButton}
-                              onClick={() => {
-                                setEditRoom(room)
-                                setEditRoomName(room.name)
-                                setEditRoomDesc(room.description || "")
-                                setEditRoomUsers(
-                                  Array.isArray(room.room_user)
-                                    ? room.room_user.map((user, i) => ({
-                                        user: user || "",
-                                        phone: Array.isArray(room.user_phone)
-                                          ? room.user_phone[i] || ""
-                                          : room.user_phone || "",
-                                        email: Array.isArray(room.user_email)
-                                          ? room.user_email[i] || ""
-                                          : room.user_email || "",
-                                      }))
-                                    : [
-                                        {
-                                          user: room.room_user || "",
-                                          phone: room.user_phone || "",
-                                          email: room.user_email || "",
-                                        },
-                                      ]
-                                )
-                                setEditRoomError("")
-                                setShowEditRoomModal(true)
-                              }}
-                            >
-                              <MdEditSquare size={20} color="#007bff" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-                {/* 페이지네이션 */}
-                <div className={styles["room-manage-pagination-row"]}>
-                  <button
-                    className={styles["room-manage-pagination-btn"]}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    이전
-                  </button>
-                  <span className={styles["room-manage-pagination-info"]}>
-                    {currentPage} / {totalPages}
-                  </span>
-                  <button
-                    className={styles["room-manage-pagination-btn"]}
-                    onClick={() =>
-                      setCurrentPage((p) => Math.min(totalPages, p + 1))
-                    }
-                    disabled={currentPage === totalPages || totalPages === 0}
-                  >
-                    다음
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          <RoomTable
+            pagedRooms={pagedRooms}
+            loading={loading}
+            error={error}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            setCurrentPage={setCurrentPage}
+            setEditRoom={setEditRoom}
+            setEditRoomName={setEditRoomName}
+            setEditRoomDesc={setEditRoomDesc}
+            setEditRoomUsers={setEditRoomUsers}
+            setEditRoomError={setEditRoomError}
+            setShowEditRoomModal={setShowEditRoomModal}
+            styles={styles} // CSS 모듈을 props로 전달
+          />
           {/* 맵 */}
           <div className={styles["room-manage-map-wrap"]}>
             <div className={styles.mapToolbar}>
@@ -1074,13 +869,6 @@ export default function RoomManagePage() {
                   )
                   const offsetX = (CANVAS_SIZE - svgViewBox.width * scale) / 2
                   const offsetY = (CANVAS_SIZE - svgViewBox.height * scale) / 2
-
-                  // id의 마지막 부분만 추출하는 함수
-                  function getNodeSuffix(id) {
-                    if (!id) return ""
-                    const parts = id.split("@")
-                    return parts[parts.length - 1]
-                  }
 
                   return (
                     <div
@@ -1422,12 +1210,6 @@ export default function RoomManagePage() {
               </div>
             </div>
           )}
-          {/* 토스트 메시지 UI */}
-          {toastVisible && (
-            <div className={styles.toastPopup}>
-              {toastMessage}
-            </div>
-          )}
         </div>
       </div>
       {/* 강의실 정보 수정 모달 */}
@@ -1547,6 +1329,12 @@ export default function RoomManagePage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {/* 토스트 메시지 UI */}
+      {toastVisible && (
+        <div className={styles.toastPopup}>
+          {toastMessage}
         </div>
       )}
     </div>

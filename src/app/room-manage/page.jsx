@@ -514,8 +514,6 @@ export default function RoomManagePage() {
         to_node: toNodeInfo.node,
       }
 
-      console.log("Request Body:", requestBody)
-
       const res = await apiDelete("/api/map-route", requestBody)
       const data = await parseJsonResponse(res)
       if (!res.ok) {
@@ -724,26 +722,19 @@ export default function RoomManagePage() {
     apiGet(
       `/api/stairs-route?building=${encodeURIComponent(
         stairsBuilding
-      )}&floor=${encodeURIComponent(stairsFloor)}&id=${encodeURIComponent(
-        stairsId
-      )}`
+      )}&floor=${encodeURIComponent(stairsFloor)}&id=${encodeURIComponent(stairsId)}`
     )
       .then(async (res) => parseJsonResponse(res))
       .then((data) => {
         if (Array.isArray(data)) {
           setStairsList(data)
-          setStairsNodes([])
-          console.log("stairsList(배열):", data)
         } else if (data) {
           setStairsList(Array.isArray(data.stairs) ? data.stairs : [])
           setStairsNodes(Array.isArray(data.nodes) ? data.nodes : [])
-          console.log("stairsList(.stairs):", data.stairs)
-          console.log("stairsNodes(.nodes):", data.nodes)
         } else {
           setStairsList([])
           setStairsNodes([])
           setStairsError(data.error || "계단 정보를 불러오지 못했습니다.")
-          console.log("stairsList(빈 데이터):", data)
         }
       })
       .catch(() => setStairsError("계단 정보를 불러오지 못했습니다."))
@@ -828,10 +819,8 @@ export default function RoomManagePage() {
   // 노드 정보 파싱
   const parseNodeInfo = (fullId) => {
     const parts = fullId.split("@")
-    console.log("Parsing node ID:", fullId, "Parts:", parts)
 
     if (parts.length < 3) {
-      console.error("Invalid node ID format:", fullId)
       return {
         building: "",
         floor: "",

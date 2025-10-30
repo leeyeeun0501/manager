@@ -435,6 +435,38 @@ export default function RoomManagePage() {
     return parts[parts.length - 1]
   }
 
+  // 노드 정보 파싱
+  const parseNodeInfo = (fullId) => {
+    const parts = fullId.split("@")
+
+    if (parts.length < 3) {
+      return {
+        building: "",
+        floor: "",
+        node: "",
+      }
+    }
+
+    return {
+      building: parts[0],
+      floor: parts[1],
+      node: parts[2],
+    }
+  }
+
+  // 중복 엣지 체크
+  const isEdgeDuplicate = useCallback((edges, fromId, toId) => {
+    const fromInfo = parseNodeInfo(fromId)
+    const toInfo = parseNodeInfo(toId)
+
+    return edges.some((e) => {
+      const eFromInfo = parseNodeInfo(e.from)
+      const eToInfo = parseNodeInfo(e.to)
+  
+      return eFromInfo.building === fromInfo.building && eFromInfo.floor === fromInfo.floor && eFromInfo.node === fromInfo.node && eToInfo.building === toInfo.building && eToInfo.floor === toInfo.floor && eToInfo.node === toInfo.node
+    })
+  }, []) // parseNodeInfo는 의존성에 추가할 필요가 없습니다.
+
   // 내부 도면 엣지 연결 함수
   const connectEdge = useCallback(async () => {
     if (isEdgeDuplicate(edges, edgeFromNode?.id, edgeToNode?.id)) {
@@ -476,7 +508,7 @@ export default function RoomManagePage() {
       setEdgeConnectLoading(false)
       setEdgeConnectMode(false)
     }
-  }, [edges, edgeFromNode, edgeToNode, filterBuilding, filterFloor, reloadMapData])
+  }, [edges, edgeFromNode, edgeToNode, filterBuilding, filterFloor, reloadMapData, isEdgeDuplicate, showToast])
 
   // 현재 선택된 노드의 id
   const connectedNodes = edges
@@ -535,7 +567,7 @@ export default function RoomManagePage() {
     } catch (err) {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
     }
-  }, [edgeModalNode, reloadMapData])
+  }, [edgeModalNode, reloadMapData, showToast, parseNodeInfo])
 
   const filteredRooms = useMemo(() => {
     if (!search.trim()) {
@@ -684,27 +716,7 @@ export default function RoomManagePage() {
       .catch(() => setStairsError("계단 정보를 불러오지 못했습니다."))
       .finally(() => setStairsLoading(false))
   }, [stairsBuilding, stairsFloor, stairsId])
-
-  // 중복 엣지 체크
-  const isEdgeDuplicate = useCallback((edges, fromId, toId) => {
-    const fromInfo = parseNodeInfo(fromId)
-    const toInfo = parseNodeInfo(toId)
-
-    return edges.some((e) => {
-      const eFromInfo = parseNodeInfo(e.from)
-      const eToInfo = parseNodeInfo(e.to)
   
-      return (
-        eFromInfo.building === fromInfo.building &&
-        eFromInfo.floor === fromInfo.floor &&
-        eFromInfo.node === fromInfo.node &&
-        eToInfo.building === toInfo.building &&
-        eToInfo.floor === toInfo.floor &&
-        eToInfo.node === toInfo.node
-      )
-    })
-  }, []) // parseNodeInfo는 의존성에 추가할 필요가 없습니다.
-
   // 계단 연결
   const connectEdgeToStairs = useCallback(async (fromNode, toNodeInfo) => {
     const { building: toBuilding, floor: toFloor, node: toNode } = toNodeInfo
@@ -738,26 +750,7 @@ export default function RoomManagePage() {
     } catch (err) {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
     }
-  }, [edges, reloadMapData, isEdgeDuplicate])
-
-  // 노드 정보 파싱
-  const parseNodeInfo = (fullId) => {
-    const parts = fullId.split("@")
-
-    if (parts.length < 3) {
-      return {
-        building: "",
-        floor: "",
-        node: "",
-      }
-    }
-
-    return {
-      building: parts[0],
-      floor: parts[1],
-      node: parts[2],
-    }
-  }
+  }, [edges, reloadMapData, isEdgeDuplicate, showToast])
 
   return (
     <div className={styles["room-root"]}>

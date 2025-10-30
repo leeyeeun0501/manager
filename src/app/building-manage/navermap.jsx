@@ -111,15 +111,11 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
     // 토큰 상태 확인
     const token = localStorage.getItem('token')
-    console.log('🗑️ 이미지 삭제 - 토큰 상태:', token ? '토큰 있음' : '토큰 없음')
-    console.log('🗑️ 이미지 삭제 - localStorage:', Object.keys(localStorage))
 
     try {
       const requestBody = {
         image_urls: selectedImages,
       }
-
-      console.log('🗑️ 이미지 삭제 - 요청 데이터:', requestBody)
 
       // 선택된 이미지들을 배열로 한 번에 삭제
       const res = await apiDelete(
@@ -651,13 +647,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         })
       }
 
-      console.log("📤 FormData 내용 확인:")
       for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, typeof value === "object" ? value.name : value)
       }
-      console.log("📤 FormData 총 항목 수:", Array.from(formData.entries()).length)
-      console.log("📤 새로 추가된 이미지 수:", newBuildingImages.length)
-      console.log("📤 설명 내용:", buildingDesc)
 
       const res = await apiPut(
         `/api/building-route?building=${encodeURIComponent(
@@ -715,10 +706,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   // 이미지 파일 선택 핸들러
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files)
-    console.log("📷 새로 선택된 이미지들:", files.map(f => ({ name: f.name, size: f.size })))
     setNewBuildingImages((prev) => {
       const newImages = [...prev, ...files]
-      console.log("📷 전체 이미지 배열:", newImages.map(f => ({ name: f.name, size: f.size })))
       return newImages
     })
     e.target.value = ""
@@ -795,18 +784,12 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
       res = await apiPost("/api/tower-route", body)
     }
-
-    console.log("📤 건물 추가 응답 상태:", res.status)
-    console.log("📤 건물 추가 응답 헤더:", Object.fromEntries(res.headers.entries()))
     
     let data
     try {
       data = await res.json()
-      console.log("📤 건물 추가 응답 데이터:", data)
     } catch (jsonError) {
-      console.log("❌ 건물 추가 응답 JSON 파싱 오류:", jsonError.message)
       const responseText = await res.text()
-      console.log("❌ 건물 추가 응답 텍스트:", responseText)
       showToast(`서버 응답 오류: ${jsonError.message}`)
       return
     }
@@ -1638,10 +1621,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
                       let imageArr = []
                       if (found) {
-                        console.log("Image 필드:", found.Image)
-                        console.log("image 필드:", found.image)
-                        console.log("image_url 필드:", found.image_url)
-
                         if (
                           Array.isArray(found.Image) &&
                           found.Image.length > 0

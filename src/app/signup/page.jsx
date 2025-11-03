@@ -5,19 +5,7 @@ import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import styles from "./signup.module.css"
 import LoadingOverlay from "../components/loadingoverlay"
-
-// 전화번호 하이픈 자동 삽입 함수
-const formatPhoneNumber = (value) => {
-  const number = value.replace(/[^0-9]/g, "")
-  if (number.length < 4) return number
-  if (number.length < 7) {
-    return number.replace(/(\d{3})(\d{1,3})/, "$1-$2")
-  }
-  if (number.length < 11) {
-    return number.replace(/(\d{3})(\d{3,4})(\d{1,4})/, "$1-$2-$3")
-  }
-  return number.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3")
-}
+import { formatPhoneNumber } from "../utils/apiHelper"
 
 export default function SignupPage() {
   const formRef = useRef(null)

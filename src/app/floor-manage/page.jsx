@@ -7,6 +7,7 @@ import styles from "./floor-manage.module.css"
 import { FaTrashAlt, FaPaperclip } from "react-icons/fa"
 import { apiGet, apiPost, apiPut, apiDelete, parseJsonResponse } from "../utils/apiHelper"
 import { useSessionCheck } from "../utils/useSessionCheck"
+import { useToast } from "../utils/useToast"
 import "../globals.css"
 
 // 파일 선택 아이콘 버튼 컴포넌트를 외부로 분리하여 불필요한 재생성을 방지합니다.
@@ -112,15 +113,8 @@ export default function BuildingPage() {
     floor: "",
   })
 
-  // 팝업 메시지 상태
-  const [toastMessage, setToastMessage] = useState("")
-  const [toastVisible, setToastVisible] = useState(false)
-
-  const showToast = useCallback((msg, duration = 3000) => {
-    setToastMessage(msg)
-    setToastVisible(true)
-    setTimeout(() => setToastVisible(false), duration)
-  }, [])
+  // 토스트 메시지 훅
+  const { toastMessage, toastVisible, showToast } = useToast()
 
   const getCacheBustedUrl = useCallback((url) => {
     if (!url) return url

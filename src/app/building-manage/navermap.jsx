@@ -2,6 +2,7 @@
 "use client"
 import React, { useEffect, useRef, useState } from "react"
 import { apiGet, apiDelete, apiPut, apiPost, parseJsonResponse } from "../utils/apiHelper"
+import { useToast } from "../utils/useToast"
 
 function NaverMap({ isLoggedIn, menuOpen }) {
   const mapRef = useRef(null)
@@ -36,9 +37,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     active: false,
     fromNode: null,
   })
-  // 토스트 메시지 상태
-  const [toastMessage, setToastMessage] = useState("")
-  const [toastVisible, setToastVisible] = useState(false)
+  // 토스트 메시지 훅
+  const { toastMessage, toastVisible, showToast } = useToast()
 
   const [recentlyAddedNode, setRecentlyAddedNode] = useState(null)
 
@@ -57,13 +57,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     imageIndex: 0,
     totalImages: 0
   })
-
-  // 토스트 메시지 함수
-  const showToast = (msg, duration = 3000) => {
-    setToastMessage(msg)
-    setToastVisible(true)
-    setTimeout(() => setToastVisible(false), duration)
-  }
 
   // 지도 API 스크립트 준비 여부
   const [ready, setReady] = useState(false)

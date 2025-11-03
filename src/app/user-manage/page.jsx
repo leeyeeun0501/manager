@@ -6,23 +6,11 @@ import Menu from "../components/menu"
 import { FaTrashAlt } from "react-icons/fa"
 import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./user-manage.module.css"
-import { apiGet, apiDelete, parseJsonResponse, extractUserListData } from "../utils/apiHelper"
+import { apiGet, apiDelete, parseJsonResponse, extractUserListData, formatDateTime } from "../utils/apiHelper"
 import { useSessionCheck } from "../utils/useSessionCheck"
-
-function formatDateTime(isoString) {
-  if (!isoString) return ""
-  const d = new Date(isoString)
-  if (isNaN(d)) return ""
-  const pad = (n) => n.toString().padStart(2, "0")
-  return (
-    d.getFullYear() + "-" +
-    pad(d.getMonth() + 1) + "-" +
-    pad(d.getDate()) + " " +
-    pad(d.getHours()) + ":" +
-    pad(d.getMinutes()) + ":" +
-    pad(d.getSeconds())
-  )
-}
+import { useToast } from "../utils/useToast"
+import { usePagination } from "../utils/usePagination"
+import { useSearchFilter } from "../utils/useSearchFilter"
 
 export default function UserManagePage() {
   // 세션 체크 활성화
@@ -32,36 +20,19 @@ export default function UserManagePage() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [search, setSearch] = useState("")
-  const [filteredUsers, setFilteredUsers] = useState([])
 
-  // 페이징 관련
+  // 토스트 메시지 훅
+  const { toastMessage, toastVisible, showToast } = useToast()
+
+  // 검색 필터링 훅
+  const { search, setSearch, filteredData: filteredUsers } = useSearchFilter(users)
+
+  // 페이징 훅
   const itemsPerPage = 20
-  const [currentPage, setCurrentPage] = useState(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("USER_MANAGE_PAGE")
-      return saved ? Number(saved) : 1
-    }
-    return 1
-  })
-
-  // 팝업 메시지 상태
-  const [toastMessage, setToastMessage] = useState("")
-  const [toastVisible, setToastVisible] = useState(false)
-
-  const showToast = (msg, duration = 3000) => {
-    setToastMessage(msg)
-    setToastVisible(true)
-    setTimeout(() => setToastVisible(false), duration)
-  }
-
-  // 현재 보여줄 페이지 범위의 user만 추출 (검색된 결과 기준)
-  const totalUsers = filteredUsers.length
-  const totalPages = Math.ceil(totalUsers / itemsPerPage)
-
-  const pagedUsers = filteredUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+  const { currentPage, totalPages, pagedData: pagedUsers, goToPrevPage, goToNextPage } = usePagination(
+    filteredUsers,
+    itemsPerPage,
+    "USER_MANAGE_PAGE"
   )
 
   // 사용자 전체 조회
@@ -81,13 +52,6 @@ export default function UserManagePage() {
       })
       setUsers(usersArr)
 
-      // 삭제 시 페이지가 전체 페이지 수보다 크면 마지막 페이지로 보정
-      if (keepPage) {
-        setCurrentPage((prev) => {
-          const last = Math.max(1, Math.ceil(usersArr.length / itemsPerPage))
-          return prev > last ? last : prev
-        })
-      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -97,30 +61,8 @@ export default function UserManagePage() {
 
   // 최초 mount
   useEffect(() => {
-    fetchUsers(true)
+    fetchUsers()
   }, [])
-
-  // 검색 필터링
-  useEffect(() => {
-    if (!search.trim()) {
-      setFilteredUsers(users)
-      setCurrentPage(1)
-      return
-    }
-    const keyword = search.toLowerCase()
-    const filtered = users.filter((user) =>
-      Object.values(user).some((val) =>
-        (val ?? "").toString().toLowerCase().includes(keyword)
-      )
-    )
-    setFilteredUsers(filtered)
-    setCurrentPage(1)
-  }, [search, users])
-
-  // 페이징
-  useEffect(() => {
-    localStorage.setItem("USER_MANAGE_PAGE", currentPage)
-  }, [currentPage])
 
   // 사용자 삭제 핸들러
   const handleDelete = async (id) => {
@@ -130,7 +72,7 @@ export default function UserManagePage() {
       const data = await parseJsonResponse(res)
       if (!data.success) throw new Error(data.error || "삭제 실패")
       showToast("사용자가 삭제되었습니다.")
-      await fetchUsers(true)
+      await fetchUsers()
     } catch (err) {
       showToast(err.message)
     }
@@ -228,19 +170,17 @@ export default function UserManagePage() {
               <button
                 className={styles.userPaginationBtn}
                 disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                onClick={goToPrevPage}
               >
                 이전
               </button>
               <span className={styles.userPaginationInfo}>
-                {currentPage} / {totalPages || 1}
+                {currentPage} / {totalPages}
               </span>
               <button
                 className={styles.userPaginationBtn}
                 disabled={currentPage >= totalPages}
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
+                onClick={goToNextPage}
               >
                 다음
               </button>

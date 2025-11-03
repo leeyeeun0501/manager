@@ -185,3 +185,101 @@ export const formatPhoneNumber = (value) => {
   if (number.length < 11) return number.replace(/(\d{3})(\d{3,4})(\d{1,4})/, "$1-$2-$3")
   return number.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3")
 }
+
+/**
+ * 범용 API 응답 데이터 추출 함수
+ * 다양한 중첩 구조를 자동으로 처리합니다.
+ * @param {any} data - API 응답 데이터
+ * @param {string} key - 추출할 데이터의 키 (예: 'users', 'rooms', 'inquiries')
+ * @returns {Array} 추출된 배열 데이터
+ */
+export const extractDataList = (data, key) => {
+  if (!data) return []
+  
+  // data.data.data.key 형태
+  if (data.data?.data?.[key] && Array.isArray(data.data.data[key])) {
+    return data.data.data[key]
+  }
+  // data.data.key 형태
+  if (data.data?.[key] && Array.isArray(data.data[key])) {
+    return data.data[key]
+  }
+  // data.key.data 형태
+  if (data[key]?.data && Array.isArray(data[key].data)) {
+    return data[key].data
+  }
+  // data.key 형태
+  if (data[key] && Array.isArray(data[key])) {
+    return data[key]
+  }
+  // data.data가 배열인 경우
+  if (data.data && Array.isArray(data.data)) {
+    return data.data
+  }
+  // data 자체가 배열인 경우
+  if (Array.isArray(data)) {
+    return data
+  }
+  
+  return []
+}
+
+/**
+ * 범용 단일 데이터 추출 함수
+ * @param {any} data - API 응답 데이터
+ * @param {string} key - 추출할 데이터의 키
+ * @returns {any|null} 추출된 단일 데이터 또는 null
+ */
+export const extractData = (data, key) => {
+  if (!data) return null
+  
+  if (data[key]) {
+    return Array.isArray(data[key]) ? data[key][0] : data[key]
+  }
+  if (data.data?.[key]) {
+    return Array.isArray(data.data[key]) ? data.data[key][0] : data.data[key]
+  }
+  if (data.data?.data?.[key]) {
+    return Array.isArray(data.data.data[key]) ? data.data.data[key][0] : data.data.data[key]
+  }
+  if (data.data) {
+    return Array.isArray(data.data) ? data.data[0] : data.data
+  }
+  if (Array.isArray(data)) {
+    return data[0]
+  }
+  
+  return data
+}
+
+/**
+ * 날짜 포맷팅 함수
+ * @param {string} isoString - ISO 8601 날짜 문자열
+ * @returns {string} 포맷팅된 날짜 문자열 (YYYY-MM-DD HH:MM:SS)
+ */
+export const formatDateTime = (isoString) => {
+  if (!isoString) return ""
+  const d = new Date(isoString)
+  if (isNaN(d)) return ""
+  const pad = (n) => n.toString().padStart(2, "0")
+  return (
+    d.getFullYear() + "-" +
+    pad(d.getMonth() + 1) + "-" +
+    pad(d.getDate()) + " " +
+    pad(d.getHours()) + ":" +
+    pad(d.getMinutes()) + ":" +
+    pad(d.getSeconds())
+  )
+}
+
+/**
+ * 텍스트 자르기 함수
+ * @param {string} text - 원본 텍스트
+ * @param {number} maxLength - 최대 길이
+ * @returns {string} 자른 텍스트
+ */
+export const truncateText = (text, maxLength = 20) => {
+  if (!text) return ""
+  if (text.length <= maxLength) return text
+  return text.substring(0, maxLength) + "..."
+}

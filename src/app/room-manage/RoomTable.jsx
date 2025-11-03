@@ -7,7 +7,8 @@ export default function RoomTable({
   error,
   currentPage,
   totalPages,
-  setCurrentPage,
+  goToPrevPage,
+  goToNextPage,
   setEditRoom,
   setEditRoomName,
   setEditRoomDesc,
@@ -131,7 +132,7 @@ export default function RoomTable({
           <div className={styles["room-manage-pagination-row"]}>
             <button
               className={styles["room-manage-pagination-btn"]}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              onClick={goToPrevPage}
               disabled={currentPage === 1}
             >
               이전
@@ -141,10 +142,8 @@ export default function RoomTable({
             </span>
             <button
               className={styles["room-manage-pagination-btn"]}
-              onClick={() =>
-                setCurrentPage((p) => Math.min(totalPages, p + 1))
-              }
-              disabled={currentPage === totalPages || totalPages === 0}
+              onClick={goToNextPage}
+              disabled={currentPage >= totalPages || totalPages === 0}
             >
               다음
             </button>

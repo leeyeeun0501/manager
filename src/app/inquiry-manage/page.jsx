@@ -7,8 +7,11 @@ import Image from "next/image"
 import { FaRegCommentDots } from "react-icons/fa"
 import "../globals.css"
 import styles from "./inquiry-manage.module.css"
-import { apiGet, apiPut, parseJsonResponse } from "../utils/apiHelper"
+import { apiGet, apiPut, parseJsonResponse, extractDataList, truncateText } from "../utils/apiHelper"
 import { useSessionCheck } from "../utils/useSessionCheck"
+import { useToast } from "../utils/useToast"
+import { usePagination } from "../utils/usePagination"
+import { useCategoryFilter } from "../utils/useSearchFilter"
 
 export default function InquiryPage() {
   // 세션 체크 활성화
@@ -16,9 +19,7 @@ export default function InquiryPage() {
   
   const [menuOpen, setMenuOpen] = useState(false)
   const [inquiries, setInquiries] = useState([])
-  const [category, setCategory] = useState("all")
   const [loading, setLoading] = useState(true)
-  const [categoryOptions, setCategoryOptions] = useState([])
 
   // 모달 관련
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -36,9 +37,22 @@ export default function InquiryPage() {
   const [translatedContent, setTranslatedContent] = useState("")
   const [isTranslating, setIsTranslating] = useState(false)
 
-  // 페이징
+  // 토스트 메시지 훅
+  const { toastMessage, toastVisible, showToast } = useToast()
+
+  // 카테고리 필터링 훅
+  const { category, setCategory, filteredData: filteredInquiries, categories: categoryOptions } = useCategoryFilter(
+    inquiries,
+    'category',
+    'all'
+  )
+
+  // 페이징 훅
   const itemsPerPage = 7
-  const [currentPage, setCurrentPage] = useState(1)
+  const { currentPage, totalPages, pagedData: pagedInquiries, setCurrentPage, goToPrevPage, goToNextPage } = usePagination(
+    filteredInquiries,
+    itemsPerPage
+  )
 
   // 문의 통계 상태
   const [inquiryStats, setInquiryStats] = useState({
@@ -48,42 +62,14 @@ export default function InquiryPage() {
     answerRate: 0,
   })
 
-  // 팝업 메시지 상태
-  const [toastMessage, setToastMessage] = useState("")
-  const [toastVisible, setToastVisible] = useState(false)
-
-  const showToast = (msg, duration = 3000) => {
-    setToastMessage(msg)
-    setToastVisible(true)
-    setTimeout(() => setToastVisible(false), duration)
-  }
-
-  // 텍스트 자르기 함수
-  const truncateText = (text, maxLength = 20) => {
-    if (!text) return ""
-    if (text.length <= maxLength) return text
-    return text.substring(0, maxLength) + "..."
-  }
-
   const fetchInquiries = useCallback(async () => {
     setLoading(true)
     try {
       const res = await apiGet("/api/inquiry-route")
       const data = await parseJsonResponse(res)
       
-      // data.data 구조로 변경 - 이중 중첩 처리
-      let list = []
-      if (data.inquiries && Array.isArray(data.inquiries)) {
-        list = data.inquiries
-      } else if (data.data?.data?.inquiries && Array.isArray(data.data.data.inquiries)) {
-        list = data.data.data.inquiries
-      } else if (data.data?.inquiries && Array.isArray(data.data.inquiries)) {
-        list = data.data.inquiries
-      } else if (data.data && Array.isArray(data.data)) {
-        list = data.data
-      } else if (Array.isArray(data)) {
-        list = data
-      }
+      // extractDataList 유틸리티 사용
+      const list = extractDataList(data, 'inquiries')
       
       const mappedList = list.map((item) => ({
         id: item.User_Id,
@@ -92,7 +78,6 @@ export default function InquiryPage() {
         title: item.Title,
         content: item.Content,
         image_url: item.Image_Path,
-        // 여기서 변환
         status: item.Status
           ? item.Status === "pending"
             ? "답변 대기"
@@ -121,38 +106,20 @@ export default function InquiryPage() {
     setInquiryStats({ total, pending, answered, answerRate })
   }, [])
 
-  const generateCategoryOptions = useCallback((inquiryList) => {
-    const categories = [
-      ...new Set(inquiryList.map((item) => item.category).filter(Boolean)),
-    ]
-    const defaultCategories = [
-      "경로 안내 오류",
-      "장소/정보 오류",
-      "버그 신고",
-      "기능 제안",
-      "기타 문의",
-    ]
-    const allCategories = [...new Set([...categories, ...defaultCategories])]
-    const options = [
-      { value: "all", label: "문의 유형 전체" },
-      ...allCategories.map((cat) => ({ value: cat, label: cat })),
-    ]
-    setCategoryOptions(options)
-  }, [])
-
   useEffect(() => {
     fetchInquiries()
   }, [fetchInquiries])
 
+  // 통계 계산
   useEffect(() => {
-    if (inquiries.length > 0) {
-      calculateStats(inquiries)
-      generateCategoryOptions(inquiries)
-    } else {
-      setInquiryStats({ total: 0, pending: 0, answered: 0, answerRate: 0 })
-      setCategoryOptions([{ value: "all", label: "문의 유형 전체" }])
-    }
-  }, [inquiries, calculateStats, generateCategoryOptions])
+    const total = inquiries.length
+    const pending = inquiries.filter((q) => q.status === "답변 대기").length
+    const answered = inquiries.filter(
+      (q) => q.status === "answered" || q.status === "답변 완료"
+    ).length
+    const answerRate = total > 0 ? Math.round((answered / total) * 100) : 0
+    setInquiryStats({ total, pending, answered, answerRate })
+  }, [inquiries])
 
   // 모달·사진·답변 함수
   const openModal = useCallback((inquiry) => {
@@ -263,22 +230,6 @@ export default function InquiryPage() {
     setSubmitting(false)
   }, [selectedInquiry, answerText, closeModal, fetchInquiries, showToast])
 
-  // 카테고리, 페이징 관련 계산을 useMemo로 최적화
-  const { pagedInquiries, totalPages } = useMemo(() => {
-    const filtered =
-      category === "all"
-        ? inquiries
-        : inquiries.filter((q) => q.category === category)
-
-    const totalInquiries = filtered.length
-    const totalPages = Math.max(1, Math.ceil(totalInquiries / itemsPerPage))
-
-    const pagedInquiries = filtered.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    )
-    return { pagedInquiries, totalPages }
-  }, [inquiries, category, currentPage, itemsPerPage])
 
   return (
     <div className={styles.inquiryRoot}>
@@ -411,7 +362,7 @@ export default function InquiryPage() {
               <button
                 className={styles.inquiryPaginationBtn}
                 disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                onClick={goToPrevPage}
               >
                 이전
               </button>
@@ -421,9 +372,7 @@ export default function InquiryPage() {
               <button
                 className={styles.inquiryPaginationBtn}
                 disabled={currentPage >= totalPages}
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
+                onClick={goToNextPage}
               >
                 다음
               </button>

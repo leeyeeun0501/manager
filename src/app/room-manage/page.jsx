@@ -7,8 +7,11 @@ import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./room-manage.module.css"
 import { MdEditSquare } from "react-icons/md"
-import { apiGet, apiPost, apiPut, apiDelete, parseJsonResponse } from "../utils/apiHelper"
+import { apiGet, apiPost, apiPut, apiDelete, parseJsonResponse, extractDataList } from "../utils/apiHelper"
 import { useSessionCheck } from "../utils/useSessionCheck"
+import { useToast } from "../utils/useToast"
+import { useSearchFilter } from "../utils/useSearchFilter"
+import { usePagination } from "../utils/usePagination"
 
 import RoomTable from "./RoomTable" // RoomTable 컴포넌트 임포트
 import MapViewer from "./MapViewer" // MapViewer 컴포넌트 임포트
@@ -37,10 +40,6 @@ export default function RoomManagePage() {
   const [editRoomDesc, setEditRoomDesc] = useState("")
   const [editRoomError, setEditRoomError] = useState("")
 
-  // 페이징 상태
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
-
   // SVG 및 맵 관련 상태
   const [svgRaw, setSvgRaw] = useState("")
   const [mapLoading, setMapLoading] = useState(false)
@@ -61,23 +60,23 @@ export default function RoomManagePage() {
   const [edgeConnectLoading, setEdgeConnectLoading] = useState(false)
   const [showEdgeConnectModal, setShowEdgeConnectModal] = useState(false)
 
-  // 팝업 메시지 상태
-  const [toastMessage, setToastMessage] = useState("")
-  const [toastVisible, setToastVisible] = useState(false)
+  // 토스트 메시지 훅
+  const { toastMessage, toastVisible, showToast } = useToast()
+
+  // 검색 필터링 훅
+  const { search, setSearch, filteredData: filteredRooms } = useSearchFilter(rooms)
+
+  // 페이징 훅
+  const itemsPerPage = 10
+  const { currentPage, totalPages, pagedData: pagedRooms, setCurrentPage, goToPrevPage, goToNextPage } = usePagination(
+    filteredRooms,
+    itemsPerPage
+  )
 
   // SVG 노드
   const [svgNodes, setSvgNodes] = useState([])
   const [selectedNode, setSelectedNode] = useState(null)
   const CANVAS_SIZE = 600
-
-  const [search, setSearch] = useState("")
-
-  // 토스트 메시지 함수 = 캐시 무력화
-  const showToast = (msg, duration = 3000) => {
-    setToastMessage(msg)
-    setToastVisible(true)
-    setTimeout(() => setToastVisible(false), duration)
-  }
 
   const [roomNodes, setRoomNodes] = useState({})
   const [edges, setEdges] = useState([])
@@ -289,10 +288,9 @@ export default function RoomManagePage() {
     try {
       const res = await apiGet("/api/building-route")
       const data = await parseJsonResponse(res)
-      // data.data 구조로 변경
-      const responseData = data.data || data
+      const allBuildings = data.all || []
       setBuildingOptions(
-        (responseData.all || [])
+        allBuildings
           .filter((b) => b && b.Building_Name)
           .map((b) => b.Building_Name)
       )
@@ -312,9 +310,8 @@ export default function RoomManagePage() {
         `/api/floor-route?building=${encodeURIComponent(building)}&type=names`
       )
       const data = await parseJsonResponse(res)
-      // data.data 구조로 변경
-      const responseData = data.data || data
-      setFloorOptions(Array.isArray(responseData.floors) ? responseData.floors : [])
+      const floors = data.floors || []
+      setFloorOptions(Array.isArray(floors) ? floors : [])
     } catch {
       setFloorOptions([])
     }
@@ -347,17 +344,9 @@ export default function RoomManagePage() {
 
       const res = await apiGet(url)
       const data = await parseJsonResponse(res)
-      // data.data 구조로 변경
-      const responseData = data.data || data
-
-      let roomList = []
-      if (Array.isArray(responseData)) {
-        roomList = responseData
-      } else if (Array.isArray(responseData.rooms)) {
-        roomList = responseData.rooms
-      } else {
-        throw new Error(responseData.error || "강의실 정보를 불러올 수 없습니다.")
-      }
+      
+      // extractDataList 유틸리티 사용
+      const roomList = extractDataList(data, 'rooms')
 
       const mapped = roomList.map(normalizeRoom)
       setRooms(mapped)
@@ -568,24 +557,6 @@ export default function RoomManagePage() {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
     }
   }, [edgeModalNode, reloadMapData, showToast, parseNodeInfo])
-
-  const filteredRooms = useMemo(() => {
-    if (!search.trim()) {
-      return rooms
-    }
-    const keyword = search.toLowerCase()
-    return rooms.filter((room) =>
-      Object.values(room).some((val) =>
-        (val ?? "").toString().toLowerCase().includes(keyword)
-      )
-    )
-  }, [rooms, search])
-
-  const totalPages = Math.ceil(filteredRooms.length / itemsPerPage)
-  const pagedRooms = useMemo(() => {
-    const startIdx = (currentPage - 1) * itemsPerPage
-    return filteredRooms.slice(startIdx, startIdx + itemsPerPage)
-  }, [filteredRooms, currentPage, itemsPerPage])
 
   // 엣지 연결
   useEffect(() => {
@@ -806,7 +777,8 @@ export default function RoomManagePage() {
             error={error}
             currentPage={currentPage}
             totalPages={totalPages}
-            setCurrentPage={setCurrentPage}
+            goToPrevPage={goToPrevPage}
+            goToNextPage={goToNextPage}
             setEditRoom={setEditRoom}
             setEditRoomName={setEditRoomName}
             setEditRoomDesc={setEditRoomDesc}

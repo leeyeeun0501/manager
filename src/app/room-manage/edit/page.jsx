@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import styles from "../room-manage.module.css"
 import { apiGet, parseJsonResponse } from "../../utils/apiHelper"
 import { useSessionCheck } from "../../utils/useSessionCheck"
+import { useToast } from "../../utils/useToast"
 import Menu from "../../components/menu"
 
 export default function RoomManageEditPage() {
@@ -40,9 +41,9 @@ export default function RoomManageEditPage() {
   const [showInfoModal, setShowInfoModal] = useState(false) // 정보 모달 표시
   const [deletedNodes, setDeletedNodes] = useState([]) // 삭제된 노드들
   const [deletedCategories, setDeletedCategories] = useState([]) // 삭제된 카테고리들
-  // 팝업 메시지 상태
-  const [toastMessage, setToastMessage] = useState("")
-  const [toastVisible, setToastVisible] = useState(false)
+  
+  // 토스트 메시지 훅
+  const { toastMessage, toastVisible, showToast } = useToast()
 
   // ✅ 반응형 캔버스 크기 설정
   const [canvasSize, setCanvasSize] = useState({ width: 1000, height: 700 })
@@ -80,13 +81,6 @@ export default function RoomManageEditPage() {
 
   // 미리 정의된 카테고리 목록 (한글 표시용)
   const categoryOptions = Object.values(categoryNameMap)
-
-  // 토스트 메시지 함수
-  const showToast = useCallback((msg, duration = 3000) => {
-    setToastMessage(msg)
-    setToastVisible(true)
-    setTimeout(() => setToastVisible(false), duration)
-  }, [])
 
   // 기존 노드명과 중복되지 않는 다음 번호 찾기
   const findNextAvailableNodeNumber = useCallback(() => {

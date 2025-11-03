@@ -1,6 +1,6 @@
 // 문의 관리 페이지
 "use client"
-import React, { useEffect, useState, useCallback } from "react"
+import React, { useEffect, useState, useCallback, useMemo } from "react"
 import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay"
 import Image from "next/image"
@@ -263,20 +263,22 @@ export default function InquiryPage() {
     setSubmitting(false)
   }, [selectedInquiry, answerText, closeModal, fetchInquiries, showToast])
 
-  // 카테고리, 페이징
-  const filtered =
-    category === "all"
-      ? inquiries
-      : inquiries.filter((q) => q.category === category)
+  // 카테고리, 페이징 관련 계산을 useMemo로 최적화
+  const { pagedInquiries, totalPages } = useMemo(() => {
+    const filtered =
+      category === "all"
+        ? inquiries
+        : inquiries.filter((q) => q.category === category)
 
-  const totalInquiries = filtered.length
+    const totalInquiries = filtered.length
+    const totalPages = Math.max(1, Math.ceil(totalInquiries / itemsPerPage))
 
-  const totalPages = Math.max(1, Math.ceil(totalInquiries / itemsPerPage))
-
-  const pagedInquiries = filtered.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  )
+    const pagedInquiries = filtered.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    )
+    return { pagedInquiries, totalPages }
+  }, [inquiries, category, currentPage, itemsPerPage])
 
   return (
     <div className={styles.inquiryRoot}>

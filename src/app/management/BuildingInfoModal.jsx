@@ -1,7 +1,8 @@
 // 메인 화면 건물 정보 모달
 "use client"
 
-import styles from "../management/management.module.css";
+import styles from "./management.module.css";
+
 export default function BuildingInfoModal({
   building,
   details,
@@ -83,3 +84,4 @@ export default function BuildingInfoModal({
     </>
   )
 }
+

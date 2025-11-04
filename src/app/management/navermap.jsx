@@ -2,7 +2,7 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
 import { apiGet, parseJsonResponse } from "../utils/apiHelper";
-import BuildingInfoModal from "../components/BuildingInfoModal";
+import BuildingInfoModal from "./BuildingInfoModal";
 import styles from "./management.module.css";
 
 const NAVER_MAPS_SCRIPT_URL = "https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=yxffktqahm";

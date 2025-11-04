@@ -1,4 +1,4 @@
-// building-manage
+// 건물 관리
 "use client"
 import "../globals.css"
 import React, { useState, useEffect, useCallback } from "react"

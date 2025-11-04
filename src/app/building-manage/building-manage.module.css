@@ -1,9 +1,6 @@
-/* building-manage.module.css */
+/* 건물 관리 스타일 */
 
-.container {
-  max-width: none;
-}
-
+/* 글로벌 스타일 */
 :global {
   .naver-map {
     width: 100vw;
@@ -24,8 +21,58 @@
     border-radius: 50%;
     margin-bottom: 12px;
   }
+
+  span[tabindex]:hover .tooltip,
+  span[tabindex]:focus .tooltip {
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+  
+  .latlng-tooltip {
+    pointer-events: none;
+  }
 }
 
+/* 레이아웃 */
+.towerRoot {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f5f6fa;
+}
+
+.towerHeader {
+  width: 100vw;
+  height: 72px;
+  background: #f4f7fc;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #000000;
+  box-shadow: none;
+  position: relative;
+  z-index: 10;
+  padding-left: 100px;
+}
+
+.towerMapWrapper {
+  width: 100vw;
+  height: calc(100vh - 72px);
+  position: relative;
+  flex: 1 1 0;
+}
+
+@media (max-width: 1000px) {
+  .towerMapWrapper {
+    width: 98vw;
+    min-width: 0;
+  }
+}
+
+/* 좌표 표시 */
 .latlngDisplay {
   position: fixed;
   bottom: 32px;
@@ -39,92 +86,12 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-@media (max-width: 1000px) {
-  .towerMapWrapper {
-    width: 98vw;
-    min-width: 0;
-  }
-}
-
-.towerContent {
-  max-width: none;
-}
-
-.towerMapWrapper {
-  width: 100vw;
-  height: calc(100vh - 72px);
-  position: relative;
-  flex: 1 1 0;
-}
-
-.towerRoot {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background: #f5f6fa;
-}
-
-.towerCenterbox {
-  flex: 1 1 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 40px 0;
-}
-
-.towerHeader {
-  width: 100vw;
-  height: 72px;
-  background: #f4f7fc;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000000;
-  box-shadow: "none";
-  position: relative;
-  z-index: 10;
-  padding-left: 100px;
-}
-
-.markerInfoPanel {
-  position: absolute;
-  left: 24px;
-  top: 80px;
-  width: 340px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 24px;
-  z-index: 10;
-  transition: all 0.2s;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-/* navermap 스타일 */
+/* 네이버 맵 컨테이너 */
 .navermapContainer {
   position: relative;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-}
-
-.toast {
-  position: fixed;
-  top: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #333;
-  color: #fff;
-  padding: 12px 24px;
-  border-radius: 8px;
-  z-index: 4000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  font-weight: bold;
 }
 
 .mapContainer {
@@ -139,6 +106,7 @@
   background: #f5f6fa;
 }
 
+/* 모달 공통 스타일 */
 .modalWrapper {
   position: fixed;
   top: 80px;
@@ -146,7 +114,8 @@
   z-index: 3000;
 }
 
-.modalContainer {
+.modalContainer,
+.modalPopup {
   background: #fff;
   border-radius: 24px;
   padding: 36px 32px 28px 32px;
@@ -161,6 +130,26 @@
   overflow-y: auto;
 }
 
+.modalPopup {
+  position: fixed;
+  top: 80px;
+  left: 32px;
+  z-index: 3000;
+  overflow-x: hidden;
+}
+
+.modalTitle {
+  font-weight: 700;
+  font-size: 18px;
+  color: #1976d2;
+  margin-bottom: 18px;
+  text-align: center;
+  border-bottom: 2px solid #1976d2;
+  padding-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+
+/* 탭 */
 .tabContainer {
   display: flex;
   justify-content: center;
@@ -185,37 +174,7 @@
   border-bottom: 2.5px solid #0070f3;
 }
 
-.modalPopup {
-  position: fixed;
-  top: 80px;
-  left: 32px;
-  z-index: 3000;
-  background: #fff;
-  border-radius: 24px;
-  padding: 36px 32px 28px 32px;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
-  min-width: 340px;
-  max-width: 95vw;
-  width: 360px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  max-height: 80vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.modalTitle {
-  font-weight: 700;
-  font-size: 18px;
-  color: #1976d2;
-  margin-bottom: 18px;
-  text-align: center;
-  border-bottom: 2px solid #1976d2;
-  padding-bottom: 6px;
-  letter-spacing: -0.5px;
-}
-
+/* 폼 */
 .form {
   display: flex;
   flex-direction: column;
@@ -234,11 +193,37 @@
   text-align: left;
 }
 
-.coordinateInfo {
+/* 입력 필드 공통 스타일 */
+.input,
+.textarea {
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: 25px;
+  border: 1px solid #e0e0e0;
+  font-size: 16px;
+  margin-bottom: 0;
+  background: #fff;
+  color: #333;
+  outline: none;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.textarea {
+  font-family: inherit;
+  resize: none;
+  min-height: 120px;
+}
+
+.coordinateInfo,
+.nodeInfo {
   font-size: 15px;
   color: #555;
   width: 100%;
   text-align: left;
+}
+
+.coordinateInfo {
   margin-bottom: 2px;
   display: flex;
   align-items: center;
@@ -246,6 +231,7 @@
   position: relative;
 }
 
+/* 툴팁 */
 .tooltipTrigger {
   display: inline-block;
   margin-left: 6px;
@@ -286,50 +272,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
-:global {
-  span[tabindex]:hover .tooltip,
-  span[tabindex]:focus .tooltip {
-    visibility: visible !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-  }
-  
-  .latlng-tooltip {
-    pointer-events: none;
-  }
-}
-
-.input {
-  width: 100%;
-  padding: 16px 20px;
-  border-radius: 25px;
-  border: 1px solid #e0e0e0;
-  font-size: 16px;
-  margin-bottom: 0;
-  background: #fff;
-  color: #333;
-  outline: none;
-  transition: border-color 0.2s ease;
-  box-sizing: border-box;
-}
-
-.textarea {
-  width: 100%;
-  padding: 16px 20px;
-  border-radius: 25px;
-  border: 1px solid #e0e0e0;
-  font-size: 16px;
-  margin-bottom: 0;
-  font-family: inherit;
-  resize: none;
-  background: #fff;
-  color: #333;
-  outline: none;
-  transition: border-color 0.2s ease;
-  box-sizing: border-box;
-  min-height: 120px;
-}
-
+/* 파일 업로드 */
 .fileUploadSection {
   margin-bottom: 16px;
 }
@@ -423,13 +366,7 @@
   margin-top: 8px;
 }
 
-.nodeInfo {
-  font-size: 15px;
-  color: #555;
-  width: 100%;
-  text-align: left;
-}
-
+/* 버튼 */
 .buttonGroup {
   display: flex;
   justify-content: flex-end;
@@ -498,6 +435,7 @@
   cursor: pointer;
 }
 
+/* 이미지 갤러리 */
 .imageGalleryHeader {
   display: flex;
   justify-content: space-between;
@@ -592,6 +530,7 @@
   border-radius: 4px;
 }
 
+/* 관리 섹션 */
 .manageSection {
   display: flex;
   flex-direction: column;
@@ -618,12 +557,13 @@
   font-size: 14px;
 }
 
+/* 알림/힌트 공통 스타일 */
+.toast,
 .edgeConnectHint {
   position: fixed;
   top: 30px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 3500;
   background-color: #333;
   color: #fff;
   padding: 12px 24px;
@@ -632,6 +572,15 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+.toast {
+  z-index: 4000;
+}
+
+.edgeConnectHint {
+  z-index: 3500;
+}
+
+/* 이미지 확대 모달 */
 .imageZoomModal {
   position: fixed;
   top: 0;
@@ -646,17 +595,13 @@
   flex-direction: column;
 }
 
-.imageZoomCloseButton {
+.imageZoomCloseButton,
+.imageZoomNavButton {
   position: absolute;
-  top: 20px;
-  right: 20px;
   background: rgba(255, 255, 255, 0.2);
   border: none;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
   color: white;
-  font-size: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -664,22 +609,20 @@
   z-index: 4001;
 }
 
+.imageZoomCloseButton {
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+}
+
 .imageZoomNavButton {
-  position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  border-radius: 50%;
   width: 50px;
   height: 50px;
-  color: white;
   font-size: 24px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 4001;
 }
 
 .imageZoomNavButtonPrev {
@@ -717,4 +660,3 @@
   font-size: 14px;
   z-index: 4001;
 }
-

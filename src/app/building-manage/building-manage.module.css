@@ -1,30 +1,32 @@
-/* building-manage.css */
+/* building-manage.module.css */
 
 .container {
   max-width: none;
 }
 
-h2 {
-  margin-bottom: 24px;
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
+:global {
+  .naver-map {
+    width: 100vw;
+    height: 100%;
+    min-height: 600px;
+    border-radius: 0;
+    box-shadow: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 1;
+    background: #f5f6fa;
+  }
+
+  .profile-section img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin-bottom: 12px;
+  }
 }
 
-.naver-map {
-  width: 100vw;
-  height: 100%;
-  min-height: 600px;
-  border-radius: 0;
-  box-shadow: none;
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 1;
-  background: #f5f6fa;
-}
-
-.latlng-display {
+.latlngDisplay {
   position: fixed;
   bottom: 32px;
   left: 32px;
@@ -38,31 +40,31 @@ h2 {
 }
 
 @media (max-width: 1000px) {
-  .tower-map-wrapper {
+  .towerMapWrapper {
     width: 98vw;
     min-width: 0;
   }
 }
 
-.tower-content {
+.towerContent {
   max-width: none;
 }
 
-.tower-map-wrapper {
+.towerMapWrapper {
   width: 100vw;
   height: calc(100vh - 72px);
   position: relative;
   flex: 1 1 0;
 }
 
-.tower-root {
+.towerRoot {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   background: #f5f6fa;
 }
 
-.tower-centerbox {
+.towerCenterbox {
   flex: 1 1 0;
   display: flex;
   flex-direction: column;
@@ -71,7 +73,7 @@ h2 {
   padding: 40px 0;
 }
 
-.tower-header {
+.towerHeader {
   width: 100vw;
   height: 72px;
   background: #f4f7fc;
@@ -87,7 +89,7 @@ h2 {
   padding-left: 100px;
 }
 
-.marker-info-panel {
+.markerInfoPanel {
   position: absolute;
   left: 24px;
   top: 80px;
@@ -103,17 +105,3 @@ h2 {
   align-items: flex-start;
 }
 
-.profile-section img {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  margin-bottom: 12px;
-}
-
-html,
-body {
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}

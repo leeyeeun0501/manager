@@ -7,7 +7,8 @@ import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay"
 import { apiGet, parseJsonResponse } from "../utils/apiHelper"
 import { useSessionCheck } from "../utils/useSessionCheck"
-import "./building-manage.css"
+import styles from "./building-manage.module.css"
+import "./building-manage-globals.css"
 
 export default function TowerPage() {
   // 세션 체크 활성화
@@ -37,15 +38,15 @@ export default function TowerPage() {
   }, [])
 
   return (
-    <div className="tower-root">
+    <div className={styles.towerRoot}>
       {loading && <LoadingOverlay />}
-      <div className="tower-header">맵 관리 페이지</div>
+      <div className={styles.towerHeader}>맵 관리 페이지</div>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <div className="tower-map-wrapper">
+      <div className={styles.towerMapWrapper}>
         <NaverMap setLatLng={setLatLng} nodes={nodes} menuOpen={menuOpen} />
       </div>
       {latLng && (
-        <div className="latlng-display">
+        <div className={styles.latlngDisplay}>
           <b>선택 좌표:</b> 위도 {latLng.lat}, 경도 {latLng.lng}
         </div>
       )}

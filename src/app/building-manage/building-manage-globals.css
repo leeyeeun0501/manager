@@ -1,0 +1,17 @@
+/* building-manage-globals.css - 전역 태그 선택자 스타일 */
+
+h2 {
+  margin-bottom: 24px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+html,
+body {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+

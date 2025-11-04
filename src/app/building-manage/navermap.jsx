@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import { apiGet, apiDelete, apiPut, apiPost, parseJsonResponse } from "../utils/apiHelper"
 import { useToast } from "../utils/useToast"
+import styles from "./building-manage.module.css"
 
 function NaverMap({ isLoggedIn, menuOpen }) {
   const mapRef = useRef(null)
@@ -1019,100 +1020,26 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   }
 
   return (
-    <div
-      style={{
-        position: "relative",
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
-      }}
-    >
+    <div className={styles.navermapContainer}>
       {/* 토스트 메시지 UI */}
       {toastVisible && (
-        <div
-          style={{
-            position: "fixed",
-            top: 30,
-            left: "50%",
-            transform: "translateX(-50%)",
-            backgroundColor: "#333",
-            color: "#fff",
-            padding: "12px 24px",
-            borderRadius: 8,
-            zIndex: 4000,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-            fontWeight: "bold",
-          }}
-        >
+        <div className={styles.toast}>
           {toastMessage}
         </div>
       )}
       <div
-        className="naver-map"
+        className={`naver-map ${styles.mapContainer}`}
         ref={mapRef}
-        style={{
-          width: "100vw",
-          height: "100vh",
-          borderRadius: 0,
-          boxShadow: "none",
-          position: "absolute",
-          left: 0,
-          top: 0,
-          zIndex: 1,
-          background: "#f5f6fa",
-        }}
       />
 
       {/* 왼쪽 고정 통합 모달 팝업 */}
       {(addPopup.open || deletePopup.open) && (
-        <div
-          style={{
-            position: "fixed",
-            top: 80,
-            left: 32,
-            zIndex: 3000,
-          }}
-        >
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 24,
-              padding: "36px 32px 28px 32px",
-              boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
-              minWidth: 340,
-              maxWidth: "95vw",
-              width: 360,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "stretch",
-              maxHeight: "80vh",
-              overflowY: "auto",
-            }}
-          >
+        <div className={styles.modalWrapper}>
+          <div className={styles.modalContainer}>
             {/* 탭 */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                marginBottom: 24,
-                gap: 8,
-              }}
-            >
+            <div className={styles.tabContainer}>
               <button
-                className={`modal-tab-btn${addPopup.open ? " active" : ""}`}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: 17,
-                  fontWeight: 600,
-                  color: addPopup.open ? "#0070f3" : "#888",
-                  padding: "8px 16px",
-                  borderBottom: addPopup.open
-                    ? "2.5px solid #0070f3"
-                    : "2.5px solid transparent",
-                  cursor: "pointer",
-                  transition: "color 0.2s, border-bottom 0.2s",
-                }}
+                className={`${styles.tabButton} ${addPopup.open ? styles.tabButtonActive : ""}`}
                 onClick={() => {
                   setAddPopup({ ...addPopup, open: true })
                   setDeletePopup({ ...deletePopup, open: false })
@@ -1121,20 +1048,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                 노드/건물 추가
               </button>
               <button
-                className={`modal-tab-btn${deletePopup.open ? " active" : ""}`}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: 17,
-                  fontWeight: 600,
-                  color: deletePopup.open ? "#0070f3" : "#888",
-                  padding: "8px 16px",
-                  borderBottom: deletePopup.open
-                    ? "2.5px solid #0070f3"
-                    : "2.5px solid transparent",
-                  cursor: "pointer",
-                  transition: "color 0.2s, border-bottom 0.2s",
-                }}
+                className={`${styles.tabButton} ${deletePopup.open ? styles.tabButtonActive : ""}`}
                 onClick={() => {
                   setAddPopup({ ...addPopup, open: false })
                   setDeletePopup({ ...deletePopup, open: true })
@@ -1146,64 +1060,18 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
             {/* 추가 팝업 (지도 클릭 시에만 뜸) */}
             {addPopup.open && (
-              <div
-                style={{
-                  position: "fixed",
-                  top: 80,
-                  left: 32,
-                  zIndex: 3000,
-                  background: "#fff",
-                  borderRadius: 24,
-                  padding: "36px 32px 28px 32px",
-                  boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
-                  minWidth: 340,
-                  maxWidth: "95vw",
-                  width: 360,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "stretch",
-                  maxHeight: "80vh",
-                  overflowY: "auto",
-                }}
-              >
+              <div className={styles.modalPopup}>
                 {/* 상단 타이틀 */}
-                <div
-                  style={{
-                    fontWeight: 700,
-                    fontSize: 18,
-                    color: "#1976d2",
-                    marginBottom: 18,
-                    textAlign: "center",
-                    borderBottom: "2px solid #1976d2",
-                    paddingBottom: 6,
-                    letterSpacing: "-0.5px",
-                  }}
-                >
+                <div className={styles.modalTitle}>
                   노드/건물 추가
                 </div>
                 {/* 추가 폼 */}
                 <form
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 14,
-                    alignItems: "center",
-                    width: "100%",
-                  }}
+                  className={styles.form}
                   onSubmit={handleAddNode}
                 >
                   {/* 라디오 박스: 왼쪽 정렬 */}
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 18,
-                      marginBottom: 8,
-                      width: "100%",
-                      justifyContent: "flex-start",
-                      alignItems: "center",
-                      textAlign: "left",
-                    }}
-                  >
+                  <div className={styles.radioGroup}>
                     <label>
                       <input
                         type="radio"
@@ -1227,88 +1095,26 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                   </div>
 
                   {/* 위도/경도: 입력란 위, 왼쪽 정렬 */}
-                  <div
-                    style={{
-                      fontSize: 15,
-                      color: "#555",
-                      width: "100%",
-                      textAlign: "left",
-                      marginBottom: 2,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      position: "relative",
-                    }}
-                  >
+                  <div className={styles.coordinateInfo}>
                     <span>
                       <strong>위도(x):</strong> {addPopup.x} &nbsp;&nbsp;
                       <strong>경도(y):</strong> {addPopup.y}
                     </span>
                     {/* 물음표 툴팁 */}
                     <span
-                      style={{
-                        display: "inline-block",
-                        marginLeft: 6,
-                        cursor: "pointer",
-                        position: "relative",
-                      }}
+                      className={styles.tooltipTrigger}
                       tabIndex={0}
                     >
-                      <span
-                        style={{
-                          display: "inline-block",
-                          width: 18,
-                          height: 18,
-                          borderRadius: "50%",
-                          background: "#fff",
-                          color: "#222",
-                          fontWeight: 700,
-                          textAlign: "center",
-                          lineHeight: "18px",
-                          fontSize: 14,
-                          border: "1px solid #bbb",
-                          userSelect: "none",
-                        }}
-                      >
+                      <span className={styles.tooltipIcon}>
                         ?
                       </span>
                       {/* 툴팁 */}
-                      <span
-                        style={{
-                          visibility: "hidden",
-                          opacity: 0,
-                          position: "fixed",
-                          left: "calc(32px + 360px + 24px)",
-                          top: "190px",
-                          background: "#fff",
-                          color: "#222",
-                          padding: "8px 14px",
-                          borderRadius: 8,
-                          fontSize: 13,
-                          whiteSpace: "nowrap",
-                          zIndex: 9999,
-                          transition: "opacity 0.15s",
-                          pointerEvents: "none",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-                        }}
-                        className="latlng-tooltip"
-                      >
+                      <span className={`${styles.tooltip} latlng-tooltip`}>
                         위도(x)는 남북 위치(가로줄), 경도(y)는 동서
                         위치(세로줄)를 의미합니다.
                         <br />
                         지도에서 클릭한 지점의 좌표가 자동으로 입력됩니다.
                       </span>
-                      <style>{`
-      .latlng-tooltip {
-        pointer-events: none;
-      }
-      span[tabindex]:hover .latlng-tooltip,
-      span[tabindex]:focus .latlng-tooltip {
-        visibility: visible !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
-      }
-    `}</style>
                     </span>
                   </div>
 
@@ -1316,19 +1122,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                   {type === "building" && (
                     <>
                       <input
-                        style={{
-                          width: "100%",
-                          padding: "16px 20px",
-                          borderRadius: "25px",
-                          border: "1px solid #e0e0e0",
-                          fontSize: 16,
-                          marginBottom: 0,
-                          background: "#fff",
-                          color: "#333",
-                          outline: "none",
-                          transition: "border-color 0.2s ease",
-                          boxSizing: "border-box",
-                        }}
+                        className={styles.input}
                         type="text"
                         value={nodeName}
                         onChange={(e) => setNodeName(e.target.value)}
@@ -1336,50 +1130,22 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                         required
                       />
                       <textarea
-                        style={{
-                          width: "100%",
-                          padding: "16px 20px",
-                          borderRadius: "25px",
-                          border: "1px solid #e0e0e0",
-                          fontSize: 16,
-                          marginBottom: 0,
-                          fontFamily: "inherit",
-                          resize: "none",
-                          background: "#fff",
-                          color: "#333",
-                          outline: "none",
-                          transition: "border-color 0.2s ease",
-                          boxSizing: "border-box",
-                          minHeight: "120px",
-                        }}
+                        className={styles.textarea}
                         value={desc}
                         onChange={(e) => setDesc(e.target.value)}
                         placeholder="설명"
                         rows={3}
                       />
                       {/* 이미지 업로드 필드 */}
-                      <div style={{ marginBottom: 16 }}>
+                      <div className={styles.fileUploadSection}>
                         <button
                           type="button"
+                          className={styles.addFileButton}
                           onClick={() =>
                             document.getElementById("add-file-input").click()
                           }
-                          style={{
-                            background: "#1976d2",
-                            color: "white",
-                            border: "none",
-                            padding: "12px 20px",
-                            borderRadius: "8px",
-                            fontSize: 14,
-                            fontWeight: 600,
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            marginBottom: 8,
-                          }}
                         >
-                          <span style={{ fontSize: 16 }}>+</span> 파일 추가
+                          <span className={styles.addFileButtonIcon}>+</span> 파일 추가
                         </button>
 
                         <input
@@ -1387,6 +1153,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                           type="file"
                           accept="image/*"
                           multiple
+                          className={styles.hiddenInput}
                           onChange={(e) => {
                             const newFiles = Array.from(e.target.files)
                             setNewBuildingImages((prev) => [
@@ -1395,77 +1162,29 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                             ])
                             e.target.value = ""
                           }}
-                          style={{ display: "none" }}
                         />
 
                         {newBuildingImages.length > 0 && (
-                          <div style={{ marginTop: 12 }}>
-                            <div
-                              style={{
-                                fontSize: 14,
-                                fontWeight: 600,
-                                color: "#333",
-                                marginBottom: 8,
-                              }}
-                            >
+                          <div className={styles.selectedFilesContainer}>
+                            <div className={styles.selectedFilesTitle}>
                               선택된 파일
                             </div>
-                            <div
-                              style={{
-                                maxHeight: 120,
-                                overflowY: "auto",
-                                border: "1px solid #e0e0e0",
-                                borderRadius: "8px",
-                                padding: "8px",
-                                background: "#fff",
-                              }}
-                            >
+                            <div className={styles.selectedFilesList}>
                               {newBuildingImages.map((file, index) => (
                                 <div
                                   key={index}
-                                  style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    padding: "6px 8px",
-                                    marginBottom: "4px",
-                                    background: "#f8f9fa",
-                                    borderRadius: "4px",
-                                    fontSize: 13,
-                                  }}
+                                  className={styles.fileItem}
                                 >
-                                  <span
-                                    style={{
-                                      color: "#333",
-                                      overflow: "hidden",
-                                      textOverflow: "ellipsis",
-                                      whiteSpace: "nowrap",
-                                      flex: 1,
-                                      marginRight: 8,
-                                    }}
-                                  >
+                                  <span className={styles.fileName}>
                                     {file.name}
                                   </span>
                                   <button
                                     type="button"
+                                    className={styles.deleteFileButton}
                                     onClick={() => {
                                       setNewBuildingImages((prev) =>
                                         prev.filter((_, i) => i !== index)
                                       )
-                                    }}
-                                    style={{
-                                      background: "#dc3545",
-                                      color: "white",
-                                      border: "none",
-                                      borderRadius: "4px",
-                                      padding: "2px 6px",
-                                      fontSize: 12,
-                                      cursor: "pointer",
-                                      minWidth: "20px",
-                                      height: "20px",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
                                     }}
                                     title="삭제"
                                   >
@@ -1476,17 +1195,8 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                             </div>
                             <button
                               type="button"
+                              className={styles.clearAllFilesButton}
                               onClick={() => setNewBuildingImages([])}
-                              style={{
-                                background: "#6c757d",
-                                color: "white",
-                                border: "none",
-                                padding: "6px 12px",
-                                borderRadius: "4px",
-                                fontSize: 12,
-                                cursor: "pointer",
-                                marginTop: 8,
-                              }}
                             >
                               모든 파일 제거
                             </button>
@@ -1496,56 +1206,23 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                     </>
                   )}
                   {type === "node" && (
-                    <div
-                      style={{
-                        fontSize: 15,
-                        color: "#555",
-                        width: "100%",
-                        textAlign: "left",
-                      }}
-                    >
+                    <div className={styles.nodeInfo}>
                       <strong>자동 생성 노드명:</strong> {getNextONodeName()}
                     </div>
                   )}
 
                   {/* 버튼 영역 */}
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                      gap: 8,
-                      marginTop: 10,
-                      width: "100%",
-                    }}
-                  >
+                  <div className={styles.buttonGroup}>
                     <button
                       type="button"
-                      style={{
-                        padding: "10px 22px",
-                        borderRadius: 24,
-                        border: "none",
-                        fontSize: 15,
-                        fontWeight: 600,
-                        background: "#eee",
-                        color: "#333",
-                        cursor: "pointer",
-                      }}
+                      className={`${styles.button} ${styles.buttonCancel}`}
                       onClick={handleClosePopup}
                     >
                       취소
                     </button>
                     <button
                       type="submit"
-                      style={{
-                        padding: "10px 22px",
-                        borderRadius: 24,
-                        border: "none",
-                        fontSize: 15,
-                        fontWeight: 600,
-                        background: "#0070f3",
-                        color: "#fff",
-                        cursor: "pointer",
-                      }}
+                      className={`${styles.button} ${styles.buttonPrimary}`}
                     >
                       저장
                     </button>
@@ -1556,47 +1233,14 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
             {/* 관리/삭제 팝업 (마커/원 클릭 시에만 뜸) */}
             {deletePopup.open && (
-              <div
-                style={{
-                  position: "fixed",
-                  top: 80,
-                  left: 32,
-                  zIndex: 3000,
-                  background: "#fff",
-                  borderRadius: 24,
-                  padding: "36px 32px 28px 32px",
-                  boxShadow: "0 2px 16px rgba(0,0,0,0.10)",
-                  minWidth: 340,
-                  maxWidth: "95vw",
-                  width: 360,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "stretch",
-                  maxHeight: "80vh",
-                  overflowY: "auto",
-                  overflowX: "hidden",
-                }}
-              >
+              <div className={styles.modalPopup}>
                 {/* 상단 타이틀 */}
-                <div
-                  style={{
-                    fontWeight: 700,
-                    fontSize: 18,
-                    color: "#1976d2",
-                    marginBottom: 18,
-                    textAlign: "center",
-                    borderBottom: "2px solid #1976d2",
-                    paddingBottom: 6,
-                    letterSpacing: "-0.5px",
-                  }}
-                >
+                <div className={styles.modalTitle}>
                   노드/건물 관리
                 </div>
                 {/* 삭제/엣지 관리 */}
-                <div
-                  style={{ display: "flex", flexDirection: "column", gap: 14 }}
-                >
-                  <div style={{ fontSize: 15, color: "#555" }}>
+                <div className={styles.manageSection}>
+                  <div className={styles.manageInfo}>
                     <strong>이름:</strong> {deletePopup.node_name} <br />
                     <span>
                       <strong>위도(x):</strong> {deletePopup.x}&nbsp;&nbsp;
@@ -1637,33 +1281,15 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                       return (
                         <>
                           {/* 이미지 갤러리 */}
-                          <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              marginBottom: 8,
-                            }}
-                          >
-                            <div style={{ fontSize: 15, color: "#555" }}>
+                          <div className={styles.imageGalleryHeader}>
+                            <div className={styles.imageGalleryTitle}>
                               <strong>현재 건물 사진</strong>
                             </div>
-                            <div style={{ display: "flex", gap: 8 }}>
+                            <div className={styles.imageGalleryActions}>
                               {selectedImages.length > 0 && (
                                 <button
+                                  className={`${styles.imageActionButton} ${styles.imageActionButtonDelete}`}
                                   onClick={handleDeleteSelectedImages}
-                                  style={{
-                                    background: "none",
-                                    border: "none",
-                                    padding: 0,
-                                    cursor: "pointer",
-                                    color: "#ff4d4f",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    width: 24,
-                                    height: 24,
-                                  }}
                                   title="선택한 이미지 삭제"
                                 >
                                   <svg
@@ -1677,18 +1303,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                                 </button>
                               )}
                               <label
-                                style={{
-                                  background: "none",
-                                  border: "none",
-                                  padding: 0,
-                                  cursor: "pointer",
-                                  color: "#1976d2",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  width: 24,
-                                  height: 24,
-                                }}
+                                className={`${styles.imageActionButton} ${styles.imageActionButtonAdd}`}
                                 title="이미지 추가"
                               >
                                 <svg
@@ -1704,68 +1319,31 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                                   type="file"
                                   accept="image/*"
                                   multiple
+                                  className={styles.hiddenInput}
                                   onChange={handleImageSelect}
-                                  style={{ display: "none" }}
                                 />
                               </label>
                             </div>
                           </div>
-                          <div
-                            style={{
-                              display: "grid",
-                              gridTemplateColumns: "repeat(3, 1fr)",
-                              gap: 8,
-                              marginBottom: 12,
-                            }}
-                          >
+                          <div className={styles.imageGrid}>
                             {/* 기존 이미지들 */}
                             {currentImageArr.map((imageUrl, idx) => (
                               <div
                                 key={`existing-${imageUrl}-${idx}`}
+                                className={`${styles.imageItem} ${selectedImages.includes(imageUrl) ? styles.imageItemSelected : ""}`}
                                 onClick={() => toggleImageSelection(imageUrl)}
                                 onDoubleClick={() => openImageZoomModal(imageUrl, idx, currentImageArr.length)}
-                                style={{
-                                  position: "relative",
-                                  aspectRatio: "1",
-                                  cursor: "pointer",
-                                  border: `2px solid ${
-                                    selectedImages.includes(imageUrl)
-                                      ? "#1976d2"
-                                      : "transparent"
-                                  }`,
-                                  borderRadius: 8,
-                                  overflow: "hidden",
-                                }}
                               >
                                 <img
                                   src={imageUrl}
                                   alt={`건물 사진 ${idx + 1}`}
-                                  style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                  }}
+                                  className={styles.imageItemImg}
                                   onError={(e) => {
                                     e.target.src = "/fallback-image.jpg"
                                   }}
                                 />
                                 {selectedImages.includes(imageUrl) && (
-                                  <div
-                                    style={{
-                                      position: "absolute",
-                                      top: 4,
-                                      right: 4,
-                                      width: 20,
-                                      height: 20,
-                                      borderRadius: "50%",
-                                      background: "#1976d2",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                      color: "white",
-                                      fontSize: 12,
-                                    }}
-                                  >
+                                  <div className={styles.imageItemCheck}>
                                     ✓
                                   </div>
                                 )}
@@ -1775,94 +1353,31 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                             {/* 이미지가 없을 때 표시 */}
                             {currentImageArr.length === 0 &&
                               newBuildingImages.length === 0 && (
-                                <div
-                                  style={{
-                                    gridColumn: "1 / -1",
-                                    textAlign: "center",
-                                    color: "#999",
-                                    fontSize: 13,
-                                    padding: "8px 0",
-                                    fontStyle: "italic",
-                                  }}
-                                >
+                                <div className={styles.noImagesMessage}>
                                   사진 없음
                                 </div>
                               )}
                           </div>
                           {newBuildingImages.length > 0 && (
-                            <div
-                              style={{
-                                marginBottom: 12,
-                                padding: 8,
-                                backgroundColor: "transparent",
-                                borderRadius: 4,
-                              }}
-                            >
-                              <div
-                                style={{
-                                  fontSize: 14,
-                                  fontWeight: 600,
-                                  color: "#333",
-                                  marginBottom: 8,
-                                }}
-                              >
+                            <div className={styles.newImagesSection}>
+                              <div className={styles.selectedFilesTitle}>
                                 선택된 파일
                               </div>
-                              <div
-                                style={{
-                                  maxHeight: 120,
-                                  overflowY: "auto",
-                                  border: "1px solid #e0e0e0",
-                                  borderRadius: "8px",
-                                  padding: "8px",
-                                  background: "#fff",
-                                }}
-                              >
+                              <div className={styles.selectedFilesList}>
                                 {newBuildingImages.map((file, index) => (
                                   <div
                                     key={index}
-                                    style={{
-                                      display: "flex",
-                                      justifyContent: "space-between",
-                                      alignItems: "center",
-                                      padding: "6px 8px",
-                                      marginBottom: "4px",
-                                      background: "#f8f9fa",
-                                      borderRadius: "4px",
-                                      fontSize: 13,
-                                    }}
+                                    className={styles.fileItem}
                                   >
-                                    <span
-                                      style={{
-                                        color: "#333",
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                        whiteSpace: "nowrap",
-                                        flex: 1,
-                                        marginRight: 8,
-                                      }}
-                                    >
+                                    <span className={styles.fileName}>
                                       {file.name}
                                     </span>
                                     <button
+                                      className={styles.deleteFileButton}
                                       onClick={() => {
                                         setNewBuildingImages((prev) =>
                                           prev.filter((_, i) => i !== index)
                                         )
-                                      }}
-                                      style={{
-                                        background: "#dc3545",
-                                        color: "white",
-                                        border: "none",
-                                        borderRadius: "4px",
-                                        padding: "2px 6px",
-                                        fontSize: 12,
-                                        cursor: "pointer",
-                                        minWidth: "20px",
-                                        height: "20px",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
                                       }}
                                       title="삭제"
                                     >
@@ -1876,22 +1391,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
                           {/* 설명 입력란 */}
                           <textarea
-                            style={{
-                              width: "100%",
-                              padding: "16px 20px",
-                              borderRadius: "25px",
-                              border: "1px solid #e0e0e0",
-                              fontSize: 16,
-                              marginBottom: 0,
-                              fontFamily: "inherit",
-                              resize: "none",
-                              background: "#fff",
-                              color: "#333",
-                              outline: "none",
-                              transition: "border-color 0.2s ease",
-                              boxSizing: "border-box",
-                              minHeight: "120px",
-                            }}
+                            className={styles.textarea}
                             value={buildingDesc}
                             onChange={(e) => setBuildingDesc(e.target.value)}
                             placeholder="설명"
@@ -1902,12 +1402,12 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                       )
                     })()}
                   {/* 연결된 노드 (엣지 해제) */}
-                  <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontWeight: 600, marginBottom: 6 }}>
+                  <div className={styles.connectedNodesSection}>
+                    <div className={styles.connectedNodesTitle}>
                       연결된 노드
                     </div>
                     {getConnectedNodes(deletePopup.node_name).length === 0 ? (
-                      <div style={{ color: "#aaa", fontSize: 14 }}>
+                      <div className={styles.noConnectedNodes}>
                         연결된 노드 없음
                       </div>
                     ) : (
@@ -1916,19 +1416,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                           <button
                             key={connectedNode}
                             type="button"
-                            style={{
-                              background: "#ffb300",
-                              color: "#fff",
-                              border: "none",
-                              borderRadius: 18,
-                              padding: "7px 18px",
-                              fontSize: 15,
-                              fontWeight: 600,
-                              marginRight: 8,
-                              marginBottom: 8,
-                              cursor: "pointer",
-                              transition: "background 0.15s",
-                            }}
+                            className={styles.buttonWarning}
                             onClick={() =>
                               handleEdgeDisconnect(
                                 deletePopup.node_name,
@@ -1944,61 +1432,24 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                   </div>
 
                   {/* 하단 버튼 영역 */}
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                      gap: 12,
-                      marginTop: 10,
-                    }}
-                  >
+                  <div className={styles.buttonGroupBottom}>
                     <button
                       type="button"
-                      style={{
-                        flex: 1,
-                        padding: "10px 0",
-                        borderRadius: 24,
-                        border: "none",
-                        fontSize: 15,
-                        fontWeight: 600,
-                        background: "#eee",
-                        color: "#333",
-                        cursor: "pointer",
-                      }}
+                      className={`${styles.buttonFull} ${styles.buttonCancel}`}
                       onClick={handleCloseDeletePopup}
                     >
                       취소
                     </button>
                     <button
                       type="button"
-                      style={{
-                        flex: 1,
-                        padding: "10px 0",
-                        borderRadius: 24,
-                        border: "none",
-                        fontSize: 15,
-                        fontWeight: 600,
-                        background: "#ff4d4f",
-                        color: "#fff",
-                        cursor: "pointer",
-                      }}
+                      className={`${styles.buttonFull} ${styles.buttonDanger}`}
                       onClick={handleDeleteNode}
                     >
                       삭제
                     </button>
                     <button
                       type="button"
-                      style={{
-                        flex: 1,
-                        padding: "10px 0",
-                        borderRadius: 24,
-                        border: "none",
-                        fontSize: 15,
-                        fontWeight: 600,
-                        background: "#0070f3",
-                        color: "#fff",
-                        cursor: "pointer",
-                      }}
+                      className={`${styles.buttonFull} ${styles.buttonPrimary}`}
                       onClick={() => handleStartEdgeConnect(deletePopup)}
                     >
                       엣지 연결
@@ -2007,17 +1458,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
                       <button
                         type="button"
                         disabled={buildingDescLoading}
-                        style={{
-                          flex: 1,
-                          padding: "10px 0",
-                          borderRadius: 24,
-                          border: "none",
-                          fontSize: 15,
-                          fontWeight: 600,
-                          background: "#0070f3",
-                          color: "#fff",
-                          cursor: "pointer",
-                        }}
+                        className={`${styles.buttonFull} ${styles.buttonPrimary}`}
                         onClick={handleUpdateBuildingDesc}
                       >
                         {buildingDescLoading ? "수정 중..." : "수정"}
@@ -2033,21 +1474,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
       {/* 엣지 연결 안내 */}
       {edgeConnectHint && (
-        <div
-          style={{
-            position: "fixed",
-            top: 30,
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 3500,
-            backgroundColor: "#333",
-            color: "#fff",
-            padding: "12px 24px",
-            borderRadius: 8,
-            fontWeight: "bold",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-          }}
-        >
+        <div className={styles.edgeConnectHint}>
           연결할 두 번째 노드를 클릭하세요! (ESC로 취소)
         </div>
       )}
@@ -2055,41 +1482,13 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       {/* 이미지 확대 모달 */}
       {imageZoomModal.open && (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            background: "rgba(0, 0, 0, 0.9)",
-            zIndex: 4000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexDirection: "column",
-          }}
+          className={styles.imageZoomModal}
           onClick={closeImageZoomModal}
         >
           {/* 닫기 버튼 */}
           <button
+            className={styles.imageZoomCloseButton}
             onClick={closeImageZoomModal}
-            style={{
-              position: "absolute",
-              top: 20,
-              right: 20,
-              background: "rgba(255, 255, 255, 0.2)",
-              border: "none",
-              borderRadius: "50%",
-              width: 40,
-              height: 40,
-              color: "white",
-              fontSize: 20,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 4001,
-            }}
           >
             ×
           </button>
@@ -2097,27 +1496,10 @@ function NaverMap({ isLoggedIn, menuOpen }) {
           {/* 이전 버튼 */}
           {imageZoomModal.totalImages > 1 && (
             <button
+              className={`${styles.imageZoomNavButton} ${styles.imageZoomNavButtonPrev}`}
               onClick={(e) => {
                 e.stopPropagation()
                 navigateImage('prev')
-              }}
-              style={{
-                position: "absolute",
-                left: 20,
-                top: "50%",
-                transform: "translateY(-50%)",
-                background: "rgba(255, 255, 255, 0.2)",
-                border: "none",
-                borderRadius: "50%",
-                width: 50,
-                height: 50,
-                color: "white",
-                fontSize: 24,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 4001,
               }}
             >
               ‹
@@ -2127,27 +1509,10 @@ function NaverMap({ isLoggedIn, menuOpen }) {
           {/* 다음 버튼 */}
           {imageZoomModal.totalImages > 1 && (
             <button
+              className={`${styles.imageZoomNavButton} ${styles.imageZoomNavButtonNext}`}
               onClick={(e) => {
                 e.stopPropagation()
                 navigateImage('next')
-              }}
-              style={{
-                position: "absolute",
-                right: 20,
-                top: "50%",
-                transform: "translateY(-50%)",
-                background: "rgba(255, 255, 255, 0.2)",
-                border: "none",
-                borderRadius: "50%",
-                width: 50,
-                height: 50,
-                color: "white",
-                fontSize: 24,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 4001,
               }}
             >
               ›
@@ -2156,24 +1521,13 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
           {/* 이미지 */}
           <div
-            style={{
-              maxWidth: "90vw",
-              maxHeight: "80vh",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            className={styles.imageZoomContent}
             onClick={(e) => e.stopPropagation()}
           >
             <img
               src={currentImageArr[imageZoomModal.imageIndex]}
               alt={`건물 사진 ${imageZoomModal.imageIndex + 1}`}
-              style={{
-                maxWidth: "100%",
-                maxHeight: "100%",
-                objectFit: "contain",
-                borderRadius: 8,
-              }}
+              className={styles.imageZoomImg}
               onError={(e) => {
                 e.target.src = "/fallback-image.jpg"
               }}
@@ -2182,20 +1536,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
           {/* 이미지 인덱스 표시 */}
           {imageZoomModal.totalImages > 1 && (
-            <div
-              style={{
-                position: "absolute",
-                bottom: 20,
-                left: "50%",
-                transform: "translateX(-50%)",
-                background: "rgba(0, 0, 0, 0.7)",
-                color: "white",
-                padding: "8px 16px",
-                borderRadius: 20,
-                fontSize: 14,
-                zIndex: 4001,
-              }}
-            >
+            <div className={styles.imageZoomIndex}>
               {imageZoomModal.imageIndex + 1} / {imageZoomModal.totalImages}
             </div>
           )}

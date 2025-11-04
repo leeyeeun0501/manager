@@ -1,7 +1,7 @@
 // building-manage
 "use client"
 import "../globals.css"
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import NaverMap from "./navermap"
 import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay"
@@ -20,22 +20,23 @@ export default function TowerPage() {
   const [loading, setLoading] = useState(true)
 
   // 건물 노드
-  useEffect(() => {
-    const fetchNodes = async () => {
-      try {
-        const res = await apiGet("/api/tower-route")
-        const data = await parseJsonResponse(res)
-        if (data && data.nodes) {
-          setNodes(data.nodes)
-        }
-      } catch (err) {
-        console.error("노드 데이터 로드 실패:", err)
-      } finally {
-        setLoading(false)
+  const fetchNodes = useCallback(async () => {
+    try {
+      const res = await apiGet("/api/tower-route")
+      const data = await parseJsonResponse(res)
+      if (data && data.nodes) {
+        setNodes(data.nodes)
       }
+    } catch (err) {
+      // 에러는 조용히 처리 (사용자에게는 LoadingOverlay로 표시됨)
+    } finally {
+      setLoading(false)
     }
-    fetchNodes()
   }, [])
+
+  useEffect(() => {
+    fetchNodes()
+  }, [fetchNodes])
 
   return (
     <div className={styles.towerRoot}>

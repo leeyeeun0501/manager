@@ -1,19 +1,90 @@
 // navermap
 "use client"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import { apiGet, apiDelete, apiPut, apiPost, parseJsonResponse } from "../utils/apiHelper"
 import { useToast } from "../utils/useToast"
+import AddNodeModal from "./AddNodeModal"
+import ManageNodeModal from "./ManageNodeModal"
+import ImageZoomModal from "./ImageZoomModal"
 import styles from "./building-manage.module.css"
 
-function NaverMap({ isLoggedIn, menuOpen }) {
+function NaverMap({ setLatLng, nodes: propNodes, menuOpen }) {
   const mapRef = useRef(null)
   const mapInstance = useRef(null)
   const circlesRef = useRef([])
   const markersRef = useRef([])
   const polylineRef = useRef([])
 
-  const [nodes, setNodes] = useState([])
+  const [nodes, setNodes] = useState(propNodes || [])
   const [edges, setEdges] = useState([])
+  
+  // propNodes가 변경되면 내부 nodes 상태 업데이트
+  useEffect(() => {
+    if (propNodes) {
+      setNodes(propNodes)
+    }
+  }, [propNodes])
+
+  // 팝업 닫기 함수 (다른 함수들보다 먼저 정의)
+  const closeAllPopups = useCallback(() => {
+    setAddPopup({ open: false, x: null, y: null })
+    setDeletePopup({
+      open: false,
+      id: null,
+      node_name: "",
+      type: "",
+      x: null,
+      y: null,
+    })
+    setEdgeConnectMode({ active: false, fromNode: null })
+    setEdgeConnectHint(false)
+    setImageZoomModal({ open: false, imageUrl: "", imageIndex: 0, totalImages: 0 })
+    // 임시 마커도 제거
+    if (tempMarkerRef.current) {
+      tempMarkerRef.current.setMap(null)
+      tempMarkerRef.current = null
+    }
+  }, [])
+
+  // nodes 데이터
+  const fetchNodes = useCallback(async () => {
+    try {
+      const res = await apiGet("/api/tower-route")
+      const json = await parseJsonResponse(res)
+      setNodes(json.nodes || [])
+    } catch (e) {
+      setNodes([])
+    }
+  }, [])
+
+  // edges 데이터
+  const fetchEdges = useCallback(async () => {
+    try {
+      const res = await apiGet("/api/node-route")
+      const json = await parseJsonResponse(res)
+      setEdges(json.edges || [])
+    } catch (e) {
+      setEdges([])
+    }
+  }, [])
+
+  // 다음 바깥 노드 이름 생성 (다른 함수들보다 먼저 정의)
+  const getNextONodeName = useCallback(() => {
+    // nodes가 배열이 아닌 객체일 수 있으므로 배열로 변환
+    let nodesArray = Array.isArray(nodes)
+      ? nodes
+      : nodes && typeof nodes === "object"
+      ? Object.entries(nodes).map(([id, value]) => ({ id, ...value }))
+      : []
+    
+    const oNumbers = nodesArray
+      .map((n) => n.id || n.node_name)
+      .filter((id) => typeof id === "string" && id.startsWith("O"))
+      .map((id) => parseInt(id.slice(1), 10))
+      .filter((num) => !isNaN(num))
+    const maxO = oNumbers.length > 0 ? Math.max(...oNumbers) : 0
+    return "O" + (maxO + 1)
+  }, [nodes])
 
   const [addPopup, setAddPopup] = useState({
     open: false,
@@ -84,7 +155,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   const [selectedImages, setSelectedImages] = useState([])
 
   // 이미지 선택 토글 함수
-  const toggleImageSelection = (imageUrl) => {
+  const toggleImageSelection = useCallback((imageUrl) => {
     setSelectedImages((prev) => {
       if (prev.includes(imageUrl)) {
         return prev.filter((url) => url !== imageUrl)
@@ -92,19 +163,16 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         return [...prev, imageUrl]
       }
     })
-  }
+  }, [])
 
   // 선택된 이미지 삭제 함수
-  const handleDeleteSelectedImages = async () => {
+  const handleDeleteSelectedImages = useCallback(async () => {
     if (selectedImages.length === 0) {
       showToast("삭제할 이미지를 선택해주세요.")
       return
     }
 
     if (!window.confirm("선택한 이미지를 삭제하시겠습니까?")) return
-
-    // 토큰 상태 확인
-    const token = localStorage.getItem('token')
 
     try {
       const requestBody = {
@@ -132,10 +200,9 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       setBuildingImageIndex(0)
       showToast("선택한 이미지가 삭제되었습니다.")
     } catch (error) {
-      console.error("이미지 삭제 오류:", error)
       showToast("서버 오류")
     }
-  }
+  }, [selectedImages, deletePopup.node_name, showToast])
 
   useEffect(() => {
     setBuildingImageIndex(0)
@@ -239,19 +306,19 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       localStorage.removeItem("naverMapZoom")
       // (이하 지도 클릭/마커 등 이벤트 핸들링)
     }
-  }, [ready, isLoggedIn])
+  }, [ready])
 
   useEffect(() => {
     if (menuOpen) {
       closeAllPopups()
     }
-  }, [menuOpen])
+  }, [menuOpen, closeAllPopups])
 
   // 최초 nodes, edges
   useEffect(() => {
     fetchNodes()
     fetchEdges()
-  }, [])
+  }, [fetchNodes, fetchEdges])
 
   // 건물 관리 팝업이 열릴 때마다 전체 건물 데이터 받아와서 설명과 이미지 추출
   useEffect(() => {
@@ -277,7 +344,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
             setCurrentBuilding(found)
           }
         } catch (error) {
-          console.error("건물 정보 가져오기 실패:", error)
           setBuildingDesc("")
           setCurrentBuilding(null)
         }
@@ -343,7 +409,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         })
       })
     }
-  }, [isLoggedIn])
+  }, [])
 
   // 엣지 연결 모드 상태에 따른 지도 클릭 이벤트 제어
   useEffect(() => {
@@ -415,10 +481,18 @@ function NaverMap({ isLoggedIn, menuOpen }) {
 
   useEffect(() => {
     if (!window.naver || !mapInstance.current) return
-    if (!nodes || nodes.length === 0) return
+    
+    // nodes를 배열로 변환
+    const nodesArray = Array.isArray(nodes)
+      ? nodes
+      : nodes && typeof nodes === "object"
+      ? Object.entries(nodes).map(([id, value]) => ({ id, ...value }))
+      : []
+    
+    if (!nodesArray || nodesArray.length === 0) return
 
-    const xs = nodes.map((n) => n.x).filter((x) => typeof x === "number")
-    const ys = nodes.map((n) => n.y).filter((y) => typeof y === "number")
+    const xs = nodesArray.map((n) => n.x).filter((x) => typeof x === "number")
+    const ys = nodesArray.map((n) => n.y).filter((y) => typeof y === "number")
     if (xs.length === 0 || ys.length === 0) return
   }, [nodes])
 
@@ -621,7 +695,7 @@ function NaverMap({ isLoggedIn, menuOpen }) {
   }, [edges, nodes])
 
   // 건물 설명 수정
-  async function handleUpdateBuildingDesc(e) {
+  const handleUpdateBuildingDesc = useCallback(async (e) => {
     e.preventDefault()
     if (!deletePopup.node_name) {
       showToast("건물 이름이 없습니다.")
@@ -639,9 +713,6 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         newBuildingImages.forEach((image, index) => {
           formData.append(`images[${index}]`, image)
         })
-      }
-
-      for (let [key, value] of formData.entries()) {
       }
 
       const res = await apiPut(
@@ -691,46 +762,23 @@ function NaverMap({ isLoggedIn, menuOpen }) {
         showToast(data.error || "정보 수정 실패")
       }
     } catch (error) {
-      console.error("설명 수정 오류:", error)
       showToast("서버 오류")
     }
     setBuildingDescLoading(false)
-  }
+  }, [deletePopup.node_name, buildingDesc, newBuildingImages, showToast])
 
   // 이미지 파일 선택 핸들러
-  const handleImageSelect = (e) => {
+  const handleImageSelect = useCallback((e) => {
     const files = Array.from(e.target.files)
     setNewBuildingImages((prev) => {
       const newImages = [...prev, ...files]
       return newImages
     })
     e.target.value = ""
-  }
-
-  // nodes 데이터
-  async function fetchNodes() {
-    try {
-      const res = await apiGet("/api/tower-route")
-      const json = await parseJsonResponse(res)
-      setNodes(json.nodes || [])
-    } catch (e) {
-      setNodes([])
-    }
-  }
-
-  // edges 데이터
-  async function fetchEdges() {
-    try {
-      const res = await apiGet("/api/node-route")
-      const json = await parseJsonResponse(res)
-      setEdges(json.edges || [])
-    } catch (e) {
-      setEdges([])
-    }
-  }
+  }, [])
 
   // 건물/노드 추가 저장
-  async function handleAddNode(e) {
+  const handleAddNode = useCallback(async (e) => {
     e.preventDefault()
     if (addPopup.x == null || addPopup.y == null) {
       showToast("위치를 선택하세요.")
@@ -797,10 +845,10 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     } else {
       showToast(data.error || "추가 실패")
     }
-  }
+  }, [addPopup, type, nodeName, desc, newBuildingImages, mapInstance, fetchNodes, fetchEdges, showToast, getNextONodeName])
 
   // 건물/노드 삭제 처리 함수
-  async function handleDeleteNode() {
+  const handleDeleteNode = useCallback(async () => {
     if (!deletePopup.type || !deletePopup.node_name) return
     if (!window.confirm("정말 삭제하시겠습니까?")) return
 
@@ -834,10 +882,10 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     } else {
       showToast(data.error || "삭제 실패")
     }
-  }
+  }, [deletePopup, mapInstance, fetchNodes, fetchEdges, showToast])
 
   // 외부 노드 엣지 연결 함수
-  async function handleEdgeConnect(from, to) {
+  const handleEdgeConnect = useCallback(async (from, to) => {
     if (!from?.node_name || !to?.node_name) {
       showToast("노드 정보가 올바르지 않습니다.")
       return
@@ -868,10 +916,10 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     } else {
       showToast(data.error || "엣지 연결 실패")
     }
-  }
+  }, [edges, fetchEdges, showToast])
 
   // 외부 노드 엣지 연결 해제 함수
-  async function handleEdgeDisconnect(from_node, to_node) {
+  const handleEdgeDisconnect = useCallback(async (from_node, to_node) => {
     if (!from_node || !to_node) {
       showToast("노드 정보가 올바르지 않습니다.")
       return
@@ -889,21 +937,10 @@ function NaverMap({ isLoggedIn, menuOpen }) {
     } else {
       showToast(data.error || "엣지 연결 해제 실패")
     }
-  }
-
-  // 다음 바깥 노드 이름 생성
-  function getNextONodeName() {
-    const oNumbers = nodes
-      .map((n) => n.id || n.node_name)
-      .filter((id) => typeof id === "string" && id.startsWith("O"))
-      .map((id) => parseInt(id.slice(1), 10))
-      .filter((num) => !isNaN(num))
-    const maxO = oNumbers.length > 0 ? Math.max(...oNumbers) : 0
-    return "O" + (maxO + 1)
-  }
+  }, [fetchEdges, showToast])
 
   // 관리 팝업 닫기
-  function handleCloseDeletePopup() {
+  const handleCloseDeletePopup = useCallback(() => {
     setDeletePopup({
       open: false,
       id: null,
@@ -913,19 +950,19 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       y: null,
     })
     setNewBuildingImages([])
-  }
+  }, [])
 
   // 추가 팝업 닫기
-  function handleClosePopup() {
+  const handleClosePopup = useCallback(() => {
     setAddPopup({ open: false, x: null, y: null })
     if (tempMarkerRef.current) {
       tempMarkerRef.current.setMap(null)
       tempMarkerRef.current = null
     }
-  }
+  }, [])
 
   // 외부 노드 엣지 연결 시작
-  function handleStartEdgeConnect(node) {
+  const handleStartEdgeConnect = useCallback((node) => {
     setEdgeConnectMode({
       active: true,
       fromNode: { id: node.id, node_name: node.node_name },
@@ -945,10 +982,10 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       tempMarkerRef.current = null
     }
     setEdgeConnectHint(true)
-  }
+  }, [])
 
   // 연결된 노드 조회
-  function getConnectedNodes(nodeId) {
+  const getConnectedNodes = useCallback((nodeId) => {
     const connected = []
     edges.forEach((edge) => {
       if (edge.id === nodeId) {
@@ -959,30 +996,30 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       })
     })
     return Array.from(new Set(connected))
-  }
+  }, [edges])
 
   // 이미지 확대 모달 열기
-  function openImageZoomModal(imageUrl, imageIndex, totalImages) {
+  const openImageZoomModal = useCallback((imageUrl, imageIndex, totalImages) => {
     setImageZoomModal({
       open: true,
       imageUrl,
       imageIndex,
       totalImages
     })
-  }
+  }, [])
 
   // 이미지 확대 모달 닫기
-  function closeImageZoomModal() {
+  const closeImageZoomModal = useCallback(() => {
     setImageZoomModal({
       open: false,
       imageUrl: "",
       imageIndex: 0,
       totalImages: 0
     })
-  }
+  }, [])
 
   // 이미지 확대 모달에서 이전/다음 이미지
-  function navigateImage(direction) {
+  const navigateImage = useCallback((direction) => {
     const { imageIndex, totalImages } = imageZoomModal
     let newIndex = imageIndex
     
@@ -996,28 +1033,37 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       ...prev,
       imageIndex: newIndex
     }))
-  }
+  }, [imageZoomModal])
 
-  // 팝업 닫기 함수
-  function closeAllPopups() {
-    setAddPopup({ open: false, x: null, y: null })
-    setDeletePopup({
-      open: false,
-      id: null,
-      node_name: "",
-      type: "",
-      x: null,
-      y: null,
-    })
-    setEdgeConnectMode({ active: false, fromNode: null })
-    setEdgeConnectHint(false)
-    setImageZoomModal({ open: false, imageUrl: "", imageIndex: 0, totalImages: 0 })
-    // 임시 마커도 제거
-    if (tempMarkerRef.current) {
-      tempMarkerRef.current.setMap(null)
-      tempMarkerRef.current = null
-    }
-  }
+  // 연결된 노드 목록 메모이제이션
+  const connectedNodesList = useMemo(() => {
+    if (!deletePopup.node_name) return []
+    return getConnectedNodes(deletePopup.node_name)
+  }, [deletePopup.node_name, getConnectedNodes])
+
+  // 다음 O 노드명 메모이제이션
+  const nextONodeName = useMemo(() => {
+    return getNextONodeName()
+  }, [getNextONodeName])
+
+  // 이미지 처리 함수들
+  const handleFileSelect = useCallback((e) => {
+    const newFiles = Array.from(e.target.files)
+    setNewBuildingImages((prev) => [...prev, ...newFiles])
+    e.target.value = ""
+  }, [])
+
+  const handleRemoveFile = useCallback((index) => {
+    setNewBuildingImages((prev) => prev.filter((_, i) => i !== index))
+  }, [])
+
+  const handleClearAllFiles = useCallback(() => {
+    setNewBuildingImages([])
+  }, [])
+
+  const handleImageDoubleClick = useCallback((imageUrl, idx, total) => {
+    openImageZoomModal(imageUrl, idx, total)
+  }, [openImageZoomModal])
 
   return (
     <div className={styles.navermapContainer}>
@@ -1059,415 +1105,45 @@ function NaverMap({ isLoggedIn, menuOpen }) {
             </div>
 
             {/* 추가 팝업 (지도 클릭 시에만 뜸) */}
-            {addPopup.open && (
-              <div className={styles.modalPopup}>
-                {/* 상단 타이틀 */}
-                <div className={styles.modalTitle}>
-                  노드/건물 추가
-                </div>
-                {/* 추가 폼 */}
-                <form
-                  className={styles.form}
-                  onSubmit={handleAddNode}
-                >
-                  {/* 라디오 박스: 왼쪽 정렬 */}
-                  <div className={styles.radioGroup}>
-                    <label>
-                      <input
-                        type="radio"
-                        name="type"
-                        value="building"
-                        checked={type === "building"}
-                        onChange={() => setType("building")}
-                      />{" "}
-                      건물
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        name="type"
-                        value="node"
-                        checked={type === "node"}
-                        onChange={() => setType("node")}
-                      />{" "}
-                      노드
-                    </label>
-                  </div>
-
-                  {/* 위도/경도: 입력란 위, 왼쪽 정렬 */}
-                  <div className={styles.coordinateInfo}>
-                    <span>
-                      <strong>위도(x):</strong> {addPopup.x} &nbsp;&nbsp;
-                      <strong>경도(y):</strong> {addPopup.y}
-                    </span>
-                    {/* 물음표 툴팁 */}
-                    <span
-                      className={styles.tooltipTrigger}
-                      tabIndex={0}
-                    >
-                      <span className={styles.tooltipIcon}>
-                        ?
-                      </span>
-                      {/* 툴팁 */}
-                      <span className={`${styles.tooltip} latlng-tooltip`}>
-                        위도(x)는 남북 위치(가로줄), 경도(y)는 동서
-                        위치(세로줄)를 의미합니다.
-                        <br />
-                        지도에서 클릭한 지점의 좌표가 자동으로 입력됩니다.
-                      </span>
-                    </span>
-                  </div>
-
-                  {/* 건물/노드 입력란 */}
-                  {type === "building" && (
-                    <>
-                      <input
-                        className={styles.input}
-                        type="text"
-                        value={nodeName}
-                        onChange={(e) => setNodeName(e.target.value)}
-                        placeholder="이름"
-                        required
-                      />
-                      <textarea
-                        className={styles.textarea}
-                        value={desc}
-                        onChange={(e) => setDesc(e.target.value)}
-                        placeholder="설명"
-                        rows={3}
-                      />
-                      {/* 이미지 업로드 필드 */}
-                      <div className={styles.fileUploadSection}>
-                        <button
-                          type="button"
-                          className={styles.addFileButton}
-                          onClick={() =>
-                            document.getElementById("add-file-input").click()
-                          }
-                        >
-                          <span className={styles.addFileButtonIcon}>+</span> 파일 추가
-                        </button>
-
-                        <input
-                          id="add-file-input"
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          className={styles.hiddenInput}
-                          onChange={(e) => {
-                            const newFiles = Array.from(e.target.files)
-                            setNewBuildingImages((prev) => [
-                              ...prev,
-                              ...newFiles,
-                            ])
-                            e.target.value = ""
-                          }}
-                        />
-
-                        {newBuildingImages.length > 0 && (
-                          <div className={styles.selectedFilesContainer}>
-                            <div className={styles.selectedFilesTitle}>
-                              선택된 파일
-                            </div>
-                            <div className={styles.selectedFilesList}>
-                              {newBuildingImages.map((file, index) => (
-                                <div
-                                  key={index}
-                                  className={styles.fileItem}
-                                >
-                                  <span className={styles.fileName}>
-                                    {file.name}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    className={styles.deleteFileButton}
-                                    onClick={() => {
-                                      setNewBuildingImages((prev) =>
-                                        prev.filter((_, i) => i !== index)
-                                      )
-                                    }}
-                                    title="삭제"
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                            <button
-                              type="button"
-                              className={styles.clearAllFilesButton}
-                              onClick={() => setNewBuildingImages([])}
-                            >
-                              모든 파일 제거
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  )}
-                  {type === "node" && (
-                    <div className={styles.nodeInfo}>
-                      <strong>자동 생성 노드명:</strong> {getNextONodeName()}
-                    </div>
-                  )}
-
-                  {/* 버튼 영역 */}
-                  <div className={styles.buttonGroup}>
-                    <button
-                      type="button"
-                      className={`${styles.button} ${styles.buttonCancel}`}
-                      onClick={handleClosePopup}
-                    >
-                      취소
-                    </button>
-                    <button
-                      type="submit"
-                      className={`${styles.button} ${styles.buttonPrimary}`}
-                    >
-                      저장
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
+            <AddNodeModal
+              addPopup={addPopup}
+              type={type}
+              nodeName={nodeName}
+              desc={desc}
+              newBuildingImages={newBuildingImages}
+              nextONodeName={nextONodeName}
+              onTypeChange={setType}
+              onNodeNameChange={setNodeName}
+              onDescChange={setDesc}
+              onFileSelect={handleFileSelect}
+              onRemoveFile={handleRemoveFile}
+              onClearAllFiles={handleClearAllFiles}
+              onSubmit={handleAddNode}
+              onClose={handleClosePopup}
+            />
 
             {/* 관리/삭제 팝업 (마커/원 클릭 시에만 뜸) */}
-            {deletePopup.open && (
-              <div className={styles.modalPopup}>
-                {/* 상단 타이틀 */}
-                <div className={styles.modalTitle}>
-                  노드/건물 관리
-                </div>
-                {/* 삭제/엣지 관리 */}
-                <div className={styles.manageSection}>
-                  <div className={styles.manageInfo}>
-                    <strong>이름:</strong> {deletePopup.node_name} <br />
-                    <span>
-                      <strong>위도(x):</strong> {deletePopup.x}&nbsp;&nbsp;
-                      <strong>경도(y):</strong> {deletePopup.y}
-                    </span>
-                  </div>
-                  {/* 건물일 때만 설명 입력란 + 이미지 표시 + 수정 버튼 */}
-                  {deletePopup.type === "building" &&
-                    (() => {
-                      const found = nodes.find(
-                        (b) =>
-                          b.Building_Name === deletePopup.node_name ||
-                          b.name === deletePopup.node_name
-                      )
-
-                      let imageArr = []
-                      if (found) {
-                        if (
-                          Array.isArray(found.Image) &&
-                          found.Image.length > 0
-                        ) {
-                          imageArr = [...found.Image]
-                        } else if (
-                          Array.isArray(found.image) &&
-                          found.image.length > 0
-                        ) {
-                          imageArr = [...found.image]
-                        } else if (found.image) {
-                          imageArr = [found.image]
-                        } else if (found.image_url) {
-                          imageArr = [found.image_url]
-                        }
-                      }
-                      if (imageArr.length === 0 && existingImageUrl) {
-                        imageArr = [existingImageUrl]
-                      }
-
-                      return (
-                        <>
-                          {/* 이미지 갤러리 */}
-                          <div className={styles.imageGalleryHeader}>
-                            <div className={styles.imageGalleryTitle}>
-                              <strong>현재 건물 사진</strong>
-                            </div>
-                            <div className={styles.imageGalleryActions}>
-                              {selectedImages.length > 0 && (
-                                <button
-                                  className={`${styles.imageActionButton} ${styles.imageActionButtonDelete}`}
-                                  onClick={handleDeleteSelectedImages}
-                                  title="선택한 이미지 삭제"
-                                >
-                                  <svg
-                                    viewBox="64 64 896 896"
-                                    width="20"
-                                    height="20"
-                                    fill="currentColor"
-                                  >
-                                    <path d="M360 184h-8c4.4 0 8-3.6 8-8v8h304v-8c0 4.4 3.6 8 8 8h-8v72h72v-80c0-35.3-28.7-64-64-64H352c-35.3 0-64 28.7-64 64v80h72v-72zm504 72H160c-17.7 0-32 14.3-32 32v32c0 4.4 3.6 8 8 8h60.4l24.7 523c1.6 34.1 29.8 61 63.9 61h454c34.2 0 62.3-26.8 63.9-61l24.7-523H888c4.4 0 8-3.6 8-8v-32c0-17.7-14.3-32-32-32zM731.3 840H292.7l-24.2-512h487l-24.2 512z" />
-                                  </svg>
-                                </button>
-                              )}
-                              <label
-                                className={`${styles.imageActionButton} ${styles.imageActionButtonAdd}`}
-                                title="이미지 추가"
-                              >
-                                <svg
-                                  viewBox="64 64 896 896"
-                                  width="20"
-                                  height="20"
-                                  fill="currentColor"
-                                >
-                                  <path d="M482 152h60q8 0 8 8v704q0 8-8 8h-60q-8 0-8-8V160q0-8 8-8z" />
-                                  <path d="M176 474h672q8 0 8 8v60q0 8-8 8H176q-8 0-8-8v-60q0-8 8-8z" />
-                                </svg>
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  multiple
-                                  className={styles.hiddenInput}
-                                  onChange={handleImageSelect}
-                                />
-                              </label>
-                            </div>
-                          </div>
-                          <div className={styles.imageGrid}>
-                            {/* 기존 이미지들 */}
-                            {currentImageArr.map((imageUrl, idx) => (
-                              <div
-                                key={`existing-${imageUrl}-${idx}`}
-                                className={`${styles.imageItem} ${selectedImages.includes(imageUrl) ? styles.imageItemSelected : ""}`}
-                                onClick={() => toggleImageSelection(imageUrl)}
-                                onDoubleClick={() => openImageZoomModal(imageUrl, idx, currentImageArr.length)}
-                              >
-                                <img
-                                  src={imageUrl}
-                                  alt={`건물 사진 ${idx + 1}`}
-                                  className={styles.imageItemImg}
-                                  onError={(e) => {
-                                    e.target.src = "/fallback-image.jpg"
-                                  }}
-                                />
-                                {selectedImages.includes(imageUrl) && (
-                                  <div className={styles.imageItemCheck}>
-                                    ✓
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-
-                            {/* 이미지가 없을 때 표시 */}
-                            {currentImageArr.length === 0 &&
-                              newBuildingImages.length === 0 && (
-                                <div className={styles.noImagesMessage}>
-                                  사진 없음
-                                </div>
-                              )}
-                          </div>
-                          {newBuildingImages.length > 0 && (
-                            <div className={styles.newImagesSection}>
-                              <div className={styles.selectedFilesTitle}>
-                                선택된 파일
-                              </div>
-                              <div className={styles.selectedFilesList}>
-                                {newBuildingImages.map((file, index) => (
-                                  <div
-                                    key={index}
-                                    className={styles.fileItem}
-                                  >
-                                    <span className={styles.fileName}>
-                                      {file.name}
-                                    </span>
-                                    <button
-                                      className={styles.deleteFileButton}
-                                      onClick={() => {
-                                        setNewBuildingImages((prev) =>
-                                          prev.filter((_, i) => i !== index)
-                                        )
-                                      }}
-                                      title="삭제"
-                                    >
-                                      ×
-                                    </button>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* 설명 입력란 */}
-                          <textarea
-                            className={styles.textarea}
-                            value={buildingDesc}
-                            onChange={(e) => setBuildingDesc(e.target.value)}
-                            placeholder="설명"
-                          />
-
-                          {/* 새 이미지 업로드 부분 제거 */}
-                        </>
-                      )
-                    })()}
-                  {/* 연결된 노드 (엣지 해제) */}
-                  <div className={styles.connectedNodesSection}>
-                    <div className={styles.connectedNodesTitle}>
-                      연결된 노드
-                    </div>
-                    {getConnectedNodes(deletePopup.node_name).length === 0 ? (
-                      <div className={styles.noConnectedNodes}>
-                        연결된 노드 없음
-                      </div>
-                    ) : (
-                      getConnectedNodes(deletePopup.node_name).map(
-                        (connectedNode) => (
-                          <button
-                            key={connectedNode}
-                            type="button"
-                            className={styles.buttonWarning}
-                            onClick={() =>
-                              handleEdgeDisconnect(
-                                deletePopup.node_name,
-                                connectedNode
-                              )
-                            }
-                          >
-                            {connectedNode} 엣지 연결 해제
-                          </button>
-                        )
-                      )
-                    )}
-                  </div>
-
-                  {/* 하단 버튼 영역 */}
-                  <div className={styles.buttonGroupBottom}>
-                    <button
-                      type="button"
-                      className={`${styles.buttonFull} ${styles.buttonCancel}`}
-                      onClick={handleCloseDeletePopup}
-                    >
-                      취소
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.buttonFull} ${styles.buttonDanger}`}
-                      onClick={handleDeleteNode}
-                    >
-                      삭제
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.buttonFull} ${styles.buttonPrimary}`}
-                      onClick={() => handleStartEdgeConnect(deletePopup)}
-                    >
-                      엣지 연결
-                    </button>
-                    {deletePopup.type === "building" && (
-                      <button
-                        type="button"
-                        disabled={buildingDescLoading}
-                        className={`${styles.buttonFull} ${styles.buttonPrimary}`}
-                        onClick={handleUpdateBuildingDesc}
-                      >
-                        {buildingDescLoading ? "수정 중..." : "수정"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
+            <ManageNodeModal
+              deletePopup={deletePopup}
+              buildingDesc={buildingDesc}
+              buildingDescLoading={buildingDescLoading}
+              currentImageArr={currentImageArr}
+              selectedImages={selectedImages}
+              newBuildingImages={newBuildingImages}
+              connectedNodes={connectedNodesList}
+              onBuildingDescChange={setBuildingDesc}
+              onToggleImageSelection={toggleImageSelection}
+              onImageDoubleClick={handleImageDoubleClick}
+              onDeleteSelectedImages={handleDeleteSelectedImages}
+              onAddImage={handleImageSelect}
+              onRemoveNewImage={handleRemoveFile}
+              onClearAllNewImages={handleClearAllFiles}
+              onUpdateBuildingDesc={handleUpdateBuildingDesc}
+              onEdgeDisconnect={handleEdgeDisconnect}
+              onStartEdgeConnect={handleStartEdgeConnect}
+              onDeleteNode={handleDeleteNode}
+              onClose={handleCloseDeletePopup}
+            />
           </div>
         </div>
       )}
@@ -1480,69 +1156,12 @@ function NaverMap({ isLoggedIn, menuOpen }) {
       )}
 
       {/* 이미지 확대 모달 */}
-      {imageZoomModal.open && (
-        <div
-          className={styles.imageZoomModal}
-          onClick={closeImageZoomModal}
-        >
-          {/* 닫기 버튼 */}
-          <button
-            className={styles.imageZoomCloseButton}
-            onClick={closeImageZoomModal}
-          >
-            ×
-          </button>
-
-          {/* 이전 버튼 */}
-          {imageZoomModal.totalImages > 1 && (
-            <button
-              className={`${styles.imageZoomNavButton} ${styles.imageZoomNavButtonPrev}`}
-              onClick={(e) => {
-                e.stopPropagation()
-                navigateImage('prev')
-              }}
-            >
-              ‹
-            </button>
-          )}
-
-          {/* 다음 버튼 */}
-          {imageZoomModal.totalImages > 1 && (
-            <button
-              className={`${styles.imageZoomNavButton} ${styles.imageZoomNavButtonNext}`}
-              onClick={(e) => {
-                e.stopPropagation()
-                navigateImage('next')
-              }}
-            >
-              ›
-            </button>
-          )}
-
-          {/* 이미지 */}
-          <div
-            className={styles.imageZoomContent}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={currentImageArr[imageZoomModal.imageIndex]}
-              alt={`건물 사진 ${imageZoomModal.imageIndex + 1}`}
-              className={styles.imageZoomImg}
-              onError={(e) => {
-                e.target.src = "/fallback-image.jpg"
-              }}
-            />
-          </div>
-
-          {/* 이미지 인덱스 표시 */}
-          {imageZoomModal.totalImages > 1 && (
-            <div className={styles.imageZoomIndex}>
-              {imageZoomModal.imageIndex + 1} / {imageZoomModal.totalImages}
-            </div>
-          )}
-
-        </div>
-      )}
+      <ImageZoomModal
+        imageModal={imageZoomModal}
+        currentImageArr={currentImageArr}
+        onClose={closeImageZoomModal}
+        onNavigate={navigateImage}
+      />
     </div>
   )
 }

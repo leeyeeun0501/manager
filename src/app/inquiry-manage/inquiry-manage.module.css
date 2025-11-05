@@ -1,4 +1,4 @@
-/* inquiry-manage.css */
+/* 문의 관리 스타일 */
 
 /* 레이아웃 */
 .inquiryRoot {
@@ -11,7 +11,7 @@
 .inquiryContent {
   max-width: 100%;
   margin: 0 auto;
-  padding: 0px 0 0 0;
+  padding: 0;
   overflow-x: hidden;
 }
 
@@ -58,7 +58,7 @@
 }
 
 .inquiryFilterSelect:focus {
-  border: 1.5px solid #2574f5;
+  border-color: #2574f5;
 }
 
 .inquiryStatsContainer {
@@ -134,9 +134,7 @@
 
 .centerTable {
   width: auto;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 40px;
+  margin: 40px auto 0;
 }
 
 .inquiryTable tr:hover,
@@ -167,6 +165,11 @@
   cursor: pointer;
   font-size: 22px;
   color: #3b8dff;
+  transition: color 0.2s;
+}
+
+.answerBtn:hover {
+  color: #2574f5;
 }
 
 .noInquiries {
@@ -181,8 +184,7 @@
   justify-content: center;
   align-items: center;
   gap: 18px;
-  margin-top: 16px;
-  margin-bottom: 2px;
+  margin: 16px 0 2px;
 }
 
 .inquiryPaginationBtn {
@@ -199,7 +201,7 @@
 
 .inquiryPaginationBtn:hover:not(:disabled) {
   background: #eaf2fd;
-  border: 1.5px solid #2574f5;
+  border-color: #2574f5;
 }
 
 .inquiryPaginationBtn:disabled {
@@ -279,7 +281,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .modalCloseBtn:hover {
@@ -339,7 +341,8 @@
   background: #1e5bb8;
 }
 
-.modalSubmitBtn:disabled {
+.modalSubmitBtn:disabled,
+.modalCancelBtn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -388,6 +391,10 @@
   font-size: 0.9rem;
   font-weight: 600;
   transition: all 0.2s;
+}
+
+.translateBtn:hover {
+  background: #eaf2fd;
 }
 
 .translateBtnActive {
@@ -439,6 +446,7 @@
   min-height: 120px;
   font-family: inherit;
   display: block;
+  transition: border-color 0.2s;
 }
 
 .answerTextarea:focus {
@@ -464,6 +472,6 @@
   padding: 12px 24px;
   border-radius: 8px;
   z-index: 3000;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   font-weight: bold;
 }

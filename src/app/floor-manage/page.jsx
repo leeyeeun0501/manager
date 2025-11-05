@@ -1,4 +1,4 @@
-// floor-manage
+// 층 관리
 "use client"
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react"
 import Menu from "../components/menu"
@@ -9,7 +9,6 @@ import { useSessionCheck } from "../utils/useSessionCheck"
 import { useToast } from "../utils/useToast"
 import AddFloorModal from "./AddFloorModal"
 import MapViewModal from "./MapViewModal"
-import AddFileModal from "./AddFileModal"
 import FloorTable from "./FloorTable"
 import "../globals.css"
 
@@ -82,20 +81,9 @@ export default function BuildingPage() {
   const [editMapError, setEditMapError] = useState("")
   const [editMapLoading, setEditMapLoading] = useState(false)
 
-  const [hoveredKey, setHoveredKey] = useState("")
-  const [addFile, setAddFile] = useState(null)
-  const [addFileError, setAddFileError] = useState("")
-  const [addFileLoading, setAddFileLoading] = useState(false)
-  const addFileRef = useRef(null)
-
   // 모달
   const [mapModalOpen, setMapModalOpen] = useState(false)
   const [mapModalFile, setMapModalFile] = useState("")
-  const [fileAddModal, setFileAddModal] = useState({
-    open: false,
-    building: "",
-    floor: "",
-  })
 
   // 토스트 메시지 훅
   const { toastMessage, toastVisible, showToast } = useToast()
@@ -352,68 +340,6 @@ export default function BuildingPage() {
     setEditMapLoading(false)
   }, [editMapFile, editMapBuilding, editMapFloor, showToast, fetchFloors, selectedBuilding, handleCloseMapModal])
 
-  // 파일 추가 핸들러
-  const handleAddFile = useCallback((row) => {
-    setFileAddModal({
-      open: true,
-      building: row.building,
-      floor: row.floor,
-    })
-    setAddFile(null)
-    setAddFileError("")
-    if (addFileRef.current) {
-      addFileRef.current.value = ""
-    }
-  }, [])
-
-  // 파일 추가 모달 닫기 핸들러
-  const handleCloseAddFileModal = useCallback(() => {
-    setFileAddModal({ open: false, building: "", floor: "" })
-  }, [])
-
-  // 파일 추가 제출 핸들러
-  const handleAddFileSubmit = useCallback(async (e) => {
-    e.preventDefault()
-    setAddFileError("")
-    if (!addFile) {
-      setAddFileError("SVG 파일을 선택하세요.")
-      return
-    }
-    setAddFileLoading(true)
-    try {
-      const formData = new FormData()
-      formData.append("file", addFile)
-      formData.append("building_name", fileAddModal.building)
-      formData.append("floor_number", fileAddModal.floor)
-      const res = await apiPut(
-        `/api/floor-route?building=${encodeURIComponent(
-          fileAddModal.building
-        )}&floor=${encodeURIComponent(fileAddModal.floor)}`,
-        formData
-      )
-      const data = await parseJsonResponse(res)
-      
-      if (data && !data.error) {
-        showToast("도면이 성공적으로 추가되었습니다!")
-        await fetchFloors(fileAddModal.building)
-        handleCloseAddFileModal()
-      } else {
-        setAddFileError(data.error || "도면 추가 실패")
-      }
-    } catch (err) {
-      setAddFileError("도면 추가 중 오류가 발생했습니다.")
-    }
-    setAddFileLoading(false)
-  }, [addFile, fileAddModal, showToast, fetchFloors, handleCloseAddFileModal])
-
-  // 테이블 이벤트 핸들러
-  const handleMouseEnter = useCallback((key) => {
-    setHoveredKey(key)
-  }, [])
-
-  const handleMouseLeave = useCallback(() => {
-    setHoveredKey("")
-  }, [])
 
   // 페이지네이션 핸들러
   const handlePrevPage = useCallback(() => {
@@ -481,13 +407,9 @@ export default function BuildingPage() {
         {/* 표 */}
         <FloorTable
           floorPaged={floorPaged}
-          hoveredKey={hoveredKey}
           selectedBuilding={selectedBuilding}
           selectedFloor={selectedFloor}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
           onMapPreview={handleMapPreview}
-          onAddFile={handleAddFile}
           onDelete={handleDeleteFloor}
         />
 
@@ -546,17 +468,6 @@ export default function BuildingPage() {
           onSubmit={handleEditMapSubmit}
           getCacheBustedUrl={getCacheBustedUrl}
           fetchFloors={fetchFloors}
-        />
-
-        {/* 2D 도면 파일 추가 모달 */}
-        <AddFileModal
-          fileAddModal={fileAddModal}
-          addFile={addFile}
-          addFileError={addFileError}
-          addFileLoading={addFileLoading}
-          onClose={handleCloseAddFileModal}
-          onFileChange={(e) => setAddFile(e.target.files[0])}
-          onSubmit={handleAddFileSubmit}
         />
       </div>
     </div>

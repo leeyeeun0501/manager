@@ -1,18 +1,14 @@
 // 층 관리 테이블 컴포넌트
 "use client"
 import React from "react"
-import { FaTrashAlt, FaPaperclip } from "react-icons/fa"
+import { FaTrashAlt } from "react-icons/fa"
 import styles from "./floor-manage.module.css"
 
 export default function FloorTable({
   floorPaged,
-  hoveredKey,
   selectedBuilding,
   selectedFloor,
-  onMouseEnter,
-  onMouseLeave,
   onMapPreview,
-  onAddFile,
   onDelete,
 }) {
   return (
@@ -34,11 +30,7 @@ export default function FloorTable({
               <tr key={row.building + "-" + row.floor + "-" + idx}>
                 <td>{row.building}</td>
                 <td>{row.floor}</td>
-                <td
-                  className={styles.fileCell}
-                  onMouseEnter={() => onMouseEnter(`${row.building}-${row.floor}`)}
-                  onMouseLeave={onMouseLeave}
-                >
+                <td className={styles.fileCell}>
                   {row.file ? (
                     <button
                       type="button"
@@ -48,18 +40,7 @@ export default function FloorTable({
                       2D 도면 미리보기
                     </button>
                   ) : (
-                    <>
-                      <span style={{ color: "#aaa" }}>없음</span>
-                      {hoveredKey === `${row.building}-${row.floor}` && (
-                        <button
-                          className={styles.addFileIconBtn}
-                          aria-label="맵 파일 추가"
-                          onClick={() => onAddFile(row)}
-                        >
-                          <FaPaperclip size={18} />
-                        </button>
-                      )}
-                    </>
+                    <span style={{ color: "#aaa" }}>없음</span>
                   )}
                 </td>
                 <td>

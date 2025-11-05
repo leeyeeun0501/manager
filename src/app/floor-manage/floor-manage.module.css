@@ -1,7 +1,6 @@
-/* floor-manage.css */
+/* 층 관리 스타일 */
 
-/* 스크롤바 완전 제거 */
-
+/* 레이아웃 */
 .building-root {
   min-height: 100vh;
   background: #f4f7fc;
@@ -29,16 +28,6 @@
   padding-left: 100px;
 }
 
-.building-title {
-  font-size: 2.1rem;
-  font-weight: 700;
-  color: #222;
-  margin: 0;
-  padding: 0;
-  background: #f4f7fc;
-  display: block;
-}
-
 .building-content {
   margin: 0 auto;
   padding: 48px 0 0 0;
@@ -46,16 +35,19 @@
   min-height: 100vh;
 }
 
-.building-filter-row {
+/* 필터 및 선택 */
+.filterContainer {
   display: flex;
   align-items: center;
   gap: 18px;
-  margin-bottom: 26px;
-  padding: 18px 32px 14px 32px;
-  background: #eaf2fd;
-  border-radius: 16px;
-  box-shadow: 0 2px 10px rgba(37, 116, 245, 0.07);
-  position: relative;
+  margin-bottom: 18px;
+  justify-content: space-between;
+}
+
+.selectGroup {
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 
 .building-select,
@@ -98,6 +90,7 @@
   box-shadow: 0 4px 18px rgba(37, 116, 245, 0.14);
 }
 
+/* 테이블 */
 .building-table-wrap {
   background: #fff;
   border-radius: 16px;
@@ -110,7 +103,8 @@
   overflow-y: hidden;
 }
 
-.custom-table {
+.custom-table,
+.bordered-table {
   width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
@@ -121,13 +115,16 @@
 }
 
 .custom-table th,
-.custom-table td {
+.custom-table td,
+.bordered-table th,
+.bordered-table td {
   padding: 15px 10px;
   text-align: center;
-  border-bottom: 1.5px solid #e3eefd;
+  border: 1.5px solid #e3eefd;
 }
 
-.custom-table th {
+.custom-table th,
+.bordered-table th {
   background: #eaf2fd;
   font-weight: 800;
   color: #2574f5;
@@ -138,6 +135,10 @@
   border-bottom: none;
 }
 
+.bordered-table tr:last-child td {
+  border-bottom: 1.5px solid #e3eefd;
+}
+
 .custom-table tr {
   transition: background 0.12s;
 }
@@ -146,17 +147,28 @@
   background: #f1f7ff;
 }
 
-.tag {
-  display: inline-block;
-  background: #e4e8f0;
-  color: #2574f5;
-  border-radius: 8px;
-  padding: 3px 10px;
-  margin-right: 4px;
-  font-size: 0.97rem;
-  font-weight: 600;
+.fileCell {
+  position: relative;
 }
 
+.filePreviewBtn {
+  color: #2574f5;
+  font-weight: 600;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.noDataCell {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* 버튼 공통 스타일 */
 .edit-btn,
 .delete-btn,
 .edit-icon-btn {
@@ -171,14 +183,12 @@
   color: #e74c3c;
 }
 
-.edit-btn {
-  color: #2574f5;
-}
-
+.edit-btn,
 .edit-icon-btn {
   color: #2574f5;
 }
 
+/* 페이지네이션 */
 .building-pagination-row {
   display: flex;
   justify-content: center;
@@ -216,183 +226,7 @@
   color: #2574f5;
 }
 
-.add-floor-modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(37, 116, 245, 0.1);
-  z-index: 10000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: popup-fadein 0.18s;
-}
-
-.add-floor-modal {
-  background: #fafdff;
-  border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(37, 116, 245, 0.14),
-    0 1.5px 6px rgba(0, 0, 0, 0.07);
-  min-width: 350px;
-  max-width: 97vw;
-  padding: 0 0 26px 0;
-  position: relative;
-  animation: popup-fadein 0.18s;
-}
-
-@keyframes popup-fadein {
-  from {
-    transform: translateY(16px) scale(0.98);
-    opacity: 0;
-  }
-  to {
-    transform: none;
-    opacity: 1;
-  }
-}
-
-.add-floor-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: linear-gradient(90deg, #2574f5 0%, #5eaefd 100%);
-  border-radius: 18px 18px 0 0;
-  padding: 18px 28px 12px 28px;
-}
-
-.add-floor-modal-title {
-  font-size: 1.23rem;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: 0.01em;
-}
-
-.add-floor-modal-close {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 1.7rem;
-  font-weight: 900;
-  cursor: pointer;
-  padding: 0 4px;
-  margin-left: 10px;
-  line-height: 1;
-  transition: color 0.15s;
-}
-
-.add-floor-modal-close:hover {
-  color: #dbeafe;
-}
-
-.add-floor-modal-form {
-  padding: 26px 32px 0 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.add-floor-modal-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.add-floor-modal-row label {
-  min-width: 50px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #2574f5;
-}
-
-.add-floor-modal-row input[type="text"],
-.add-floor-modal-row select {
-  flex: 1 1 0;
-  font-size: 1rem;
-  border-radius: 8px;
-  border: 1.5px solid #b3d1fa;
-  padding: 8px 12px;
-  background: #fff;
-  transition: border 0.13s;
-}
-
-.add-floor-modal-row input[type="file"] {
-  flex: 1 1 0;
-  font-size: 1rem;
-  background: #fff;
-}
-
-.add-floor-modal-error {
-  color: #e74c3c;
-  font-size: 1rem;
-  margin-top: 2px;
-  margin-bottom: 2px;
-  text-align: left;
-}
-
-.add-floor-modal-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 18px;
-  justify-content: flex-end;
-}
-
-.add-floor-modal-save-btn {
-  background: #2574f5;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 1.05rem;
-  padding: 9px 28px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.add-floor-modal-save-btn:hover {
-  background: #1556b9;
-}
-
-.add-floor-modal-cancel-btn {
-  background: #f2f6fa;
-  color: #2574f5;
-  border: 1.5px solid #b3d1fa;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 1.05rem;
-  padding: 9px 28px;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-.add-floor-modal-cancel-btn:hover {
-  background: #e3ecfa;
-  color: #1556b9;
-}
-
-.bordered-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-.bordered-table th,
-.bordered-table td {
-  border: 1.5px solid #e3eefd;
-  padding: 15px 10px;
-  text-align: center;
-}
-
-.bordered-table th {
-  background: #eaf2fd;
-  font-weight: 800;
-  color: #2574f5;
-}
-
-.bordered-table tr:last-child td {
-  border-bottom: 1.5px solid #e3eefd;
-}
-
+/* 토스트 */
 .toastPopup {
   position: fixed;
   top: 30px;
@@ -407,54 +241,7 @@
   font-weight: bold;
 }
 
-.filterContainer {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  margin-bottom: 18px;
-  justify-content: space-between;
-}
-
-.selectGroup {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.noDataCell {
-  text-align: center;
-  padding: 40px 20px;
-  color: #666;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.fileCell {
-  position: relative;
-}
-
-.filePreviewBtn {
-  color: #2574f5;
-  font-weight: 600;
-  text-decoration: underline;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.addFileIconBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #2574f5;
-  font-size: 18px;
-  margin-left: 6px;
-  padding: 0;
-  vertical-align: middle;
-  display: inline-flex;
-  align-items: center;
-}
-
+/* 모달 공통 스타일 */
 .modalBackdrop {
   position: fixed;
   top: 0;
@@ -490,13 +277,6 @@
   border-bottom: 2px solid #1976d2;
   padding-bottom: 6px;
   letter-spacing: -0.5px;
-}
-
-.modalForm {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
 }
 
 .modalSelect {
@@ -584,18 +364,7 @@
   justify-content: flex-end;
 }
 
-.modalCancelBtn {
-  flex: 1;
-  padding: 10px 0;
-  border-radius: 24px;
-  border: none;
-  font-size: 15px;
-  font-weight: 600;
-  background: #eee;
-  color: #333;
-  cursor: pointer;
-}
-
+.modalCancelBtn,
 .modalSubmitBtn {
   flex: 1;
   padding: 10px 0;
@@ -603,11 +372,69 @@
   border: none;
   font-size: 15px;
   font-weight: 600;
-  background: #2574f5;
-  color: #fff;
   cursor: pointer;
 }
 
+.modalCancelBtn {
+  background: #eee;
+  color: #333;
+}
+
+.modalSubmitBtn {
+  background: #2574f5;
+  color: #fff;
+}
+
+/* 파일 입력 */
+.clipFileInputRoot {
+  width: 100%;
+  height: 48px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.clipFileInputDisplay {
+  width: 100%;
+  height: 100%;
+  padding: 0 44px 0 12px;
+  border: none;
+  outline: none;
+  border-radius: 14px;
+  font-size: 16px;
+  background: transparent;
+  color: #aaa;
+  font-family: inherit;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.clipFileInputDisplay.fileSelected {
+  color: #222;
+}
+
+.clipFileIconButton {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: #2574f5;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clipFileInputHidden {
+  display: none;
+}
+
+/* 2D 도면 미리보기 모달 */
 .mapModalContainer {
   background: #fff;
   border-radius: 18px;
@@ -695,52 +522,4 @@
 
 .mapModalSubmitBtn:disabled {
   opacity: 0.6;
-}
-
-.clipFileInputRoot {
-  width: 100%;
-  height: 48px;
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.clipFileInputDisplay {
-  width: 100%;
-  height: 100%;
-  padding: 0 44px 0 12px;
-  border: none;
-  outline: none;
-  border-radius: 14px;
-  font-size: 16px;
-  background: transparent;
-  color: #aaa;
-  font-family: inherit;
-  box-sizing: border-box;
-  cursor: pointer;
-}
-
-.clipFileInputDisplay.fileSelected {
-  color: #222;
-}
-
-.clipFileIconButton {
-  position: absolute;
-  top: 50%;
-  right: 10px;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  color: #2574f5;
-  font-size: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.clipFileInputHidden {
-  display: none;
 }

@@ -1,4 +1,4 @@
-// navermap
+// 건물 관리 네이버 지도
 "use client"
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import { apiGet, apiDelete, apiPut, apiPost, parseJsonResponse } from "../utils/apiHelper"

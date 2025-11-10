@@ -1,6 +1,7 @@
 // 메인 화면 건물 정보 모달
 "use client"
 
+import { useMemo } from "react"
 import styles from "./management.module.css";
 
 export default function BuildingInfoModal({
@@ -10,7 +11,7 @@ export default function BuildingInfoModal({
 }) {
   if (!building) return null
 
-  const getImages = () => {
+  const images = useMemo(() => {
     if (!details) return []
     if (Array.isArray(details.Image) && details.Image.length > 0) {
       return details.Image
@@ -25,9 +26,7 @@ export default function BuildingInfoModal({
       return [details.image_url]
     }
     return []
-  }
-
-  const images = getImages()
+  }, [details])
 
   return (
     <>

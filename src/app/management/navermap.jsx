@@ -1,6 +1,6 @@
 // 메인 화면 지도 관련
 "use client"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import { apiGet, parseJsonResponse } from "../utils/apiHelper";
 import BuildingInfoModal from "./BuildingInfoModal";
 import styles from "./management.module.css";
@@ -96,84 +96,84 @@ export default function NaverMapSimple({ markers = [] }) {
   }, [ready])
 
   // tower-route 데이터(경로 및 건물) 가져오기
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await apiGet("/api/tower-route")
-        const data = await parseJsonResponse(response)
+  const fetchTowerData = useCallback(async () => {
+    try {
+      const response = await apiGet("/api/tower-route")
+      const data = await parseJsonResponse(response)
 
-        if (data.nodes && Array.isArray(data.nodes)) {
-          const filteredNodes = data.nodes.filter((node) => {
-            // 기본 필터: id가 있고 "O"가 포함되지 않아야 함
-            if (!node.id || node.id.toString().includes("O")) {
-              return false;
-            }
-            // "~문"으로 끝나는 노드 제외
-            const nodeName = node.node_name || node.name || node.id || "";
-            return !nodeName.toString().endsWith("문");
-          });
-          // 경로점과 건물 데이터를 한 번에 설정
-          setPathData(filteredNodes);
-          setBuildingData(filteredNodes);
-        }
-      } catch (error) {
-        console.error("Failed to fetch tower-route data:", error);
-        setPathData([]);
-        setBuildingData([]);
+      if (data.nodes && Array.isArray(data.nodes)) {
+        const filteredNodes = data.nodes.filter((node) => {
+          // 기본 필터: id가 있고 "O"가 포함되지 않아야 함
+          if (!node.id || node.id.toString().includes("O")) {
+            return false;
+          }
+          // "~문"으로 끝나는 노드 제외
+          const nodeName = node.node_name || node.name || node.id || "";
+          return !nodeName.toString().endsWith("문");
+        });
+        // 경로점과 건물 데이터를 한 번에 설정
+        setPathData(filteredNodes);
+        setBuildingData(filteredNodes);
       }
-    };
-
-    fetchData();
+    } catch (error) {
+      // 에러 발생 시 빈 배열로 설정
+      setPathData([]);
+      setBuildingData([]);
+    }
   }, [])
 
-  // 건물 상세 정보 가져오기
   useEffect(() => {
-    const fetchBuildingDetails = async () => {
-      if (!selectedBuilding) {
-        setBuildingDetails(null)
-        return
-      }
+    fetchTowerData();
+  }, [fetchTowerData])
 
-      try {
-        setBuildingDetails(null)
+  // 건물 상세 정보 가져오기
+  const fetchBuildingDetails = useCallback(async () => {
+    if (!selectedBuilding) {
+      setBuildingDetails(null)
+      return
+    }
 
-        const buildingName = selectedBuilding.node_name || selectedBuilding.id
+    try {
+      setBuildingDetails(null)
 
-        const res = await apiGet("/api/building-route")
-        const json = await parseJsonResponse(res)
+      const buildingName = selectedBuilding.node_name || selectedBuilding.id
 
-        if (json.all && Array.isArray(json.all)) {
-          const found = json.all.find((b) => {
-            const buildingNames = [
-              b.Building_Name,
-              b.name,
-              b.building_name,
-              b.node_name,
-            ].filter(Boolean)
+      const res = await apiGet("/api/building-route")
+      const json = await parseJsonResponse(res)
 
-            return buildingNames.some(
-              (name) =>
-                name === buildingName ||
-                name.toLowerCase() === buildingName.toLowerCase()
-            )
-          })
+      if (json.all && Array.isArray(json.all)) {
+        const found = json.all.find((b) => {
+          const buildingNames = [
+            b.Building_Name,
+            b.name,
+            b.building_name,
+            b.node_name,
+          ].filter(Boolean)
 
-          if (found) {
-            setBuildingDetails(found)
-          } else {
-            setBuildingDetails(null)
-          }
+          return buildingNames.some(
+            (name) =>
+              name === buildingName ||
+              name.toLowerCase() === buildingName.toLowerCase()
+          )
+        })
+
+        if (found) {
+          setBuildingDetails(found)
         } else {
           setBuildingDetails(null)
         }
-      } catch (error) {
-        console.error("건물 상세 정보 조회 실패:", error)
+      } else {
         setBuildingDetails(null)
       }
+    } catch (error) {
+      // 에러 발생 시 null로 설정
+      setBuildingDetails(null)
     }
-
-    fetchBuildingDetails()
   }, [selectedBuilding])
+
+  useEffect(() => {
+    fetchBuildingDetails()
+  }, [fetchBuildingDetails])
 
   // markers가 변경될 때마다 마커 갱신
   useEffect(() => {
@@ -255,14 +255,14 @@ export default function NaverMapSimple({ markers = [] }) {
       })
 
       // 건물 마커 클릭 이벤트
-      window.naver.maps.Event.addListener(marker, "click", function () {
+      const handleMarkerClick = () => {
         setSelectedBuilding(building)
-      })
+      }
+      
+      window.naver.maps.Event.addListener(marker, "click", handleMarkerClick)
 
       // 원 클릭 이벤트도 추가
-      window.naver.maps.Event.addListener(circle, "click", function () {
-        setSelectedBuilding(building)
-      })
+      window.naver.maps.Event.addListener(circle, "click", handleMarkerClick)
 
       buildingMarkersRef.current.push(marker)
     })
@@ -304,6 +304,12 @@ export default function NaverMapSimple({ markers = [] }) {
     pathRef.current = pathMarkers
   }, [pathData, ready])
 
+  // 모달 닫기 핸들러
+  const handleCloseModal = useCallback(() => {
+    setSelectedBuilding(null);
+    setBuildingDetails(null);
+  }, [])
+
   return (
     <div className={styles.mapWrapper}>
       <div ref={mapRef} className={styles.mapContainer} />
@@ -312,10 +318,7 @@ export default function NaverMapSimple({ markers = [] }) {
         <BuildingInfoModal
           building={selectedBuilding}
           details={buildingDetails}
-          onClose={() => {
-            setSelectedBuilding(null);
-            setBuildingDetails(null);
-          }}
+          onClose={handleCloseModal}
         />
       )}
     </div>

@@ -1,66 +1,20 @@
 /* management.module.css */
 
+/* 레이아웃 */
 .management-root {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #f5f6fa;
+  background: var(--color-background);
 }
 
 .management-content {
   max-width: 900px;
   margin: 0 auto;
-  padding: 60px 24px 24px 24px;
+  padding: 60px 24px 24px;
 }
 
-.sidebar-title {
-  font-size: 22px;
-  font-weight: bold;
-  padding: 0 24px 24px 24px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid #333;
-}
-
-.sidebar-subtitle {
-  font-size: 15px;
-  color: #60a5fa;
-  font-weight: 500;
-  margin-top: 4px;
-}
-
-.management-sidebar ul {
-  list-style: none;
-  padding: 0 24px;
-  margin: 0;
-}
-
-.management-sidebar li {
-  margin: 18px 0;
-}
-
-.management-sidebar a {
-  color: #fff;
-  text-decoration: none;
-  font-size: 16px;
-  transition: color 0.2s;
-}
-
-.management-sidebar a:hover {
-  color: #60a5fa;
-}
-
-.management-main {
-  flex: 1;
-  padding: 40px 48px;
-}
-
-.management-cards {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 36px;
-  text-align: center;
-}
-
+/* 대시보드 요약 */
 .dashboard-summary-row {
   display: flex;
   justify-content: center;
@@ -69,7 +23,7 @@
 }
 
 .dashboard-summary-box {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 18px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
   padding: 32px 38px;
@@ -82,98 +36,32 @@
 
 .summary-label {
   font-size: 1.1rem;
-  color: #888;
+  color: var(--color-text-secondary);
   margin-bottom: 10px;
 }
 
 .summary-value {
   font-size: 2.5rem;
   font-weight: 800;
-  color: #0070f3;
+  color: var(--color-primary);
 }
 
-.dashboard-section {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  padding: 24px 20px;
-  margin-bottom: 24px;
+/* 지도 */
+.mapWrapper {
+  position: relative;
 }
 
-.dashboard-section h3 {
-  margin: 0 0 12px 0;
-  font-size: 1.15rem;
-  font-weight: 700;
+.mapContainer {
+  width: 140%;
+  height: 650px;
+  border-radius: 18px;
+  border: 1.5px solid var(--color-text-primary);
+  background: #eee;
+  margin: 0 auto;
+  transform: translateX(-15%);
 }
 
-.dashboard-list {
-  list-style: disc;
-  margin: 0 0 0 18px;
-  padding: 0;
-  color: #444;
-  font-size: 1rem;
-}
-
-.burger-icon {
-  position: fixed;
-  left: 24px;
-  top: 24px;
-  z-index: 2000;
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  padding: 6px;
-  cursor: pointer;
-}
-
-.bm-menu {
-  display: flex !important;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 20px !important;
-}
-
-.menu-profile {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 32px;
-  margin-top: 16px;
-}
-
-.profile-img {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: #ddd;
-  margin-bottom: 14px;
-  object-fit: cover;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  display: block;
-}
-
-.profile-name {
-  font-weight: bold;
-  font-size: 1.25rem;
-  margin-bottom: 2px;
-  text-align: center;
-  width: 100%;
-}
-
-.menu-link {
-  color: #0070f3;
-  font-weight: 600;
-  text-decoration: underline;
-  font-size: 1.08rem;
-  cursor: pointer;
-  box-sizing: border-box;
-}
-
-.menu-link:hover {
-  color: #005bb5;
-}
-
+/* 사용자 마커 스타일 */
 .speechBubble {
   position: relative;
   display: flex;
@@ -182,18 +70,18 @@
   width: 80px;
   height: 34px;
   border-radius: 11px;
-  background: white;
-  border: 1.5px solid #111;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-text-primary);
   font-weight: bold;
   font-size: 17px;
-  color: #111;
-  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.08);
+  color: var(--color-text-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   text-align: center;
   word-break: normal;
   white-space: nowrap;
   line-height: 1.1;
   letter-spacing: 1px;
-  padding: 2px 3px 0 3px;
+  padding: 2px 3px 0;
 }
 
 .userId {
@@ -210,7 +98,7 @@
   height: 0;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
-  border-top: 8px solid #111;
+  border-top: 8px solid var(--color-text-primary);
   z-index: 0;
 }
 
@@ -223,7 +111,7 @@
   height: 0;
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-  border-top: 7px solid #fff;
+  border-top: 7px solid var(--color-surface);
   z-index: 1;
 }
 
@@ -265,7 +153,7 @@
   transform: translateX(-50%);
   width: 12px;
   height: 12px;
-  background: white;
+  background: var(--color-surface);
   border: 2px solid #0066ff;
   border-radius: 50%;
   display: flex;
@@ -280,21 +168,7 @@
   border-radius: 50%;
 }
 
-.mapWrapper {
-  position: relative;
-}
-
-.mapContainer {
-  width: 140%;
-  height: 650px;
-  border-radius: 18px;
-  border: 1.5px solid #222;
-  background: #eee;
-  margin: 0 auto;
-  transform: translateX(-15%);
-}
-
-/* BuildingInfoModal 스타일 */
+/* 모달 스타일 */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -311,7 +185,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 3000;
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -330,7 +204,7 @@
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .modalCloseButton {
@@ -338,8 +212,13 @@
   border: none;
   font-size: 20px;
   cursor: pointer;
-  color: #999;
+  color: var(--color-text-secondary);
   padding: 4px;
+  transition: color 0.2s;
+}
+
+.modalCloseButton:hover {
+  color: var(--color-text-primary);
 }
 
 .modalBody {
@@ -348,6 +227,12 @@
 
 .infoSection {
   margin-bottom: 12px;
+}
+
+.infoSection strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--color-text-primary);
 }
 
 .photoGrid {
@@ -362,11 +247,11 @@
   height: 60px;
   object-fit: cover;
   border-radius: 8px;
-  border: 1px solid #eee;
+  border: 1px solid var(--color-border);
 }
 
 .noPhoto {
-  color: #999;
+  color: var(--color-text-secondary);
   font-size: 14px;
   font-style: italic;
 }
@@ -374,7 +259,7 @@
 .description {
   margin-top: 8px;
   font-size: 14px;
-  color: #666;
+  color: var(--color-text-secondary);
   line-height: 1.4;
 }
 
@@ -387,9 +272,16 @@
 .footerCloseButton {
   padding: 8px 16px;
   border-radius: 8px;
-  border: 1px solid #ddd;
-  background: #fff;
-  color: #666;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
   cursor: pointer;
   font-size: 14px;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.footerCloseButton:hover {
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
 }

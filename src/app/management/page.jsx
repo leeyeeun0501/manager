@@ -1,6 +1,6 @@
 // 메인 화면
 "use client"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import Menu from "../components/menu"
 import styles from "./management.module.css"
 import NaverMapSimple from "./navermap"
@@ -23,74 +23,74 @@ export default function ManagementPage() {
   const [loading, setLoading] = useState(true)
 
   // 건물, 강의실, 사용자 수 조회
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [buildingRes, roomRes, userRes] = await Promise.all([
-          apiGet("/api/building-route?type=names"),
-          apiGet("/api/room-route"),
-          apiGet("/api/user-route"),
-        ])
+  const fetchData = useCallback(async () => {
+    try {
+      const [buildingRes, roomRes, userRes] = await Promise.all([
+        apiGet("/api/building-route?type=names"),
+        apiGet("/api/room-route"),
+        apiGet("/api/user-route"),
+      ])
 
-        const [buildingData, roomData, userData] = await Promise.all([
-          parseJsonResponse(buildingRes),
-          parseJsonResponse(roomRes),
-          parseJsonResponse(userRes),
-        ])
+      const [buildingData, roomData, userData] = await Promise.all([
+        parseJsonResponse(buildingRes),
+        parseJsonResponse(roomRes),
+        parseJsonResponse(userRes),
+      ])
 
-        const buildingNames = buildingData.names || []
-        const roomRooms = extractDataList(roomData, 'rooms')
-        const userUsers = extractDataList(userData, 'users')
+      const buildingNames = buildingData.names || []
+      const roomRooms = extractDataList(roomData, 'rooms')
+      const userUsers = extractDataList(userData, 'users')
 
-        setSummary({
-          building: buildingNames.length,
-          classroom: roomRooms.length,
-          user: userUsers.length,
-        })
-      } catch (error) {
-        console.error("데이터 로딩 오류:", error)
-      } finally {
-        setLoading(false)
-      }
+      setSummary({
+        building: buildingNames.length,
+        classroom: roomRooms.length,
+        user: userUsers.length,
+      })
+    } catch (error) {
+      // 에러 발생 시 기본값 유지
+    } finally {
+      setLoading(false)
     }
-
-    fetchData()
   }, [])
 
-  // 사용자 위치 정보(마커) 주기적 갱신
   useEffect(() => {
-    const fetchMarkers = async () => {
-      try {
-        const res = await apiGet("/api/login-route")
-        const data = await parseJsonResponse(res)
-        const userData = extractDataList(data, 'data')
-        
-        const markers = userData
-          .filter(
-            (u) =>
-              u.Last_Location &&
-              typeof u.Last_Location.x === "number" &&
-              typeof u.Last_Location.y === "number"
-          )
-          .map((u) => ({
-            id: u.Id,
-            name: u.Name,
-            last_location: {
-              lat: u.Last_Location.x,
-              lng: u.Last_Location.y,
-            },
-          }))
-        setUserMarkers(markers)
-      } catch (error) {
-        // 에러가 발생해도 페이지는 유지하고 빈 배열로 설정
-        setUserMarkers([])
-      }
-    }
+    fetchData()
+  }, [fetchData])
 
+  // 사용자 위치 정보(마커) 주기적 갱신
+  const fetchMarkers = useCallback(async () => {
+    try {
+      const res = await apiGet("/api/login-route")
+      const data = await parseJsonResponse(res)
+      const userData = extractDataList(data, 'data')
+      
+      const markers = userData
+        .filter(
+          (u) =>
+            u.Last_Location &&
+            typeof u.Last_Location.x === "number" &&
+            typeof u.Last_Location.y === "number"
+        )
+        .map((u) => ({
+          id: u.Id,
+          name: u.Name,
+          last_location: {
+            lat: u.Last_Location.x,
+            lng: u.Last_Location.y,
+          },
+        }))
+      setUserMarkers(markers)
+    } catch (error) {
+      // 에러가 발생해도 페이지는 유지하고 빈 배열로 설정
+      setUserMarkers([])
+    }
+  }, [])
+
+  useEffect(() => {
     fetchMarkers()
     const intervalId = setInterval(fetchMarkers, 5000)
     return () => clearInterval(intervalId)
-  }, [])
+  }, [fetchMarkers])
 
   return (
     <div className={styles["management-root"]}> 

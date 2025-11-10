@@ -1,5 +1,6 @@
-/* login-module.css */
+/* 로그인 스타일 */
 
+/* 레이아웃 */
 .login-container {
   min-height: 100vh;
   min-width: 100vw;
@@ -31,6 +32,7 @@
   font-weight: 700;
 }
 
+/* 폼 */
 .login-form {
   display: flex;
   flex-direction: column;
@@ -75,6 +77,12 @@
   background: var(--color-primary-active);
 }
 
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 에러 및 링크 */
 .login-error {
   color: var(--color-error);
   margin-top: 10px;
@@ -93,14 +101,21 @@
   text-decoration: underline;
   cursor: pointer;
   font-weight: 500;
+  transition: color 0.2s;
 }
 
+.login-link:hover {
+  color: var(--color-primary-active);
+}
+
+/* 반응형 */
 @media (max-width: 480px) {
   .login-box {
     min-width: auto;
     width: 95vw;
     padding: 24px 2vw;
   }
+
   .login-input,
   .login-btn {
     width: 100%;

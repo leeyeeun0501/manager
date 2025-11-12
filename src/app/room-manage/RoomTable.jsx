@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useCallback } from "react"
 import { MdEditSquare } from "react-icons/md"
 
 export default function RoomTable({
@@ -15,9 +15,9 @@ export default function RoomTable({
   setEditRoomUsers,
   setEditRoomError,
   setShowEditRoomModal,
-  styles, // styles 객체를 props로 전달받음
+  styles,
 }) {
-  const handleEditClick = (room) => {
+  const handleEditClick = useCallback((room) => {
     setEditRoom(room)
     setEditRoomName(room.name)
     setEditRoomDesc(room.description || "")
@@ -42,12 +42,12 @@ export default function RoomTable({
     )
     setEditRoomError("")
     setShowEditRoomModal(true)
-  }
+  }, [setEditRoom, setEditRoomName, setEditRoomDesc, setEditRoomUsers, setEditRoomError, setShowEditRoomModal])
 
   return (
     <div className={styles["room-manage-table-wrap"]}>
       {loading && <p>로딩 중...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className={styles.errorText}>{error}</p>}
       {!loading && !error && (
         <>
           <table

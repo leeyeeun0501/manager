@@ -1,20 +1,23 @@
 // 강의실 관리 페이지
 "use client"
 import "../globals.css"
-import React, { useRef, useState, useEffect, useCallback, useMemo } from "react"
-import { useRouter } from "next/navigation" // MdEditSquare는 RoomTable로 이동
+import React, { useState, useEffect, useCallback, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay"
 import styles from "./room-manage.module.css"
-import { MdEditSquare } from "react-icons/md"
 import { apiGet, apiPost, apiPut, apiDelete, parseJsonResponse, extractDataList } from "../utils/apiHelper"
 import { useSessionCheck } from "../utils/useSessionCheck"
 import { useToast } from "../utils/useToast"
 import { useSearchFilter } from "../utils/useSearchFilter"
 import { usePagination } from "../utils/usePagination"
 
-import RoomTable from "./RoomTable" // RoomTable 컴포넌트 임포트
-import MapViewer from "./MapViewer" // MapViewer 컴포넌트 임포트
+import RoomTable from "./RoomTable"
+import MapViewer from "./MapViewer"
+import EdgeModal from "./EdgeModal"
+import StairsModal from "./StairsModal"
+import EdgeConnectModal from "./EdgeConnectModal"
+import EditRoomModal from "./EditRoomModal"
 export default function RoomManagePage() {
   // 세션 체크 활성화
   useSessionCheck()
@@ -110,7 +113,6 @@ export default function RoomManagePage() {
       doc.querySelector('g[id="navigation-nodes"]')
 
     if (!navigationLayer) {
-      console.warn("Navigation_Nodes 레이어를 찾을 수 없습니다.")
       return []
     }
 
@@ -229,7 +231,7 @@ export default function RoomManagePage() {
   }, [])
 
   // 노드 클릭 핸들러
-  const handleNodeClick = (node, event) => {
+  const handleNodeClick = useCallback((node, event) => {
     event.stopPropagation()
     if (edgeConnectMode) {
       if (edgeFromNode && node.id !== edgeFromNode.id) {
@@ -241,27 +243,31 @@ export default function RoomManagePage() {
     setSelectedNode(node)
     setEdgeModalNode({ ...node, building: filterBuilding, floor: filterFloor })
     setShowEdgeModal(true)
-  }
+  }, [edgeConnectMode, edgeFromNode, filterBuilding, filterFloor])
 
-  // SVG 처리 및 viewBox 설정
+  // SVG 처리 및 viewBox 설정 (순수 함수로 변경)
   const processSvg = useCallback((svgXml) => {
     const parser = new DOMParser()
     const doc = parser.parseFromString(svgXml, "image/svg+xml")
     const svgEl = doc.querySelector("svg")
 
-    if (!svgEl) return svgXml
+    if (!svgEl) {
+      return { svg: svgXml, viewBox: { x: 0, y: 0, width: 400, height: 400 } }
+    }
 
     const existingViewBox = svgEl.getAttribute("viewBox")
     if (existingViewBox) {
       const parts = existingViewBox.split(/[\s,]+/).map(Number)
       if (parts.length === 4) {
-        setSvgViewBox({
-          x: parts[0],
-          y: parts[1],
-          width: parts[2],
-          height: parts[3],
-        })
-        return svgXml
+        return {
+          svg: svgXml,
+          viewBox: {
+            x: parts[0],
+            y: parts[1],
+            width: parts[2],
+            height: parts[3],
+          },
+        }
       }
     }
 
@@ -270,21 +276,21 @@ export default function RoomManagePage() {
 
     const viewBoxStr = `0 0 ${width} ${height}`
     svgEl.setAttribute("viewBox", viewBoxStr)
-    setSvgViewBox({
+    const viewBox = {
       x: 0,
       y: 0,
       width: width,
       height: height,
-    })
+    }
 
     svgEl.removeAttribute("width")
     svgEl.removeAttribute("height")
 
-    return doc.documentElement.outerHTML
+    return { svg: doc.documentElement.outerHTML, viewBox }
   }, [])
 
   // 건물 목록
-  const fetchBuildings = async () => {
+  const fetchBuildings = useCallback(async () => {
     try {
       const res = await apiGet("/api/building-route")
       const data = await parseJsonResponse(res)
@@ -297,7 +303,7 @@ export default function RoomManagePage() {
     } catch {
       setBuildingOptions([])
     }
-  }
+  }, [])
 
   // 층 목록
   const fetchFloors = useCallback(async (building) => {
@@ -363,7 +369,7 @@ export default function RoomManagePage() {
     if (filterBuilding && filterFloor) {
       setMapLoading(true)
 
-      // 🟢 상태 초기화: 이전 노드/엣지 완전 비우기
+      // 상태 초기화: 이전 노드/엣지 완전 비우기
       setSvgRaw("")
       setSvgNodes([])
       setRoomNodes({})
@@ -399,8 +405,9 @@ export default function RoomManagePage() {
             fetch(cacheBustUrl)
               .then((res) => res.text())
               .then((svgXml) => {
-                const processedSvg = processSvg(svgXml)
+                const { svg: processedSvg, viewBox } = processSvg(svgXml)
                 setSvgRaw(processedSvg)
+                setSvgViewBox(viewBox)
                 setRoomNodes(nodesInfo)
                 setEdges(edgesInfo)
                 const parsedNodes = parseSvgNodes(
@@ -410,22 +417,32 @@ export default function RoomManagePage() {
                 )
                 setSvgNodes(parsedNodes)
               })
+              .catch(() => {
+                // 에러 처리
+              })
           }
         })
         .finally(() => setMapLoading(false))
     }
-  }
-  , [filterBuilding, filterFloor, processSvg])
+  }, [filterBuilding, filterFloor, processSvg, parseSvgNodes])
 
   // @ 파싱
-  const getNodeSuffix = (id) => {
+  const getNodeSuffix = useCallback((id) => {
     if (!id) return ""
     const parts = id.split("@")
     return parts[parts.length - 1]
-  }
+  }, [])
 
   // 노드 정보 파싱
-  const parseNodeInfo = (fullId) => {
+  const parseNodeInfo = useCallback((fullId) => {
+    if (!fullId) {
+      return {
+        building: "",
+        floor: "",
+        node: "",
+      }
+    }
+
     const parts = fullId.split("@")
 
     if (parts.length < 3) {
@@ -441,7 +458,7 @@ export default function RoomManagePage() {
       floor: parts[1],
       node: parts[2],
     }
-  }
+  }, [])
 
   // 중복 엣지 체크
   const isEdgeDuplicate = useCallback((edges, fromId, toId) => {
@@ -452,9 +469,16 @@ export default function RoomManagePage() {
       const eFromInfo = parseNodeInfo(e.from)
       const eToInfo = parseNodeInfo(e.to)
   
-      return eFromInfo.building === fromInfo.building && eFromInfo.floor === fromInfo.floor && eFromInfo.node === fromInfo.node && eToInfo.building === toInfo.building && eToInfo.floor === toInfo.floor && eToInfo.node === toInfo.node
+      return (
+        eFromInfo.building === fromInfo.building &&
+        eFromInfo.floor === fromInfo.floor &&
+        eFromInfo.node === fromInfo.node &&
+        eToInfo.building === toInfo.building &&
+        eToInfo.floor === toInfo.floor &&
+        eToInfo.node === toInfo.node
+      )
     })
-  }, []) // parseNodeInfo는 의존성에 추가할 필요가 없습니다.
+  }, [parseNodeInfo])
 
   // 내부 도면 엣지 연결 함수
   const connectEdge = useCallback(async () => {
@@ -497,16 +521,19 @@ export default function RoomManagePage() {
       setEdgeConnectLoading(false)
       setEdgeConnectMode(false)
     }
-  }, [edges, edgeFromNode, edgeToNode, filterBuilding, filterFloor, reloadMapData, isEdgeDuplicate, showToast])
+  }, [edges, edgeFromNode, edgeToNode, filterBuilding, filterFloor, reloadMapData, isEdgeDuplicate, getNodeSuffix, showToast])
 
   // 현재 선택된 노드의 id
-  const connectedNodes = edges
-    .filter((e) => getNodeSuffix(e.from) === getNodeSuffix(edgeModalNode?.id))
-    .map((e) => ({
-      ...e,
-      otherNodeId: e.to,
-      otherNodeSuffix: getNodeSuffix(e.to),
-    }))
+  const connectedNodes = useMemo(() => {
+    if (!edgeModalNode?.id) return []
+    return edges
+      .filter((e) => getNodeSuffix(e.from) === getNodeSuffix(edgeModalNode.id))
+      .map((e) => ({
+        ...e,
+        otherNodeId: e.to,
+        otherNodeSuffix: getNodeSuffix(e.to),
+      }))
+  }, [edges, edgeModalNode?.id, getNodeSuffix])
 
   // 내부 도면 엣지 연결 해제 함수
   const handleDisconnectEdge = useCallback(async (targetNodeId) => {
@@ -556,7 +583,7 @@ export default function RoomManagePage() {
     } catch (err) {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
     }
-  }, [edgeModalNode, reloadMapData, showToast, parseNodeInfo])
+  }, [edgeModalNode, reloadMapData, getNodeSuffix, parseNodeInfo, showToast])
 
   // 엣지 연결
   useEffect(() => {
@@ -572,10 +599,10 @@ export default function RoomManagePage() {
   }, [edgeStep, edgeFromNode, edgeToNode, edgeConnectMode, connectEdge])
 
   // 최초 건물 목록/강의실 목록
-  useEffect(() => { // ✅ 최초 로딩 시
+  useEffect(() => {
     fetchBuildings()
     fetchRooms()
-  }, [fetchRooms]) // fetchRooms는 useCallback으로 감싸져 있어 최초 1회만 실행됨
+  }, [fetchBuildings, fetchRooms])
 
   // SVG 로드 (도면 요청)
   const loadMapData = useCallback(async (building, floor) => {
@@ -613,21 +640,22 @@ export default function RoomManagePage() {
         if (!svgRes.ok) throw new Error("SVG 파일을 불러올 수 없습니다.")
         
         const svgXml = await svgRes.text()
-        const processedSvg = processSvg(svgXml)
+        const { svg: processedSvg, viewBox } = processSvg(svgXml)
         const parsedNodes = parseSvgNodes(svgXml, building, floor)
 
         setSvgRaw(processedSvg)
+        setSvgViewBox(viewBox)
         setRoomNodes(nodesInfo)
         setEdges(edgesInfo)
         setSvgNodes(parsedNodes)
       }
     } catch (error) {
-      console.error("맵 데이터 로딩 실패:", error)
       // 에러 발생 시에도 상태는 초기화된 상태로 유지
+      setError("맵 데이터를 불러오지 못했습니다.")
     } finally {
       setMapLoading(false)
     }
-  }, [processSvg]) // parseSvgNodes는 컴포넌트 내 일반 함수라 의존성 불필요
+  }, [processSvg, parseSvgNodes])
 
   // ✅ 건물/층 필터 변경 시 데이터 로딩 로직 통합
   useEffect(() => {
@@ -687,7 +715,7 @@ export default function RoomManagePage() {
       .catch(() => setStairsError("계단 정보를 불러오지 못했습니다."))
       .finally(() => setStairsLoading(false))
   }, [stairsBuilding, stairsFloor, stairsId])
-  
+
   // 계단 연결
   const connectEdgeToStairs = useCallback(async (fromNode, toNodeInfo) => {
     const { building: toBuilding, floor: toFloor, node: toNode } = toNodeInfo
@@ -721,7 +749,81 @@ export default function RoomManagePage() {
     } catch (err) {
       showToast("서버 오류: " + (err.message || "알 수 없는 오류"))
     }
-  }, [edges, reloadMapData, isEdgeDuplicate, showToast])
+  }, [edges, reloadMapData, isEdgeDuplicate, getNodeSuffix, showToast])
+
+  // 모달 핸들러들
+  const handleCloseEdgeModal = useCallback(() => {
+    setShowEdgeModal(false)
+  }, [])
+
+  const handleConnectEdgeClick = useCallback(() => {
+    setEdgeFromNode(edgeModalNode)
+    setShowEdgeModal(false)
+    setEdgeConnectMode(true)
+    setEdgeToNode(null)
+  }, [edgeModalNode])
+
+  const handleOpenStairsModal = useCallback(() => {
+    setStairsBuilding(edgeModalNode.building)
+    setStairsFloor(edgeModalNode.floor)
+    setStairsId(edgeModalNode.id)
+    setSelectedStairsNode(edgeModalNode)
+    setShowStairsSelectModal(true)
+  }, [edgeModalNode])
+
+  const handleCloseStairsModal = useCallback(() => {
+    setShowStairsSelectModal(false)
+    setTargetStairId("")
+    setSelectedStairsNode(null)
+  }, [])
+
+  const handleStairsConnect = useCallback(async () => {
+    if (!selectedStairsNode || !targetStairId) return
+
+    const parsedTarget = parseNodeInfo(targetStairId)
+    await connectEdgeToStairs(selectedStairsNode, parsedTarget)
+
+    setTargetStairId("")
+    setShowStairsSelectModal(false)
+    setSelectedStairsNode(null)
+  }, [selectedStairsNode, targetStairId, parseNodeInfo, connectEdgeToStairs])
+
+  const handleCloseEdgeConnectModal = useCallback(() => {
+    setShowEdgeConnectModal(false)
+    setEdgeStep(0)
+    setEdgeFromNode(null)
+    setEdgeToNode(null)
+  }, [])
+
+  const handleCloseEditRoomModal = useCallback(() => {
+    setShowEditRoomModal(false)
+  }, [])
+
+  const handleSaveRoom = useCallback(async () => {
+    try {
+      const users = editRoomUsers.map((u) => u.user)
+      const phones = editRoomUsers.map((u) => u.phone)
+      const emails = editRoomUsers.map((u) => u.email)
+      const res = await apiPut(
+        `/api/room-route/${encodeURIComponent(
+          editRoom.building
+        )}/${encodeURIComponent(editRoom.floor)}`,
+        {
+          room_name: editRoomName,
+          room_desc: editRoomDesc,
+          room_user: users,
+          user_phone: phones,
+          user_email: emails,
+        }
+      )
+      if (!res.ok) throw new Error()
+      setShowEditRoomModal(false)
+      setEditRoomError("")
+      fetchRooms(filterBuilding, filterFloor)
+    } catch {
+      setEditRoomError("수정 중 오류가 발생했습니다.")
+    }
+  }, [editRoom, editRoomName, editRoomDesc, editRoomUsers, filterBuilding, filterFloor, fetchRooms])
 
   return (
     <div className={styles["room-root"]}>
@@ -800,371 +902,53 @@ export default function RoomManagePage() {
             parseNodeInfo={parseNodeInfo}
             styles={styles}
           />
-          {showEdgeModal && edgeModalNode && (
-            <div
-              className={styles.edgeModalOverlay}
-              onClick={() => setShowEdgeModal(false)}
-            >
-              <div
-                className={styles.edgeModalContent}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className={styles.edgeModalHeader}>
-                <h4 className={styles.edgeModalTitle}>
-                  노드 정보
-                </h4>
-                </div>
-                <div className={styles.edgeModalBody}>
-                <div className={styles.edgeModalInfoItem}>
-                  <strong className={styles.edgeModalInfoLabel}>건물:</strong>
-                  <span className={styles.edgeModalInfoValue}>
-                    {edgeModalNode.building}
-                  </span>
-                </div>
-                <div className={styles.edgeModalInfoItem}>
-                  <strong className={styles.edgeModalInfoLabel}>층:</strong>
-                  <span className={styles.edgeModalInfoValue}>
-                    {edgeModalNode.floor}
-                  </span>
-                </div>
-                <div className={styles.edgeModalInfoItem}>
-                  <strong className={styles.edgeModalInfoLabel}>ID:</strong>
-                  <span className={styles.edgeModalInfoValue}>
-                    {(() => {
-                      const parts = edgeModalNode.id.split("@")
-                      const lastPart = parts[parts.length - 1]
-                      if (
-                        lastPart.toLowerCase().startsWith("b") ||
-                        lastPart.toLowerCase().includes("stairs")
-                      ) {
-                        return lastPart
-                      }
-                      if (/^\d+$/.test(lastPart)) {
-                        return `${lastPart}호`
-                      }
-
-                      return lastPart
-                    })()}
-                  </span>
-                </div>
-                {/* 연결된 노드 목록 */}
-                <div className={styles.edgeModalConnectedNodes}>
-                  <strong>
-                    연결된 노드
-                  </strong>
-                  {connectedNodes.length === 0 ? (
-                    <div style={{ color: "#888" }}>연결된 노드 없음</div>
-                  ) : (
-                    connectedNodes.map((edge, idx) => {
-                      // otherNodeId를 @ 기준으로 분리
-                      const parts = edge.otherNodeId.split("@")
-                      // 예: ["W17", "1", "left_stairs"]
-
-                      // 층 정보 추출 (두 번째 부분)
-                      const floor = parts[1] || ""
-
-                      // suffix 가져오기 (기존 edge.otherNodeSuffix 사용하거나 parts[2] 사용)
-                      // stairs인 경우 표시용 텍스트 다르게 할 수도 있음
-                      const suffix = edge.otherNodeSuffix || parts[2] || ""
-
-                      // 버튼에 보여줄 텍스트 구성
-                      let labelText = ""
-                      if (suffix.toLowerCase().includes("stairs")) {
-                        // 예: "1층 left_stairs 엣지 연결 해제"
-                        labelText = `${floor}층 ${suffix} 엣지 연결 해제`
-                      } else if (suffix.toLowerCase().startsWith("b")) {
-                        // b로 시작하는 경우 호를 붙이지 않음
-                        labelText = `${suffix} 엣지 연결 해제`
-                      } else if (/^\d+$/.test(suffix)) {
-                        // 숫자인 경우 호를 붙임
-                        labelText = `${suffix}호 엣지 연결 해제`
-                      } else {
-                        // 기타 경우
-                        labelText = `${suffix} 엣지 연결 해제`
-                      }
-
-                      return (
-                        <button
-                          key={`${edge.otherNodeId}-${idx}`}
-                          onClick={() => handleDisconnectEdge(edge.otherNodeId)} className={styles.edgeModalConnectedNodeItem}>
-                          {labelText}
-                        </button>
-                      )
-                    })
-                  )}
-                </div>
-                {/* 기존 버튼들 */}
-                </div>
-                <div className={styles.edgeModalActions}>
-                  <button
-                    onClick={() => setShowEdgeModal(false)}
-                    className={styles.edgeModalButton}>
-                    취소
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEdgeFromNode(edgeModalNode)
-                      setShowEdgeModal(false)
-                      setEdgeConnectMode(true)
-                      setEdgeToNode(null)
-                    }}
-                    className={`${styles.edgeModalButton} ${styles.edgeModalPrimaryButton}`}>
-                    엣지 연결
-                  </button>
-                  {/*  계단 노드에서만 노출되는 버튼 */}
-                  {(edgeModalNode?.id?.toLowerCase().includes("stairs") ||
-                    edgeModalNode?.id?.toLowerCase().includes("to")) && (
-                    <button
-                      onClick={() => {
-                        setStairsBuilding(edgeModalNode.building)
-                        setStairsFloor(edgeModalNode.floor)
-                        setStairsId(edgeModalNode.id)
-                        setSelectedStairsNode(edgeModalNode)
-                        setShowStairsSelectModal(true)
-                      }}
-                      className={`${styles.edgeModalButton} ${styles.edgeModalStairsButton}`}>
-                      다른 층으로 이동
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-          {/* stairs 연결 선택 모달 */}
-          {showStairsSelectModal && (
-            <div className={styles.stairsModalOverlay}
-              onClick={() => setShowStairsSelectModal(false)}
-            >
-              <div
-                className={styles.stairsModalContent}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* 타이틀 */}
-                <div className={styles.stairsModalHeader}>
-                <h4 className={styles.stairsModalTitle}>
-                  다른 층 계단 연결
-                </h4>
-                </div>
-
-                {/* 상태별 처리 */}
-                <div className={styles.stairsModalBody}>
-                  {stairsLoading ? (
-                    <div style={{ textAlign: "center", margin: 18 }}>계단 목록을 불러오는 중...</div>
-                  ) : stairsError ? (
-                    <div style={{ color: "#e74c3c", textAlign: "center", margin: 12 }}>{stairsError}</div>
-                  ) : (
-                    <>
-                      <select value={targetStairId || ""} onChange={(e) => setTargetStairId(e.target.value)} className={styles.stairsModalSelect}>
-                        <option value="">연결할 계단 선택</option>
-                        {stairsList.filter((id) => id !== (selectedStairsNode?.id || "")).map((id) => {
-                            const parts = id.split("@")
-                            const floor = parts[1] || ""
-                            const stairName = parts[2] || ""
-                            return (<option key={id} value={id}>{floor}층 - {stairName}</option>)
-                          })}
-                      </select>
-                      {stairsNodes.length > 0 && (
-                        <div className={styles.stairsModalList}>
-                          <strong>연결된 계단 목록</strong>
-                          <ul>
-                            {stairsNodes.map((node) => (<li key={node.id} className={styles.stairsModalListItem}>{node.floor}층 - {(() => {
-                                  const displayName = node.name || node.id
-                                  const parts = displayName.split("@")
-                                  const lastPart = parts[parts.length - 1]
-                                  if (lastPart.toLowerCase().startsWith("b") || lastPart.toLowerCase().includes("stairs")) { return lastPart }
-                                  if (/^\d+$/.test(lastPart)) { return `${lastPart}호` }
-                                  return lastPart
-                                })()}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-
-                {/* 버튼 영역 */}
-                <div className={styles.stairsModalActions}>
-                  <button
-                    className={styles.stairsModalButton}
-                    onClick={() => {
-                      setShowStairsSelectModal(false)
-                      setTargetStairId("")
-                      setSelectedStairsNode(null)
-                    }}
-                  >
-                    취소
-                  </button>
-                  <button
-                    onClick={async () => {
-                      if (!selectedStairsNode || !targetStairId) return
-
-                      const parsedTarget = parseNodeInfo(targetStairId) // 건물, 층, 아이디 파싱
-
-                      await connectEdgeToStairs(
-                        selectedStairsNode, // fromNode
-                        parsedTarget // toNodeInfo
-                      )
-
-                      setTargetStairId("")
-                      setShowStairsSelectModal(false)
-                      setSelectedStairsNode(null)
-                    }}
-                    disabled={!targetStairId}
-                    className={`${styles.stairsModalButton} ${styles.stairsModalPrimaryButton}`}>
-                    엣지 연결
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-          {/* 두 번째 노드 선택 안내 모달 */}
-          {showEdgeConnectModal && edgeFromNode && (
-            <div className={styles.edgeConnectModalOverlay}>
-              <div className={styles.edgeConnectModalContent}>
-                <h3 className={styles.edgeConnectModalTitle}>엣지 연결</h3>
-                <div className={styles.edgeConnectModalText}>
-                  {filterBuilding} {filterFloor} {edgeFromNode.id}에서 연결할
-                  노드를 선택하세요.
-                </div>
-                <div className={styles.edgeConnectModalHighlight}>
-                  지도에서 <b>다른 노드</b>를 클릭하세요.
-                </div>
-                <button
-                  className={styles.edgeConnectModalButton}
-                  onClick={() => {
-                    setShowEdgeConnectModal(false)
-                    setEdgeStep(0)
-                    setEdgeFromNode(null)
-                    setEdgeToNode(null)
-                  }}
-                >
-                  취소
-                </button>
-              </div>
-            </div>
-          )}
+          <EdgeModal
+            show={showEdgeModal}
+            onClose={handleCloseEdgeModal}
+            edgeModalNode={edgeModalNode}
+            connectedNodes={connectedNodes}
+            onDisconnectEdge={handleDisconnectEdge}
+            onConnectEdge={handleConnectEdgeClick}
+            onOpenStairsModal={handleOpenStairsModal}
+            styles={styles}
+          />
+          <StairsModal
+            show={showStairsSelectModal}
+            onClose={handleCloseStairsModal}
+            stairsLoading={stairsLoading}
+            stairsError={stairsError}
+            stairsList={stairsList}
+            stairsNodes={stairsNodes}
+            selectedStairsNode={selectedStairsNode}
+            targetStairId={targetStairId}
+            setTargetStairId={setTargetStairId}
+            onConnect={handleStairsConnect}
+            parseNodeInfo={parseNodeInfo}
+            styles={styles}
+          />
+          <EdgeConnectModal
+            show={showEdgeConnectModal}
+            onClose={handleCloseEdgeConnectModal}
+            filterBuilding={filterBuilding}
+            filterFloor={filterFloor}
+            edgeFromNode={edgeFromNode}
+            styles={styles}
+          />
         </div>
       </div>
-      {/* 강의실 정보 수정 모달 */}
-      {showEditRoomModal && editRoom && (
-        <div
-          className={styles.editRoomModalOverlay}
-          onClick={() => setShowEditRoomModal(false)}
-        >
-          <div
-            className={styles.editRoomModalContent}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* 타이틀 */}
-            <div className={styles.editRoomModalHeader}>
-            <h4 className={styles.editRoomModalTitle}>
-              강의실 전체 정보 수정
-            </h4>
-            </div>
-            {/* 강의실 정보 한 줄 */}
-            <div className={styles.editRoomModalInfo}>
-              {`건물명: ${editRoom?.building} / 층수: ${editRoom?.floor} / 호수: ${editRoom?.name}`}
-            </div>
-            {/* 강의실 설명 */}
-            <input
-              value={editRoomDesc}
-              onChange={(e) => setEditRoomDesc(e.target.value)}
-              placeholder="강의실 설명" className={styles.editRoomModalInput} />
-            {/* 사용자/전화/이메일 한 세트 행별 입력 + 삭제 버튼 */}
-            {editRoomUsers.map((item, i) => (
-              <div key={i} className={styles.editRoomModalUserRow}>
-                <input
-                  value={item.user}
-                  onChange={(e) => {
-                    const arr = [...editRoomUsers]
-                    arr[i].user = e.target.value
-                    setEditRoomUsers(arr)
-                  }}
-                  placeholder={`사용자${
-                    editRoomUsers.length > 1 ? ` ${i + 1}` : ""
-                  }`}
-                  className={styles.editRoomModalUserInput} />
-                <input
-                  value={item.phone}
-                  onChange={(e) => {
-                    const arr = [...editRoomUsers]
-                    arr[i].phone = e.target.value
-                    setEditRoomUsers(arr)
-                  }} placeholder="전화번호" className={styles.editRoomModalUserInput} />
-                <input
-                  value={item.email}
-                  onChange={(e) => {
-                    const arr = [...editRoomUsers]
-                    arr[i].email = e.target.value
-                    setEditRoomUsers(arr)
-                  }} placeholder="이메일" className={styles.editRoomModalUserInput} />
-                <button
-                  onClick={() => {
-                    if (editRoomUsers.length === 1) return
-                    setEditRoomUsers((prev) =>
-                      prev.filter((_, idx) => idx !== i)
-                    )
-                  }} className={styles.editRoomModalDeleteUserButton} title="삭제" type="button">
-                  －
-                </button>
-              </div>
-            ))}
-            {/* + 추가 버튼 */}
-            <button
-              type="button"
-              onClick={() => setEditRoomUsers((prev) => [...prev, { user: "", phone: "", email: "" }])}
-              className={styles.editRoomModalAddUserButton}>
-              + 사용자 추가
-            </button>
-            {/* 에러 메시지 */}
-            {editRoomError && (
-              <div className={styles.editRoomModalError}>
-                {editRoomError}
-              </div>
-            )}
-            {/* 저장/취소 버튼 */}
-            <div
-              style={{ display: "flex", gap: 10, marginTop: 7, width: "100%" }}
-            >
-              <button onClick={() => setShowEditRoomModal(false)} className={styles.editRoomModalButton} type="button">
-                취소
-              </button>
-              <button
-                className={`${styles.editRoomModalButton} ${styles.editRoomModalPrimaryButton}`}
-                onClick={async () => {
-                  // 값 검증 등 필요시 추가!
-                  try {
-                    const users = editRoomUsers.map((u) => u.user)
-                    const phones = editRoomUsers.map((u) => u.phone)
-                    const emails = editRoomUsers.map((u) => u.email)
-                    const res = await apiPut(
-                      `/api/room-route/${encodeURIComponent(
-                        editRoom.building
-                      )}/${encodeURIComponent(editRoom.floor)}`,
-                      {
-                        room_name: editRoomName,
-                        room_desc: editRoomDesc,
-                        room_user: users,
-                        user_phone: phones,
-                        user_email: emails,
-                      }
-                    )
-                    if (!res.ok) throw new Error()
-                    setShowEditRoomModal(false)
-                    if (typeof fetchRooms === "function")
-                      fetchRooms(filterBuilding, filterFloor)
-                  } catch {
-                    setEditRoomError("수정 중 오류가 발생했습니다.")
-                  }
-                }}
-                type="button">
-                저장
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <EditRoomModal
+        show={showEditRoomModal}
+        onClose={handleCloseEditRoomModal}
+        editRoom={editRoom}
+        editRoomName={editRoomName}
+        editRoomDesc={editRoomDesc}
+        setEditRoomDesc={setEditRoomDesc}
+        editRoomUsers={editRoomUsers}
+        setEditRoomUsers={setEditRoomUsers}
+        editRoomError={editRoomError}
+        onSave={handleSaveRoom}
+        styles={styles}
+      />
       {/* 토스트 메시지 UI */}
       {toastVisible && (
         <div className={styles.toastPopup}>

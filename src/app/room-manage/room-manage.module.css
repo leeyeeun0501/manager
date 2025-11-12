@@ -75,6 +75,12 @@
   overflow-x: visible;
 }
 
+.errorText {
+  color: #e74c3c;
+  font-size: 14px;
+  margin: 8px 0;
+}
+
 .user-table.center-table {
   margin: 0;
   width: 100%;
@@ -875,7 +881,7 @@ body:has(.edit-page-root) {
 }
 
 .edgeModalBody {
-  /* Add styles if needed */
+  margin-bottom: 16px;
 }
 
 .edgeModalInfoItem {
@@ -888,7 +894,7 @@ body:has(.edit-page-root) {
 }
 
 .edgeModalInfoLabel {
-  /* Style for <strong> */
+  font-weight: 600;
 }
 
 .edgeModalInfoValue {
@@ -903,6 +909,12 @@ body:has(.edit-page-root) {
 .edgeModalConnectedNodes strong {
   display: block;
   margin-bottom: 6px;
+}
+
+.edgeModalNoNodes {
+  color: #888;
+  font-size: 14px;
+  margin-top: 8px;
 }
 
 .edgeModalConnectedNodeItem {
@@ -990,7 +1002,19 @@ body:has(.edit-page-root) {
 }
 
 .stairsModalBody {
-  /* Add styles if needed */
+  margin-bottom: 16px;
+}
+
+.stairsModalLoading {
+  text-align: center;
+  margin: 18px 0;
+  color: #666;
+}
+
+.stairsModalError {
+  color: #e74c3c;
+  text-align: center;
+  margin: 12px 0;
 }
 
 .stairsModalSelect {
@@ -1288,28 +1312,43 @@ body:has(.edit-page-root) {
   margin-bottom: 8px;
 }
 
-.editPageSaveButton {
-  padding: 6px 14px;
-  font-size: 14px;
-  font-weight: bold;
-  color: #fff;
-  background-color: #28a745;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-right: 8px;
-}
-
+.editPageSaveButton,
 .editPageBackButton {
   padding: 6px 14px;
   font-size: 14px;
   font-weight: bold;
   color: #fff;
-  background-color: #2574f5;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   margin-right: 8px;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.editPageSaveButton {
+  background-color: #28a745;
+}
+
+.editPageSaveButton:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.editPageSaveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.editPageBackButton {
+  background-color: #2574f5;
+}
+
+.editPageBackButton:hover:not(:disabled) {
+  background-color: #1e5bb8;
+}
+
+.editPageBackButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .editPageCanvasContainer {
@@ -1326,16 +1365,28 @@ body:has(.edit-page-root) {
   position: relative;
 }
 
-.editPageNodeOverlay {
+.editPageNodeOverlay,
+.editPageDeletedNodeOverlay,
+.editPagePendingNodeOverlay,
+.editPageSvgCategoryOverlay,
+.editPageDeletedCategoryOverlay,
+.editPagePendingCategoryOverlay {
   position: absolute;
+}
+
+.editPageNodeOverlay {
   border: 1px solid #007bff;
   background-color: rgba(0, 123, 255, 0.08);
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.editPageNodeOverlay:hover {
+  background-color: rgba(0, 123, 255, 0.15);
 }
 
 .editPageDeletedNodeOverlay {
-  position: absolute;
   border: 1px solid #6c757d;
   background-color: rgba(108, 117, 125, 0.1);
   border-radius: 4px;
@@ -1343,7 +1394,6 @@ body:has(.edit-page-root) {
 }
 
 .editPagePendingNodeOverlay {
-  position: absolute;
   border: 1px solid #ff6b6b;
   background-color: rgba(255, 107, 107, 0.1);
   border-radius: 50%;
@@ -1351,24 +1401,30 @@ body:has(.edit-page-root) {
 }
 
 .editPageSvgCategoryOverlay {
-  position: absolute;
   border: 2px solid #ff6b6b;
   background-color: rgba(255, 107, 107, 0.2);
   cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.editPageSvgCategoryOverlay:hover {
+  background-color: rgba(255, 107, 107, 0.3);
 }
 
 .editPageDeletedCategoryOverlay {
-  position: absolute;
   border: 2px solid #6c757d;
   background-color: rgba(108, 117, 125, 0.1);
   opacity: 0.5;
 }
 
 .editPagePendingCategoryOverlay {
-  position: absolute;
   border: 1px solid #4ecdc4;
   background-color: rgba(78, 205, 196, 0.1);
   animation: pulse 1.5s infinite;
+}
+
+.infoModalFieldWrapper {
+  margin-bottom: 16px;
 }
 
 .infoModalFieldLabel {
@@ -1387,6 +1443,19 @@ body:has(.edit-page-root) {
   color: #333;
 }
 
+.editPageSvgContent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.room-manage-map-wrap-center {
+  position: relative;
+  align-items: center;
+}
+
 .infoModalDeleteButton {
   padding: 10px 20px;
   border-radius: 6px;
@@ -1397,4 +1466,9 @@ body:has(.edit-page-root) {
   background-color: #dc3545;
   color: white;
   margin-right: 8px;
+  transition: background-color 0.2s;
+}
+
+.infoModalDeleteButton:hover {
+  background-color: #c82333;
 }

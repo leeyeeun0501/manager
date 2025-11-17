@@ -114,3 +114,46 @@ export async function PUT(request) {
     )
   }
 }
+
+// 비밀번호 확인 (POST)
+export async function POST(request) {
+  // 토큰 검증
+  const token = verifyToken(request)
+  if (!token) {
+    return NextResponse.json(
+      { success: false, error: "인증이 필요합니다." },
+      { status: 401 }
+    )
+  }
+
+  try {
+    const { id, pw } = await request.json()
+
+    if (!id || !pw) {
+      return NextResponse.json(
+        { success: false, error: "아이디와 비밀번호를 모두 입력하세요." },
+        { status: 400 }
+      )
+    }
+
+    const apiUrl = `${AUTH_API_BASE}/user/check_password`
+    const res = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ id, pw }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      return NextResponse.json({ success: false, message: data.message || "비밀번호 확인 실패" }, { status: res.status })
+    }
+
+    return NextResponse.json({ success: true, message: "비밀번호 확인 성공" })
+  } catch (err) {
+    return NextResponse.json({ success: false, error: "서버 오류" }, { status: 500 })
+  }
+}

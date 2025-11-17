@@ -39,6 +39,7 @@ export default function LoginPage() {
         localStorage.setItem("userId", data.user.id)
         localStorage.setItem("userName", data.user.name)
         localStorage.setItem("islogin", "true")
+        // localStorage.setItem("userPasswordHash", btoa(pw)) // 보안상 비밀번호 해시를 저장하지 않도록 변경
         
         router.push("/management")
       } else {

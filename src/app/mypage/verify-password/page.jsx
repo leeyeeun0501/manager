@@ -11,37 +11,45 @@ export default function VerifyPasswordPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  const handleVerifyPassword = (e) => {
+  const handleVerifyPassword = async (e) => {
     e.preventDefault()
     setError("")
     setLoading(true)
 
     try {
       const userId = localStorage.getItem("userId")
-      const storedPasswordHash = localStorage.getItem("userPasswordHash")
 
       if (!userId) {
         setError("로그인이 필요합니다.")
         setLoading(false)
         return
       }
-
-      if (!storedPasswordHash) {
-        setError("비밀번호 정보를 찾을 수 없습니다. 다시 로그인해주세요.")
+      
+      const token = localStorage.getItem("token")
+      if (!token) {
+        setError("인증 정보가 없습니다. 다시 로그인해주세요.")
         setLoading(false)
         return
       }
 
-      // 입력된 비밀번호를 해시화하여 저장된 해시와 비교
-      const inputPasswordHash = btoa(currentPassword)
+      const res = await fetch('/api/mypage-route', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id: userId, pw: currentPassword }),
+      });
+      
+      const data = await res.json();
 
-      if (inputPasswordHash === storedPasswordHash) {
+      if (res.ok && data.success) {
         // 비밀번호 확인 성공 시 sessionStorage에 플래그 설정
         sessionStorage.setItem("passwordVerified", "true")
         // 마이페이지로 이동
         router.push("/mypage")
       } else {
-        setError("비밀번호가 일치하지 않습니다.")
+        setError(data.message || "비밀번호가 일치하지 않습니다.")
       }
     } catch (err) {
       setError("비밀번호 확인 중 오류가 발생했습니다.")

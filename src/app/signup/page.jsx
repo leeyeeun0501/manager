@@ -1,11 +1,12 @@
 // 회원가입
 "use client"
 import "../globals.css"
-import { useState, useRef } from "react"
+import { useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import styles from "./signup.module.css"
 import LoadingOverlay from "../components/loadingoverlay"
 import { formatPhoneNumber } from "../utils/apiHelper"
+import EmailInput from "./EmailInput" // EmailInput 컴포넌트 임포트
 
 export default function SignupPage() {
   const formRef = useRef(null)
@@ -14,11 +15,8 @@ export default function SignupPage() {
   const pwConfirmRef = useRef(null)
   const nameRef = useRef(null)
   const phoneRef = useRef(null)
-  const emailIdRef = useRef(null)
-  const emailDomainRef = useRef(null)
-  const customEmailDomainRef = useRef(null)
-
-  const [isCustomDomain, setIsCustomDomain] = useState(false)
+  // 이메일 관련 상태를 객체로 통합 관리
+  const [email, setEmail] = useState({ id: "", domain: "wsu.ac.kr", customDomain: "" })
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -28,20 +26,16 @@ export default function SignupPage() {
     e.target.value = formatPhoneNumber(e.target.value)
   }
 
-  const handleDomainChange = (e) => {
-    setIsCustomDomain(e.target.value === "직접입력")
-  }
-
   // 유효성 검사 함수
   const validateForm = (data) => {
     if (data.pw !== data.pwConfirm) {
       return "비밀번호가 일치하지 않습니다."
     }
-    if (data.pw.length < 6) {
-      return "비밀번호는 6자 이상이어야 합니다."
+    if (data.pw.length < 4) { // 비밀번호 길이 정책에 맞게 수정 (예: 4자)
+      return "비밀번호는 4자 이상이어야 합니다."
     }
-    if (!data.emailId.trim() || !data.domain) {
-      return "이메일을 입력해주세요."
+    if (!data.email.id.trim() || (!data.email.domain && !data.email.customDomain)) {
+      return "이메일을 올바르게 입력해주세요."
     }
     return null
   }
@@ -62,7 +56,7 @@ export default function SignupPage() {
   }
 
   // 비번 한 번 더 확인 핸들러
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault()
     setError("")
     setLoading(true)
@@ -73,22 +67,18 @@ export default function SignupPage() {
       const pwConfirm = pwConfirmRef.current.value
       const name = nameRef.current.value
       const phone = phoneRef.current.value
-      const emailId = emailIdRef.current.value
-      const emailDomain = emailDomainRef.current.value
-      const customEmailDomain = customEmailDomainRef.current?.value || ""
 
-      const domain =
-        emailDomain === "직접입력" ? customEmailDomain.trim() : emailDomain
-
-      const validationError = validateForm({ pw, pwConfirm, emailId, domain })
+      const validationError = validateForm({ pw, pwConfirm, email })
       if (validationError) {
         setError(validationError)
         setLoading(false)
         return
       }
 
-      const email = `${emailId.trim()}@${domain}`
-      const submitData = { id, pw, name, phone, email }
+      // EmailInput 상태를 기반으로 최종 이메일 주소 생성
+      const finalDomain = email.domain === "직접입력" ? email.customDomain.trim() : email.domain
+      const finalEmail = `${email.id.trim()}@${finalDomain}`
+      const submitData = { id, pw, name, phone, email: finalEmail }
 
       await registerUser(submitData)
       alert("회원가입이 완료되었습니다.")
@@ -98,7 +88,7 @@ export default function SignupPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [email, router])
 
   // 로그인 이동 핸들러
   const goToLogin = (e) => {
@@ -160,46 +150,8 @@ export default function SignupPage() {
             autoComplete="tel"
           />
 
-          {/* 이메일 입력 분리 */}
-          <div className={styles["email-input-wrapper"]}>
-            <input
-              name="emailId"
-              type="text"
-              placeholder="이메일"
-              ref={emailIdRef}
-              required
-              className={styles["email-id-input"]}
-              autoComplete="off"
-            />
-            <span className={styles["email-at"]}>@</span>
-            {isCustomDomain ? (
-              <input
-                name="customEmailDomain"
-                type="text"
-                placeholder="도메인 직접 입력 (예: example.com)"
-                ref={customEmailDomainRef}
-                required
-                className={styles["email-domain-input"]}
-                autoComplete="off"
-              />
-            ) : (
-              <select
-                name="emailDomain"
-                ref={emailDomainRef}
-                onChange={handleDomainChange}
-                defaultValue="wsu.ac.kr"
-                className={styles["email-domain-select"]}
-                required
-              >
-                <option value="wsu.ac.kr">wsu.ac.kr</option>
-                <option value="naver.com">naver.com</option>
-                <option value="gmail.com">gmail.com</option>
-                <option value="hanmail.net">hanmail.net</option>
-                <option value="nate.com">nate.com</option>
-                <option value="직접입력">직접입력</option>
-              </select>
-            )}
-          </div>
+          {/* EmailInput 컴포넌트 사용 */}
+          <EmailInput value={email} onChange={setEmail} styles={styles} />
 
           <button
             type="submit"

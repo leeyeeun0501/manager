@@ -1,21 +1,25 @@
 // 마이 페이지
 "use client"
 import "../globals.css"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import Menu from "../components/menu"
 import LoadingOverlay from "../components/loadingoverlay" // prettier-ignore
-import { apiGet, apiPost, apiDelete, parseJsonResponse, extractUserData, formatPhoneNumber } from "../utils/apiHelper"
+import { apiGet, apiPost, apiDelete, parseJsonResponse, extractUserData, formatPhoneNumber } from "../utils/apiHelper" // prettier-ignore
 import styles from "./mypage.module.css"
+import EmailInput from "../signup/EmailInput"
 
 export default function MyPage() {
   const [user, setUser] = useState({
     id: "",
     name: "",
     phone: "",
-    email: "",
-    emailId: "",
-    emailDomain: "wsu.ac.kr",
-    isCustomDomain: false,
+  })
+  // 이메일 상태를 EmailInput 컴포넌트와 연동하기 위해 분리
+  const [email, setEmail] = useState({
+    id: "",
+    domain: "wsu.ac.kr",
+    customDomain: "",
   })
   const [pw, setPw] = useState("")
   const [pwConfirm, setPwConfirm] = useState("")
@@ -26,6 +30,7 @@ export default function MyPage() {
   const [deleteMsg, setDeleteMsg] = useState("")
   const [deleting, setDeleting] = useState(false)
   const [showPopup, setShowPopup] = useState(false)
+  const router = useRouter()
 
   // 마이 페이지 정보
   useEffect(() => {
@@ -33,31 +38,22 @@ export default function MyPage() {
       typeof window !== "undefined" ? localStorage.getItem("userId") : ""
     console.log("마이페이지 - localStorage id:", id)
     setUser((u) => ({ ...u, id: id || "" }))
-    if (!id) {
-      console.log("마이페이지 - id가 없음")
-      if (typeof window !== "undefined") {
-        window.location.href = "/login"
-      }
-      return
-    }
 
     // 비밀번호 확인 없이 직접 접근한 경우 verify-password 페이지로 리다이렉트
     const hasVerifiedPassword = sessionStorage.getItem("passwordVerified")
+    const token = localStorage.getItem("token")
+
+    if (!id || !token) {
+      console.log("마이페이지 - id 또는 토큰이 없음")
+      router.replace("/login")
+      return
+    }
+
     if (!hasVerifiedPassword) {
-      if (typeof window !== "undefined") {
-        window.location.href = "/mypage/verify-password"
-      }
+      router.replace("/mypage/verify-password")
       return
     }
     // 토큰을 포함하여 마이페이지 정보 가져오기
-    const token = localStorage.getItem('token')
-    if (!token) {
-      console.log("마이페이지 - 토큰이 없습니다.")
-      if (typeof window !== "undefined") {
-        window.location.href = "/login"
-      }
-      return
-    }
     
     console.log("마이페이지 - API 호출 시작, id:", id)
     apiGet(`/api/mypage-route?id=${encodeURIComponent(id)}`)
@@ -70,10 +66,9 @@ export default function MyPage() {
             id: userData.Id || prev.id,
             name: userData.Name || "",
             phone: userData.Phone || "",
-            email: userData.Email || "",
           }))
 
-          // 이메일 분리
+          // 이메일 상태 설정
           const email = userData.Email
           if (email) {
             const parts = email.split("@")
@@ -87,15 +82,13 @@ export default function MyPage() {
               "nate.com",
             ]
             const isKnownDomain = domainList.includes(domainPart)
-            setUser((prev) => ({
-              ...prev,
-              emailId: emailIdPart,
-              emailDomain: isKnownDomain ? domainPart : "직접입력",
-              isCustomDomain: !isKnownDomain,
+            setEmail({
+              id: emailIdPart,
+              domain: isKnownDomain ? domainPart : "직접입력",
               customEmailDomain: isKnownDomain ? "" : domainPart,
-            }))
-            } else {
-            setUser((prev) => ({ ...prev, emailId: "", emailDomain: "wsu.ac.kr", isCustomDomain: false }))
+            })
+          } else {
+            setEmail({ id: "", domain: "wsu.ac.kr", customDomain: "" })
           }
         } else {
           setApiError("사용자 정보를 불러오지 못했습니다.")
@@ -104,10 +97,10 @@ export default function MyPage() {
       .catch((error) => {
         setApiError(error.message || "API 호출 실패")
       })
-  }, [])
+  }, [router])
 
   // 비번, 이메일, 전화번호 수정 핸들러
-  const handleEdit = async (e) => {
+  const handleEdit = useCallback(async (e) => {
     e.preventDefault()
     setEditMsg("")
 
@@ -118,24 +111,19 @@ export default function MyPage() {
 
     setLoading(true)
     try {
-      const domain = user.isCustomDomain ? user.customEmailDomain.trim() : user.emailDomain
-      const email = `${user.emailId.trim()}@${domain}`
-      const res = await fetch("/api/mypage-route", {
-        method: "PUT",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          id: user.id,
-          pw: pw || undefined,
-          phone: user.phone,
-          email,
-        }),
-      })
-      const data = await res.json().catch(() => ({}))
+      const finalDomain = email.domain === "직접입력" ? email.customDomain.trim() : email.domain
+      const finalEmail = `${email.id.trim()}@${finalDomain}`
+
+      const res = await apiPut("/api/mypage-route", {
+        id: user.id,
+        pw: pw || undefined,
+        phone: user.phone,
+        email: finalEmail,
+      });
+
+      const data = await parseJsonResponse(res);
       
-      if (res.ok && data.success) {
+      if (data.success) {
         setShowPopup(true)
         setTimeout(() => setShowPopup(false), 2000)
         setPw("")
@@ -147,7 +135,7 @@ export default function MyPage() {
       setEditMsg(error.message || "회원정보 수정 중 오류")
     }
     setLoading(false)
-  }
+  }, [user.id, user.phone, pw, pwConfirm, email, router])
 
   // 로그아웃 핸들러
   const handleLogout = async () => {
@@ -165,7 +153,7 @@ export default function MyPage() {
         localStorage.removeItem("token")
         sessionStorage.removeItem("passwordVerified")
       }
-      window.location.href = "/login"
+      router.push("/login")
     }
   }
 
@@ -193,7 +181,7 @@ export default function MyPage() {
           sessionStorage.removeItem("passwordVerified")
         }
         alert("계정이 삭제되었습니다.")
-        window.location.href = "/login"
+        router.push("/login")
       } else {
         setDeleteMsg(data.error || "계정 삭제 실패")
       }
@@ -238,49 +226,8 @@ export default function MyPage() {
             }
             placeholder="전화번호"
           />
-          {/* 이메일 입력 분리 */}
-          <div className={styles["email-input-wrapper"]}>
-            <input
-              name="emailId"
-              type="text"
-              placeholder="이메일"
-              value={user.emailId}
-              onChange={(e) => setUser({ ...user, emailId: e.target.value })}
-              required
-              className={styles["email-id-input"]}
-              autoComplete="off"
-            />
-            <span className={styles["email-at"]}>@</span>
-            {user.isCustomDomain ? (
-              <input
-                name="customEmailDomain"
-                type="text"
-                placeholder="도메인 직접 입력 (예: example.com)"
-                value={user.customEmailDomain}
-                onChange={(e) => setUser({ ...user, customEmailDomain: e.target.value })}
-                required
-                className={styles["email-domain-input"]}
-                autoComplete="off"
-              />
-            ) : (
-              <select
-                name="emailDomain"
-                value={user.emailDomain}
-                onChange={(e) =>
-                  setUser({ ...user, emailDomain: e.target.value, isCustomDomain: e.target.value === "직접입력" })
-                }
-                className={styles["email-domain-select"]}
-                required
-              >
-                <option value="wsu.ac.kr">wsu.ac.kr</option>
-                <option value="naver.com">naver.com</option>
-                <option value="gmail.com">gmail.com</option>
-                <option value="hanmail.net">hanmail.net</option>
-                <option value="nate.com">nate.com</option>
-                <option value="직접입력">직접입력</option>
-              </select>
-            )}
-          </div>
+          {/* EmailInput 컴포넌트 재사용 */}
+          <EmailInput value={email} onChange={setEmail} styles={styles} />
           <input
             className={styles["mypage-input"]}
             type="password"

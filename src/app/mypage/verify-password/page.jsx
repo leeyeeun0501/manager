@@ -1,7 +1,6 @@
 // 비밀번호 확인
 "use client"
-import "../mypage.module.css"
-import React, { useState } from "react"
+import React, { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import styles from "../mypage.module.css"
 
@@ -11,7 +10,7 @@ export default function VerifyPasswordPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  const handleVerifyPassword = async (e) => {
+  const handleVerifyPassword = useCallback(async (e) => {
     e.preventDefault()
     setError("")
     setLoading(true)
@@ -56,12 +55,12 @@ export default function VerifyPasswordPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPassword, router])
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     // 이전 페이지로 돌아가기
     router.back()
-  }
+  }, [router])
 
   return (
     <div className={styles["mypage-container"]}>

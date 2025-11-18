@@ -90,103 +90,99 @@ export default function UserManagePage() {
       <span className={styles.userHeader}>사용자 관리 페이지</span>
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className={styles.userContent}>
-        {error ? (
-          <div className={styles.errorText}>{error}</div>
-        ) : (
-          <>
-            {/* 검색 입력 */}
-            <div className={styles.searchContainer}>
-              <input
-                type="text"
-                placeholder="검색"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className={styles["search-input"]}
-              />
-            </div>
+        <>
+          {/* 검색 입력 */}
+          <div className={styles.searchContainer}>
+            <input
+              type="text"
+              placeholder="검색"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className={styles["search-input"]}
+            />
+          </div>
 
-            <div className={styles.tableWrapper}>
-              <table className={`${styles.userTable} ${styles.centerTable}`}>
-              <thead>
-                <tr>
-                  <th>아이디</th>
-                  <th>이름</th>
-                  <th>학번</th>
-                  <th>전화번호</th>
-                  <th>이메일</th>
-                  <th>생성일</th>
-                  <th>삭제</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pagedUsers.length > 0 ? (
-                  pagedUsers.map((user, idx) => (
-                    <tr
-                      key={
-                        (user.Id || "") +
-                        "-" +
-                        (user.Email || "") +
-                        "-" +
-                        ((currentPage - 1) * itemsPerPage + idx)
-                      }
-                    >
-                      <td>{user.Id || ""}</td>
-                      <td>{user.Name || ""}</td>
-                      <td>{user.Stu_Num || ""}</td>
-                      <td>{user.Phone || ""}</td>
-                      <td>{user.Email || ""}</td>
-                      <td>
-                        {formatDateTime(
-                          user.CreatedAt ||
-                            user.createdAt ||
-                            user.datetime ||
-                            user.Created_At
-                        )}
-                      </td>
-                      <td>
-                        <button
-                          className={styles.trashBtn}
-                          onClick={() => handleDelete(user.Id)}
-                          title="삭제"
-                        >
-                          <FaTrashAlt />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={7} className={styles.noData}>
-                      사용자 데이터가 없습니다.
+          <div className={styles.tableWrapper}>
+            <table className={`${styles.userTable} ${styles.centerTable}`}>
+            <thead>
+              <tr>
+                <th>아이디</th>
+                <th>이름</th>
+                <th>학번</th>
+                <th>전화번호</th>
+                <th>이메일</th>
+                <th>생성일</th>
+                <th>삭제</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pagedUsers.length > 0 ? (
+                pagedUsers.map((user, idx) => (
+                  <tr
+                    key={
+                      (user.Id || "") +
+                      "-" +
+                      (user.Email || "") +
+                      "-" +
+                      ((currentPage - 1) * itemsPerPage + idx)
+                    }
+                  >
+                    <td>{user.Id || ""}</td>
+                    <td>{user.Name || ""}</td>
+                    <td>{user.Stu_Num || ""}</td>
+                    <td>{user.Phone || ""}</td>
+                    <td>{user.Email || ""}</td>
+                    <td>
+                      {formatDateTime(
+                        user.CreatedAt ||
+                          user.createdAt ||
+                          user.datetime ||
+                          user.Created_At
+                      )}
+                    </td>
+                    <td>
+                      <button
+                        className={styles.trashBtn}
+                        onClick={() => handleDelete(user.Id)}
+                        title="삭제"
+                      >
+                        <FaTrashAlt />
+                      </button>
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-            </div>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className={styles.noData}>
+                    {error ? error : "사용자 데이터가 없습니다."}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+          </div>
 
-            {/* 페이징 */}
-            <div className={styles.userPaginationRow}>
-              <button
-                className={styles.userPaginationBtn}
-                disabled={currentPage === 1}
-                onClick={goToPrevPage}
-              >
-                이전
-              </button>
-              <span className={styles.userPaginationInfo}>
-                {currentPage} / {totalPages}
-              </span>
-              <button
-                className={styles.userPaginationBtn}
-                disabled={currentPage >= totalPages}
-                onClick={goToNextPage}
-              >
-                다음
-              </button>
-            </div>
-          </>
-        )}
+          {/* 페이징 */}
+          <div className={styles.userPaginationRow}>
+            <button
+              className={styles.userPaginationBtn}
+              disabled={currentPage === 1}
+              onClick={goToPrevPage}
+            >
+              이전
+            </button>
+            <span className={styles.userPaginationInfo}>
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              className={styles.userPaginationBtn}
+              disabled={currentPage >= totalPages}
+              onClick={goToNextPage}
+            >
+              다음
+            </button>
+          </div>
+        </>
       </div>
     </div>
   )

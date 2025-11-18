@@ -4,8 +4,8 @@ import "../globals.css"
 import React, { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Menu from "../components/menu"
-import LoadingOverlay from "../components/loadingoverlay" // prettier-ignore
-import { apiGet, apiPost, apiDelete, parseJsonResponse, extractUserData, formatPhoneNumber } from "../utils/apiHelper" // prettier-ignore
+import LoadingOverlay from "../components/loadingoverlay"
+import { apiGet, apiPost, apiDelete, parseJsonResponse, extractUserData, formatPhoneNumber } from "../utils/apiHelper"
 import styles from "./mypage.module.css"
 import EmailInput from "../signup/EmailInput"
 

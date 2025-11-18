@@ -1,4 +1,4 @@
-// translate-route
+// 번역 요청 API
 import { TranslationServiceClient } from "@google-cloud/translate"
 
 export async function POST(request) {

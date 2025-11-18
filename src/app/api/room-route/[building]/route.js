@@ -1,4 +1,4 @@
-// room-route/[building]
+// 건물-강의실 요청 API
 import { NextResponse } from "next/server"
 import { API_BASE } from "../../apibase"
 import { verifyToken } from "../../../utils/authHelper"

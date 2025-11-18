@@ -1,4 +1,4 @@
-// signup-route
+// 회원가입 요청 API
 import { NextResponse } from "next/server"
 import { AUTH_API_BASE } from "../apibase"
 

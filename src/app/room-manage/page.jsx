@@ -1,4 +1,4 @@
-// 강의실 관리 페이지
+// 강의실 관리
 "use client"
 import "../globals.css"
 import React, { useState, useEffect, useCallback, useMemo } from "react"

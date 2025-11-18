@@ -1,4 +1,4 @@
-// category-route ?????
+// 카테고리 요청 API
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 

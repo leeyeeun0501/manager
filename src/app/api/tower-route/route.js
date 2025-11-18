@@ -1,4 +1,4 @@
-// tower-route
+// 건물 
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 import { verifyToken } from "../../utils/authHelper"
@@ -42,7 +42,8 @@ export async function GET(request) {
   }
 }
 
-// 경로 노드 정보 수정 (PUT) !!!!!
+// 경로 노드 정보 수정 (PUT)
+// 안 씀
 export async function PUT(request) {
   try {
     // 토큰 인증
@@ -97,7 +98,7 @@ export async function PUT(request) {
   }
 }
 
-// 건물/노드 추가 (POST) ?????
+// 건물/노드 추가 (POST)
 export async function POST(request) {
   try {
     // 토큰 인증
@@ -244,7 +245,7 @@ export async function POST(request) {
   }
 }
 
-// 건물/노드 삭제 (DELETE) ?????
+// 건물/노드 삭제 (DELETE)
 export async function DELETE(request) {
   try {
     // 토큰 인증

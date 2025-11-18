@@ -1,3 +1,5 @@
+// 강의실 테이블 컴포넌트
+"use client"
 import React, { useCallback } from "react"
 import { MdEditSquare } from "react-icons/md"
 

@@ -1,4 +1,4 @@
-// logout-route
+// 로그아웃 요청 API
 import { NextResponse } from "next/server"
 import { AUTH_API_BASE } from "../apibase"
 import { verifyToken } from "../../utils/authHelper"

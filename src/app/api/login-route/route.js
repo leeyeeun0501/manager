@@ -1,4 +1,4 @@
-// login-route
+// 로그인 및 사용자 위치 검색 API
 export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
 import { AUTH_API_BASE } from "../apibase"

@@ -1,4 +1,4 @@
-// stairs-route
+// 계단 요청 API
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 

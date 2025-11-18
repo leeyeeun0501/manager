@@ -1,3 +1,4 @@
+// 이메일 입력 컴포넌트
 import React, { useState, useCallback } from "react"
 
 export default function EmailInput({ value, onChange, styles }) {

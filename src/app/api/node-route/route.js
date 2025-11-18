@@ -1,4 +1,4 @@
-// node-route
+// 외부 노드 요청 API
 import { NextResponse } from "next/server"
 import { API_BASE } from "../apibase"
 import { verifyToken } from "../../utils/authHelper"

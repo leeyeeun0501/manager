@@ -78,7 +78,11 @@ export default function InquiryPage() {
       }))
       setInquiries(mappedList)
     } catch (err) {
-      setInquiries([])
+      // 세션 만료 에러는 전역 처리기(handleTokenExpired)에 맡기고, 그 외의 에러만 처리합니다.
+      if (err.message !== "세션 만료") {
+        console.error("문의 목록 로딩 실패:", err)
+        setInquiries([])
+      }
     }
     setLoading(false)
   }, [])

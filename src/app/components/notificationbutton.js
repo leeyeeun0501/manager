@@ -43,7 +43,7 @@ export default function NotificationButton() {
 
   return (
     <button
-      onClick={() => router.push("/inquiry")}
+      onClick={() => router.push("/inquiry-manage")}
       aria-label="문의 관리로 이동"
       style={{
         background: "transparent",

@@ -109,6 +109,12 @@ export const parseJsonResponse = async (response) => {
     const data = await response.json()
     
     if (!response.ok) {
+      // 서버가 401 대신 특정 메시지로 세션 만료를 알리는 경우에 대한 예외 처리
+      const errorMessage = data.message || data.error || ''
+      if (errorMessage.includes('문의 목록을 불러올 수 없습니다') || errorMessage.includes('토큰')) {
+        handleTokenExpired()
+        return Promise.reject(new Error("세션 만료"))
+      }
       throw new Error(data.message || data.error || '요청에 실패했습니다.')
     }
     return data
@@ -145,6 +151,7 @@ export const logout = (redirect = true) => {
     localStorage.removeItem('userId')
     localStorage.removeItem('userName')
     localStorage.removeItem('islogin')
+    sessionStorage.removeItem("passwordVerified") // sessionStorage 항목도 삭제
     if (redirect) {
       window.location.href = '/login'
     }

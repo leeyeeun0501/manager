@@ -272,10 +272,9 @@
 }
 
 .searchContainer {
-  margin-bottom: 20px;
+  margin-bottom: 20px; /* 테이블과의 간격 */
   display: flex;
   justify-content: flex-end;
-  padding-right: 200px;
 }
 
 .toastPopup {

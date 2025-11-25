@@ -91,7 +91,7 @@ export default function UserManagePage() {
       <Menu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <div className={styles.userContent}>
         <>
-          {/* 검색 입력 */}
+          {/* 검색 입력 - 테이블과 분리 */}
           <div className={styles.searchContainer}>
             <input
               type="text"
@@ -101,7 +101,7 @@ export default function UserManagePage() {
               className={styles["search-input"]}
             />
           </div>
-
+          
           <div className={styles["room-manage-table-wrap"]}>
             <table className={`${styles["user-table"]} ${styles["center-table"]} ${styles["bordered-table"]}`}>
             <thead>

@@ -34,23 +34,39 @@
   margin-bottom: 40px;
 }
 
-.userTable {
+/* room-manage-table-wrap 클래스 추가 */
+.room-manage-table-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* user-table 클래스명으로 변경 및 스타일 통일 */
+.user-table {
   width: 100%;
-  max-width: 1500px;
   table-layout: fixed;
   border-collapse: collapse;
-  background: #fff;
+  overflow: hidden;
+  margin: 0;
+}
+
+/* bordered-table 클래스 추가 */
+.bordered-table {
   border-radius: 14px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   overflow: hidden;
   margin: 0 auto;
 }
 
-.userTable th,
-.userTable td {
+.user-table th,
+.user-table td {
   border: 1px solid #eee;
-  padding: 8px 6px;
-  text-align: center;
+  padding: 14px 8px; /* 상하 여백을 14px로 늘려서 행 높이 확보 */
+  text-align: center; 
   font-size: 0.9rem;
   word-break: break-all;
   overflow: hidden;
@@ -59,25 +75,19 @@
   box-sizing: border-box;
 }
 
-.userTable th:nth-child(1), .userTable td:nth-child(1) { width: 12%; }
-.userTable th:nth-child(2), .userTable td:nth-child(2) { width: 10%; }
-.userTable th:nth-child(3), .userTable td:nth-child(3) { width: 12%; }
-.userTable th:nth-child(4), .userTable td:nth-child(4) { width: 16%; }
-.userTable th:nth-child(5), .userTable td:nth-child(5) { width: 28%; }
-.userTable th:nth-child(6), .userTable td:nth-child(6) { width: 16%; }
-.userTable th:nth-child(7), .userTable td:nth-child(7) { width: 6%; }
+.user-table th:nth-child(1), .user-table td:nth-child(1) { width: 12%; }
+.user-table th:nth-child(2), .user-table td:nth-child(2) { width: 10%; }
+.user-table th:nth_child(3), .user-table td:nth-child(3) { width: 12%; }
+.user-table th:nth-child(4), .user-table td:nth-child(4) { width: 16%; }
+.user-table th:nth-child(5), .user-table td:nth-child(5) { width: 28%; }
+.user-table th:nth-child(6), .user-table td:nth-child(6) { width: 16%; }
+.user-table th:nth-child(7), .user-table td:nth-child(7) { width: 6%; }
 
-.userTable th {
+.user-table th {
   background: #eaf2fd;
   font-weight: 800;
   color: #2574f5;
   font-size: 1.05rem;
-}
-
-.emailTrashCell {
-  position: relative;
-  text-align: left;
-  padding-right: 38px;
 }
 
 .emailTrashCell span {
@@ -101,7 +111,6 @@
 
 .centerTable {
   width: 100%;
-  max-width: 1500px;
   margin: 0 auto;
 }
 
@@ -111,34 +120,34 @@
   position: relative;
 }
 
-.userTable tr:hover {
+.user-table tr:hover {
   background: #f1f7ff;
 }
 
-.userPaginationRow {
+/* room-manage-pagination-row 클래스명으로 변경 */
+.room-manage-pagination-row {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 18px;
-  margin-top: 16px;
-  margin-bottom: 2px;
+  padding: 16px 0;
 }
 
-.userPaginationBtn {
+/* room-manage-pagination-btn 클래스명으로 변경 */
+.room-manage-pagination-btn {
   padding: 7px 18px;
   border-radius: 9px;
   border: 1.5px solid #b3d1fa;
-  background: #f5faff;
+  background: #fff;
   font-weight: 700;
   cursor: pointer;
   font-size: 1rem;
   color: #2574f5;
-  transition: background 0.15s, border 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
 
-.userPaginationBtn:hover:not(:disabled) {
+.room-manage-pagination-btn:hover:not(:disabled) {
   background: #eaf2fd;
-  border: 1.5px solid #2574f5;
 }
 
 .userPaginationBtn:disabled {
@@ -146,7 +155,8 @@
   cursor: not-allowed;
 }
 
-.userPaginationInfo {
+/* room-manage-pagination-info 클래스명으로 변경 */
+.room-manage-pagination-info {
   font-size: 1.07rem;
   font-weight: 700;
   color: #2574f5;
@@ -176,13 +186,13 @@
 }
 
 @media (max-width: 1400px) {
-  .userTable th:nth-child(1), .userTable td:nth-child(1) { width: 11%; }
-  .userTable th:nth-child(2), .userTable td:nth-child(2) { width: 9%; }
-  .userTable th:nth-child(3), .userTable td:nth-child(3) { width: 11%; }
-  .userTable th:nth-child(4), .userTable td:nth-child(4) { width: 15%; }
-  .userTable th:nth-child(5), .userTable td:nth-child(5) { width: 30%; }
-  .userTable th:nth-child(6), .userTable td:nth-child(6) { width: 18%; }
-  .userTable th:nth-child(7), .userTable td:nth-child(7) { width: 6%; }
+  .user-table th:nth-child(1), .user-table td:nth-child(1) { width: 11%; }
+  .user-table th:nth-child(2), .user-table td:nth-child(2) { width: 9%; }
+  .user-table th:nth-child(3), .user-table td:nth-child(3) { width: 11%; }
+  .user-table th:nth-child(4), .user-table td:nth-child(4) { width: 15%; }
+  .user-table th:nth-child(5), .user-table td:nth-child(5) { width: 30%; }
+  .user-table th:nth-child(6), .user-table td:nth-child(6) { width: 18%; }
+  .user-table th:nth-child(7), .user-table td:nth-child(7) { width: 6%; }
   
 }
 
@@ -191,27 +201,27 @@
     padding: 0 15px;
   }
   
-  .userTable {
+  .user-table {
     max-width: 1500px;
   }
   
   .centerTable {
     max-width: 1500px;
   }
-  
-  .userTable th,
-  .userTable td {
+
+  .user-table th,
+  .user-table td {
     padding: 6px 4px;
     font-size: 0.85rem;
   }
   
-  .userTable th:nth-child(1), .userTable td:nth-child(1) { width: 10%; }
-  .userTable th:nth-child(2), .userTable td:nth-child(2) { width: 8%; }
-  .userTable th:nth-child(3), .userTable td:nth-child(3) { width: 10%; }
-  .userTable th:nth-child(4), .userTable td:nth-child(4) { width: 14%; }
-  .userTable th:nth-child(5), .userTable td:nth-child(5) { width: 32%; }
-  .userTable th:nth-child(6), .userTable td:nth-child(6) { width: 20%; }
-  .userTable th:nth-child(7), .userTable td:nth-child(7) { width: 6%; }
+  .user-table th:nth-child(1), .user-table td:nth-child(1) { width: 10%; }
+  .user-table th:nth-child(2), .user-table td:nth-child(2) { width: 8%; }
+  .user-table th:nth-child(3), .user-table td:nth-child(3) { width: 10%; }
+  .user-table th:nth-child(4), .user-table td:nth-child(4) { width: 14%; }
+  .user-table th:nth-child(5), .user-table td:nth-child(5) { width: 32%; }
+  .user-table th:nth-child(6), .user-table td:nth-child(6) { width: 20%; }
+  .user-table th:nth-child(7), .user-table td:nth-child(7) { width: 6%; }
   
   .search-input {
     width: 250px;
@@ -224,27 +234,27 @@
     padding: 0 10px;
   }
   
-  .userTable {
+  .user-table {
     max-width: 2000px;
   }
   
   .centerTable {
     max-width: 2000px;
   }
-  
-  .userTable th,
-  .userTable td {
+
+  .user-table th,
+  .user-table td {
     padding: 4px 2px;
     font-size: 0.8rem;
   }
   
-  .userTable th:nth-child(1), .userTable td:nth-child(1) { width: 10%; }
-  .userTable th:nth-child(2), .userTable td:nth-child(2) { width: 8%; }
-  .userTable th:nth-child(3), .userTable td:nth-child(3) { width: 10%; }
-  .userTable th:nth-child(4), .userTable td:nth-child(4) { width: 14%; }
-  .userTable th:nth-child(5), .userTable td:nth-child(5) { width: 32%; }
-  .userTable th:nth-child(6), .userTable td:nth-child(6) { width: 20%; }
-  .userTable th:nth-child(7), .userTable td:nth-child(7) { width: 6%; }
+  .user-table th:nth-child(1), .user-table td:nth-child(1) { width: 10%; }
+  .user-table th:nth-child(2), .user-table td:nth-child(2) { width: 8%; }
+  .user-table th:nth-child(3), .user-table td:nth-child(3) { width: 10%; }
+  .user-table th:nth-child(4), .user-table td:nth-child(4) { width: 14%; }
+  .user-table th:nth-child(5), .user-table td:nth-child(5) { width: 32%; }
+  .user-table th:nth-child(6), .user-table td:nth-child(6) { width: 20%; }
+  .user-table th:nth-child(7), .user-table td:nth-child(7) { width: 6%; }
   
   .search-input {
     width: 200px;
@@ -252,7 +262,8 @@
   }
 }
 
-.noData {
+/* noDataCell 클래스명으로 변경 */
+.noDataCell {
   text-align: center;
   padding: 40px 20px;
   color: #666;
@@ -287,6 +298,7 @@
   margin: 20px;
 }
 
+/* tableWrapper 클래스 제거 (room-manage-table-wrap으로 대체) */
 .tableWrapper {
   width: 100%;
   overflow: hidden;

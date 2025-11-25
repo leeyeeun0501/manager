@@ -102,8 +102,8 @@ export default function UserManagePage() {
             />
           </div>
 
-          <div className={styles.tableWrapper}>
-            <table className={`${styles.userTable} ${styles.centerTable}`}>
+          <div className={styles["room-manage-table-wrap"]}>
+            <table className={`${styles["user-table"]} ${styles["center-table"]} ${styles["bordered-table"]}`}>
             <thead>
               <tr>
                 <th>아이디</th>
@@ -154,7 +154,7 @@ export default function UserManagePage() {
               ) : (
                 <tr>
                   <td colSpan={7} className={styles.noData}>
-                    {error ? error : "사용자 데이터가 없습니다."}
+                    {loading ? "데이터를 불러오는 중입니다..." : (error ? error : "사용자 데이터가 없습니다.")}
                   </td>
                 </tr>
               )}
@@ -163,19 +163,19 @@ export default function UserManagePage() {
           </div>
 
           {/* 페이징 */}
-          <div className={styles.userPaginationRow}>
+          <div className={styles["room-manage-pagination-row"]}>
             <button
-              className={styles.userPaginationBtn}
+              className={styles["room-manage-pagination-btn"]}
               disabled={currentPage === 1}
               onClick={goToPrevPage}
             >
               이전
             </button>
-            <span className={styles.userPaginationInfo}>
+            <span className={styles["room-manage-pagination-info"]}>
               {currentPage} / {totalPages}
             </span>
             <button
-              className={styles.userPaginationBtn}
+              className={styles["room-manage-pagination-btn"]}
               disabled={currentPage >= totalPages}
               onClick={goToNextPage}
             >
